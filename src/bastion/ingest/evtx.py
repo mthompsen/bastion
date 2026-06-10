@@ -1,0 +1,95 @@
+"""Windows EVTX ingestion.
+
+Uses ``python-evtx`` to walk the binary event log, then normalizes each
+record's XML into an Event: the ``<System>`` block contributes ``EventID``,
+``Channel``, ``Computer`` and ``Provider``; every ``<EventData><Data Name=…>``
+element (Sysmon's ``Image``, ``CommandLine``, ``ParentImage``, ``User``,
+``DestinationIp``, …) lands in ``Event.fields`` under its own name.
+Records that fail to decode or parse are skipped with a warning.
+"""
+
+from __future__ import annotations
+
+import logging
+import re
+from collections.abc import Iterator
+from datetime import datetime
+from pathlib import Path
+from xml.etree import ElementTree
+
+from Evtx.Evtx import Evtx
+
+from bastion.models import Event, FieldValue
+
+logger = logging.getLogger(__name__)
+
+# Trim sub-microsecond precision (EVTX uses 100ns ticks) so fromisoformat accepts it.
+_FRACTION_RE = re.compile(r"(\.\d{6})\d+")
+
+
+def _parse_system_time(value: str) -> datetime | None:
+    normalized = _FRACTION_RE.sub(r"\1", value.strip().replace("Z", "+00:00"))
+    try:
+        return datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+
+
+def xml_to_event(xml_str: str, source: str) -> Event | None:
+    """Normalize one Windows event-XML record into an Event.
+
+    Returns None (after logging a warning) when the XML is malformed.
+    """
+    try:
+        root = ElementTree.fromstring(xml_str)
+    except ElementTree.ParseError as exc:
+        logger.warning("%s: skipping malformed event XML: %s", source, exc)
+        return None
+
+    fields: dict[str, FieldValue] = {}
+    timestamp: datetime | None = None
+
+    system = root.find("{*}System")
+    if system is not None:
+        event_id = system.find("{*}EventID")
+        if event_id is not None and event_id.text and event_id.text.strip().isdigit():
+            fields["EventID"] = int(event_id.text.strip())
+        for tag in ("Channel", "Computer"):
+            element = system.find(f"{{*}}{tag}")
+            if element is not None and element.text:
+                fields[tag] = element.text.strip()
+        provider = system.find("{*}Provider")
+        if provider is not None and provider.get("Name"):
+            fields["Provider"] = provider.get("Name")
+        time_created = system.find("{*}TimeCreated")
+        if time_created is not None and (system_time := time_created.get("SystemTime")):
+            timestamp = _parse_system_time(system_time)
+
+    for data in root.iterfind("{*}EventData/{*}Data"):
+        name = data.get("Name")
+        if name:
+            fields[name] = data.text if data.text is not None else ""
+
+    return Event(
+        timestamp=timestamp,
+        platform="windows",
+        source=source,
+        fields=fields,
+        raw=xml_str,
+    )
+
+
+class EvtxSource:
+    """Parse Windows .evtx files into normalized Events."""
+
+    def parse(self, path: Path) -> Iterator[Event]:
+        with Evtx(str(path)) as log:
+            for record in log.records():
+                try:
+                    xml_str = record.xml()
+                except Exception as exc:  # one bad record never aborts the parse
+                    logger.warning("%s: skipping unreadable record: %s", path, exc)
+                    continue
+                event = xml_to_event(xml_str, source=path.name)
+                if event is not None:
+                    yield event

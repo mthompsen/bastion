@@ -1,0 +1,9 @@
+Jun 10 06:12:01 web01 sshd[412]: Accepted password for alice from 10.0.0.5 port 51022 ssh2
+Jun 10 06:12:01 web01 sshd[412]: pam_unix(sshd:session): session opened for user alice(uid=1000) by (uid=0)
+Jun 10 06:13:44 web01 sshd[498]: Failed password for invalid user admin from 203.0.113.7 port 40022 ssh2
+Jun 10 06:14:02 web01 sudo:    alice : TTY=pts/0 ; PWD=/home/alice ; USER=root ; COMMAND=/usr/bin/cat /etc/shadow
+Jun 10 06:15:00 web01 CRON[612]: pam_unix(cron:session): session opened for user root by (uid=0)
+this line is not syslog at all
+2026-06-10T06:16:30.123456+00:00 web01 sshd[733]: Failed password for root from 203.0.113.7 port 40188 ssh2
+Jun 10 06:17:09 web01 systemd-logind: New session 31 of user bob.
+
