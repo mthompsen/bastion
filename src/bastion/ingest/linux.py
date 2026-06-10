@@ -2,14 +2,14 @@
 
 Supports the two common syslog line shapes:
 
-* classic BSD format — ``Jun 10 06:12:01 host sshd[412]: message``
-  (note: this format carries no year; the current year is assumed)
-* ISO-8601 / RFC 5424-style timestamps —
+* classic BSD format: ``Jun 10 06:12:01 host sshd[412]: message``
+  (this format carries no year; the current year is assumed)
+* ISO-8601 / RFC 5424-style timestamps:
   ``2026-06-10T06:12:01.123456+00:00 host sshd[412]: message``
 
 Each well-formed line becomes one Event with normalized fields
 (``process``, ``pid``, ``host``, ``message`` and, where extractable,
-``user``). Malformed lines are skipped with a warning, never a crash.
+``user``). Malformed lines are skipped with a warning.
 """
 
 from __future__ import annotations

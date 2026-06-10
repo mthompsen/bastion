@@ -1,4 +1,4 @@
-"""Bastion — a Sigma/ATT&CK detection engine for host log files.
+"""Bastion: a Sigma/ATT&CK detection engine for host log files.
 
 Bastion ingests Windows EVTX or Linux auth/syslog files, evaluates them
 against the public Sigma ruleset, enriches matches with MITRE ATT&CK

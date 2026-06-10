@@ -1,0 +1,5 @@
+title: Broken Rule
+detection:
+    selection:
+        Image: [unclosed
+condition: selection

@@ -1,0 +1,5 @@
+# A valid YAML file that is not a Sigma rule (no detection block).
+name: just-some-config
+values:
+    - 1
+    - 2

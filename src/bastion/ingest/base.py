@@ -35,7 +35,7 @@ def select_source(path: Path, platform_override: Platform | None = None) -> LogS
     The file extension decides when it is unambiguous (``.evtx`` is always
     Windows; ``.log``/``.txt``/``.syslog`` are always Linux-style text).
     Otherwise the explicit ``platform_override`` wins, falling back to the
-    host OS — the default platform is the one the tool is running on.
+    host OS, so the default platform is the one the tool is running on.
     """
     from bastion.ingest.evtx import EvtxSource
     from bastion.ingest.linux import LinuxLogSource

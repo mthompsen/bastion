@@ -1,0 +1,65 @@
+# Bastion detection report
+
+**Log file:** `{{ ctx.logfile }}` ({{ ctx.platform }})
+**Datasets:** Sigma {{ ctx.sigma_version or "(custom rules dir)" }} · ATT&CK {% if ctx.attack_version %}v{{ ctx.attack_version }}{% else %}(custom bundle){% endif %}
+
+## Summary
+
+| | |
+|---|---|
+| Events scanned | {{ result.events_scanned }} |
+| Rules loaded | {{ result.rules_loaded }} |
+| Detections | {{ result.detections | length }} |
+| Techniques observed | {{ techniques_hit | length }} |
+| Ruleset coverage | {{ summary.covered_count }} of {{ summary.total_count }} enterprise techniques |
+| **Blind spots** | **{{ uncovered_count }} techniques with no detection rule** |
+
+{% if ctx.unsupported_rule_count or ctx.rule_error_count %}
+> **Evaluation caveats:** {{ ctx.unsupported_rule_count }} rules use Sigma grammar outside the
+> supported subset and were not evaluated; {{ ctx.rule_error_count }} rules errored and were
+> skipped. Neither group counts toward coverage.
+{% endif %}
+{% if ctx.unresolved_techniques %}
+> **Unresolved technique tags** (deprecated or unknown in this ATT&CK release):
+> {{ ctx.unresolved_techniques | join(", ") }}
+{% endif %}
+
+## Detections
+
+{% if result.detections %}
+| Rule | Level | ATT&CK | Evidence |
+|---|---|---|---|
+{% for detection in result.detections %}
+| {{ detection.rule_title | mdcell }} | {{ detection.level }} | {% for ref in detection.techniques %}{{ ref.id }} {{ ref.name | mdcell }}{% if not loop.last %}, {% endif %}{% else %}-{% endfor %} | {% for key, value in detection.matched_fields.items() %}`{{ key | mdcell }}={{ value | mdcell }}`{% if not loop.last %} {% endif %}{% endfor %} |
+{% endfor %}
+{% else %}
+No detections.
+{% endif %}
+
+## ATT&CK coverage of the loaded ruleset
+
+The loaded ruleset references **{{ summary.covered_count }} of {{ summary.total_count }}**
+enterprise techniques. **{{ uncovered_count }} techniques have no detection rule at all.**
+A covered technique has at least one rule tagged to it; that is a much weaker statement than
+"this activity would be detected."
+
+| Tactic | Covered | Total | Share |
+|---|---|---|---|
+{% for tactic, (covered, total) in summary.tactic_totals.items() %}
+| {{ tactic }} | {{ covered }} | {{ total }} | {{ "%.0f" | format(covered / total * 100) }}% |
+{% endfor %}
+
+### Blind spots by tactic
+
+{% for tactic, buckets in coverage_groups.items() %}
+{% if buckets.uncovered %}
+- **{{ tactic }}** ({{ buckets.uncovered | length }} uncovered): {% for entry in buckets.uncovered %}{{ entry.technique.id }}{% if not loop.last %}, {% endif %}{% endfor %}
+
+{% endif %}
+{% endfor %}
+{% if summary.unknown_technique_ids %}
+### Rule tags not in this ATT&CK release
+
+{{ summary.unknown_technique_ids | join(", ") }}. These ids are deprecated or unknown in the
+loaded bundle and are excluded from the coverage counts above.
+{% endif %}

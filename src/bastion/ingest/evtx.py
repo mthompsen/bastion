@@ -2,10 +2,11 @@
 
 Uses ``python-evtx`` to walk the binary event log, then normalizes each
 record's XML into an Event: the ``<System>`` block contributes ``EventID``,
-``Channel``, ``Computer`` and ``Provider``; every ``<EventData><Data Name=…>``
-element (Sysmon's ``Image``, ``CommandLine``, ``ParentImage``, ``User``,
-``DestinationIp``, …) lands in ``Event.fields`` under its own name.
-Records that fail to decode or parse are skipped with a warning.
+``Channel``, ``Computer`` and ``Provider``, and every
+``<EventData><Data Name=...>`` element (Sysmon's ``Image``, ``CommandLine``,
+``ParentImage``, ``User``, ``DestinationIp``, and so on) lands in
+``Event.fields`` under its own name. Records that fail to decode or parse
+are skipped with a warning.
 """
 
 from __future__ import annotations
@@ -87,7 +88,7 @@ class EvtxSource:
             for record in log.records():
                 try:
                     xml_str = record.xml()
-                except Exception as exc:  # one bad record never aborts the parse
+                except Exception as exc:  # skip unreadable records, keep parsing
                     logger.warning("%s: skipping unreadable record: %s", path, exc)
                     continue
                 event = xml_to_event(xml_str, source=path.name)

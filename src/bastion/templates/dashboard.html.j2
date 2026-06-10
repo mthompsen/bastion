@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bastion report: {{ ctx.logfile }}</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #c9d1d9; --muted: #8b949e;
+    --critical: #ff5555; --high: #f85149; --medium: #d29922;
+    --low: #58a6ff; --informational: #8b949e;
+    --green: #3fb950; --red: #f85149;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); margin: 0;
+         font: 15px/1.5 "Segoe UI", system-ui, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 32px 0 12px; border-bottom: 1px solid var(--border);
+       padding-bottom: 6px; }
+  h3 { font-size: 15px; margin: 18px 0 8px; color: var(--muted);
+       text-transform: uppercase; letter-spacing: .05em; }
+  .sub { color: var(--muted); margin-bottom: 20px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+          padding: 12px 18px; min-width: 130px; }
+  .stat .num { font-size: 24px; font-weight: 700; }
+  .stat .lbl { color: var(--muted); font-size: 12px; }
+  .stat.warn .num { color: var(--red); }
+  .banner { background: #2d1d10; border: 1px solid #6b4a1b; border-radius: 8px;
+            padding: 10px 14px; margin: 14px 0; color: #e3b341; font-size: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+          padding: 14px 16px; margin: 10px 0; }
+  .card .head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .card .title { font-weight: 600; }
+  .badge { font-size: 11px; font-weight: 700; text-transform: uppercase;
+           border-radius: 10px; padding: 2px 9px; color: #0d1117; }
+  .badge.critical { background: var(--critical); }
+  .badge.high { background: var(--high); }
+  .badge.medium { background: var(--medium); }
+  .badge.low { background: var(--low); }
+  .badge.informational { background: var(--informational); }
+  .tech { color: var(--low); font-size: 13px; }
+  .meta { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  table.evidence { border-collapse: collapse; margin-top: 8px; font-size: 13px; width: 100%; }
+  table.evidence td { border: 1px solid var(--border); padding: 4px 8px;
+                      font-family: Consolas, monospace; word-break: break-all; }
+  table.evidence td.k { color: var(--muted); width: 160px; }
+  pre.raw { background: #0b0e13; border: 1px solid var(--border); border-radius: 6px;
+            padding: 8px 10px; font: 12px/1.4 Consolas, monospace; overflow-x: auto;
+            white-space: pre-wrap; word-break: break-all; color: var(--muted); margin: 8px 0 0; }
+  .bar { background: #21262d; border-radius: 6px; height: 14px; overflow: hidden; }
+  .bar .fill { background: var(--green); height: 100%; }
+  .tactic-row { display: grid; grid-template-columns: 220px 1fr 110px; gap: 12px;
+                align-items: center; margin: 6px 0; }
+  .tactic-row .nums { color: var(--muted); font-size: 13px; text-align: right; }
+  details { margin: 8px 0; }
+  summary { cursor: pointer; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .chip { font: 12px Consolas, monospace; border-radius: 4px; padding: 2px 7px;
+          border: 1px solid var(--border); }
+  .chip.ok { color: var(--green); border-color: #238636; }
+  .chip.miss { color: var(--red); border-color: #6e2c28; }
+  .footer { color: var(--muted); font-size: 12px; margin-top: 36px;
+            border-top: 1px solid var(--border); padding-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Bastion detection report</h1>
+  <div class="sub">
+    Log file <strong>{{ ctx.logfile }}</strong> ({{ ctx.platform }}) ·
+    Sigma {{ ctx.sigma_version or "(custom rules dir)" }} ·
+    ATT&amp;CK {% if ctx.attack_version %}v{{ ctx.attack_version }}{% else %}(custom bundle){% endif %}
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="num">{{ result.events_scanned }}</div><div class="lbl">events scanned</div></div>
+    <div class="stat"><div class="num">{{ result.rules_loaded }}</div><div class="lbl">rules loaded</div></div>
+    <div class="stat"><div class="num">{{ result.detections | length }}</div><div class="lbl">detections</div></div>
+    <div class="stat"><div class="num">{{ techniques_hit | length }}</div><div class="lbl">techniques observed</div></div>
+    <div class="stat"><div class="num">{{ summary.covered_count }}/{{ summary.total_count }}</div><div class="lbl">techniques covered by ruleset</div></div>
+    <div class="stat warn"><div class="num">{{ uncovered_count }}</div><div class="lbl">techniques with no detection rule</div></div>
+  </div>
+
+  {% if ctx.unsupported_rule_count or ctx.rule_error_count %}
+  <div class="banner">
+    Caveats: {{ ctx.unsupported_rule_count }} rules use unsupported Sigma grammar and were not
+    evaluated; {{ ctx.rule_error_count }} rules errored and were skipped. Neither group counts
+    toward coverage.
+  </div>
+  {% endif %}
+  {% if ctx.unresolved_techniques %}
+  <div class="banner">
+    Technique tags not in this ATT&amp;CK release (deprecated/unknown):
+    {{ ctx.unresolved_techniques | join(", ") }}
+  </div>
+  {% endif %}
+
+  <h2>Detections by ATT&amp;CK tactic</h2>
+  {% if not result.detections %}
+  <p>No detections in this log.</p>
+  {% endif %}
+  {% for tactic, detections in detection_groups.items() %}
+  <h3>{{ tactic }} ({{ detections | length }})</h3>
+  {% for detection in detections %}
+  <div class="card">
+    <div class="head">
+      <span class="badge {{ detection.level }}">{{ detection.level }}</span>
+      <span class="title">{{ detection.rule_title }}</span>
+      <span class="tech">
+        {% for ref in detection.techniques %}{{ ref.id }} {{ ref.name }}{% if not loop.last %} · {% endif %}{% endfor %}
+      </span>
+    </div>
+    <div class="meta">
+      {{ detection.event.source }}
+      {% if detection.event.timestamp %} · {{ detection.event.timestamp.isoformat() }}{% endif %}
+      · rule {{ detection.rule_id }}
+    </div>
+    <table class="evidence">
+      {% for key, value in detection.matched_fields.items() %}
+      <tr><td class="k">{{ key }}</td><td>{{ value }}</td></tr>
+      {% endfor %}
+    </table>
+    <pre class="raw">{{ detection.event.raw }}</pre>
+  </div>
+  {% endfor %}
+  {% endfor %}
+
+  <h2>ATT&amp;CK coverage of the loaded ruleset</h2>
+  <p>
+    The ruleset references <strong>{{ summary.covered_count }} of {{ summary.total_count }}</strong>
+    enterprise techniques. <strong style="color: var(--red)">{{ uncovered_count }} techniques have
+    no detection rule at all.</strong> A green chip below means at least one rule is tagged to the
+    technique, which is not the same as saying the activity would be detected.
+  </p>
+  {% for tactic, buckets in coverage_groups.items() %}
+  {% set covered = buckets.covered | length %}
+  {% set total = covered + (buckets.uncovered | length) %}
+  <div class="tactic-row">
+    <div>{{ tactic }}</div>
+    <div class="bar"><div class="fill" style="width: {{ (covered / total * 100) | round }}%"></div></div>
+    <div class="nums">{{ covered }} / {{ total }}</div>
+  </div>
+  {% endfor %}
+
+  <details>
+    <summary>Per-technique detail (green = at least one rule, red = blind spot)</summary>
+    {% for tactic, buckets in coverage_groups.items() %}
+    <h3>{{ tactic }}</h3>
+    <div class="chips">
+      {% for entry in buckets.covered %}
+      <span class="chip ok" title="{{ entry.technique.name }}: {{ entry.rule_count }} rule(s)">{{ entry.technique.id }}</span>
+      {% endfor %}
+      {% for entry in buckets.uncovered %}
+      <span class="chip miss" title="{{ entry.technique.name }}: no rules">{{ entry.technique.id }}</span>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </details>
+
+  {% if summary.unknown_technique_ids %}
+  <h2>Rule tags not in this ATT&amp;CK release</h2>
+  <p class="sub">{{ summary.unknown_technique_ids | join(", ") }}. Deprecated or unknown in the
+  loaded bundle; excluded from the coverage counts.</p>
+  {% endif %}
+
+  <div class="footer">
+    Generated by Bastion, a defensive detection engine. It reads logs you own and recognizes
+    traces of known techniques; it never attacks anything. This page is self-contained and makes
+    no network requests.
+  </div>
+</div>
+</body>
+</html>

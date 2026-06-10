@@ -1,0 +1,30 @@
+title: Suspicious Encoded PowerShell Command
+id: 11111111-1111-4111-8111-111111111111
+status: test
+description: Detects PowerShell launched with an encoded command, a common obfuscation technique.
+references:
+    - https://attack.mitre.org/techniques/T1059/001/
+author: Bastion fixtures
+date: 2026-06-10
+tags:
+    - attack.execution
+    - attack.defense_evasion
+    - attack.t1059.001
+logsource:
+    product: windows
+    category: process_creation
+detection:
+    selection_img:
+        Image|endswith:
+            - '\powershell.exe'
+            - '\pwsh.exe'
+    selection_cli:
+        CommandLine|contains:
+            - ' -enc '
+            - ' -encodedcommand '
+    filter_legit:
+        ParentImage|endswith: '\msbuild.exe'
+    condition: selection_img and selection_cli and not filter_legit
+falsepositives:
+    - Administrative scripts
+level: high

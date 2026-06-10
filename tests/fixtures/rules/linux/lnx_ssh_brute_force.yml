@@ -1,0 +1,17 @@
+title: SSH Failed Login For Invalid User
+id: 22222222-2222-4222-8222-222222222222
+status: test
+description: Detects failed SSH authentication for an invalid user account.
+author: Bastion fixtures
+date: 2026-06-10
+tags:
+    - attack.credential-access
+    - attack.t1110
+logsource:
+    product: linux
+    service: auth
+detection:
+    keywords:
+        - 'Failed password for invalid user'
+    condition: keywords
+level: medium

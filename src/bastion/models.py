@@ -18,7 +18,7 @@ FieldValue = str | int | None
 
 
 class Event(BaseModel):
-    """A single normalized log record — the common shape both ingesters emit."""
+    """A single normalized log record, the common shape both ingesters emit."""
 
     timestamp: datetime | None = None
     platform: Platform
