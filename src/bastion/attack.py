@@ -44,27 +44,60 @@ def _tactics(obj: dict[str, Any]) -> list[str]:
 
 
 def load_attack_data(stix_path: Path) -> AttackData:
-    """Parse a STIX bundle into a technique lookup plus the bundle version."""
+    """Parse a STIX bundle into a technique lookup plus the bundle version.
+
+    Besides the attack-pattern objects, this walks ATT&CK's detection
+    metadata (detection strategies -> analytics -> log sources, linked to
+    techniques via ``detects`` relationships) so each TechniqueRef records
+    which log sources ATT&CK says can observe it.
+    """
     bundle: dict[str, Any] = json.loads(stix_path.read_text(encoding="utf-8"))
     data = AttackData()
+    stix_to_attack: dict[str, str] = {}
+    analytic_log_sources: dict[str, list[str]] = {}
+    strategy_analytics: dict[str, list[str]] = {}
+    detects: list[tuple[str, str]] = []
+
     for obj in bundle.get("objects", []):
         obj_type = obj.get("type")
         if obj_type == "x-mitre-collection":
             data.version = obj.get("x_mitre_version")
+        elif obj_type == "x-mitre-analytic":
+            analytic_log_sources[str(obj.get("id"))] = [
+                str(ref["name"])
+                for ref in obj.get("x_mitre_log_source_references", [])
+                if ref.get("name")
+            ]
+        elif obj_type == "x-mitre-detection-strategy":
+            strategy_analytics[str(obj.get("id"))] = [
+                str(ref) for ref in obj.get("x_mitre_analytic_refs", [])
+            ]
+        elif obj_type == "relationship" and obj.get("relationship_type") == "detects":
+            detects.append((str(obj.get("source_ref")), str(obj.get("target_ref"))))
+        elif obj_type == "attack-pattern":
+            if obj.get("revoked") or obj.get("x_mitre_deprecated"):
+                continue
+            attack_id = _attack_id(obj)
+            if attack_id is None:
+                continue
+            stix_to_attack[str(obj.get("id"))] = attack_id.upper()
+            data.techniques[attack_id.upper()] = TechniqueRef(
+                id=attack_id.upper(),
+                name=str(obj.get("name", "")),
+                tactics=_tactics(obj),
+                platforms=[str(p) for p in obj.get("x_mitre_platforms", [])],
+            )
+
+    for strategy_ref, technique_ref in detects:
+        attack_id_for_ref = stix_to_attack.get(technique_ref)
+        if attack_id_for_ref is None:
             continue
-        if obj_type != "attack-pattern":
-            continue
-        if obj.get("revoked") or obj.get("x_mitre_deprecated"):
-            continue
-        attack_id = _attack_id(obj)
-        if attack_id is None:
-            continue
-        data.techniques[attack_id.upper()] = TechniqueRef(
-            id=attack_id.upper(),
-            name=str(obj.get("name", "")),
-            tactics=_tactics(obj),
-            platforms=[str(p) for p in obj.get("x_mitre_platforms", [])],
-        )
+        names: set[str] = set()
+        for analytic_ref in strategy_analytics.get(strategy_ref, []):
+            names.update(analytic_log_sources.get(analytic_ref, []))
+        if names:
+            technique = data.techniques[attack_id_for_ref]
+            technique.log_sources = sorted(set(technique.log_sources) | names)
     return data
 
 

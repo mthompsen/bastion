@@ -26,10 +26,12 @@ Most scanning tools only report what they found, which quietly implies visibilit
 have. Bastion treats the denominator as part of the result. Every run reports:
 
 - Blind spots. The full enterprise ATT&CK matrix is the baseline, so the coverage map names
-  every technique with zero rules, per tactic, instead of only listing the covered ones. It
-  also splits the uncovered count using ATT&CK's platform metadata: techniques with no
-  Windows/Linux component (cloud control planes, network devices, pre-compromise
-  infrastructure) can never appear in host logs, while the rest are genuine gaps more rules
+  every technique with zero rules, per tactic, instead of only listing the covered ones. The
+  uncovered count is then split three ways using ATT&CK's platform metadata and
+  detection-strategy log sources: techniques with no Windows/Linux component (cloud control
+  planes, network devices, pre-compromise infrastructure), techniques detectable only via
+  telemetry Bastion does not read (EDR memory sensors, auditd, network monitoring), and
+  writable gaps that ATT&CK maps to Windows event logs or Linux syslog, which more rules
   could close.
 - What wasn't evaluable. Bastion implements a documented subset of the Sigma grammar; rules
   outside it (aggregations, unsupported modifiers) are counted and disclosed rather than

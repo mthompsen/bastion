@@ -34,6 +34,8 @@ class TechniqueRef(BaseModel):
     name: str
     tactics: list[str] = Field(default_factory=list)
     platforms: list[str] = Field(default_factory=list)
+    #: log source names from ATT&CK's detection strategies (e.g. "WinEventLog:Sysmon")
+    log_sources: list[str] = Field(default_factory=list)
 
 
 class SigmaRule(BaseModel):

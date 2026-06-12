@@ -19,6 +19,27 @@ from bastion.models import CoverageEntry, SigmaRule, TechniqueRef
 #: ATT&CK platform names a host-log scanner can observe.
 HOST_PLATFORMS = frozenset({"windows", "linux"})
 
+#: ATT&CK log source names Bastion can actually read: any Windows event
+#: log channel (EVTX ingestion carries whatever the file contains) and
+#: plain Linux syslog/auth text.
+_READABLE_PREFIX = "wineventlog:"
+_READABLE_NAMES = frozenset({"linux:syslog"})
+
+
+def telemetry_readable(technique: TechniqueRef) -> bool:
+    """Do any of ATT&CK's detection strategies for this technique rely on a
+    log source Bastion ingests?
+
+    Techniques without detection-strategy metadata count as readable, so
+    the writable-gap count never understates the work remaining.
+    """
+    if not technique.log_sources:
+        return True
+    return any(
+        source.lower().startswith(_READABLE_PREFIX) or source.lower() in _READABLE_NAMES
+        for source in technique.log_sources
+    )
+
 
 def host_relevant(technique: TechniqueRef) -> bool:
     """Can this technique, per ATT&CK's platform metadata, occur on a
@@ -47,8 +68,10 @@ class CoverageSummary:
     tactic_totals: dict[str, tuple[int, int]] = field(default_factory=dict)
     #: technique ids tagged by rules but unknown to ATT&CK (deprecated, typos)
     unknown_technique_ids: list[str] = field(default_factory=list)
-    #: uncovered techniques that could occur on a Windows/Linux host
-    uncovered_host_gap_count: int = 0
+    #: uncovered techniques observable in the telemetry Bastion reads
+    uncovered_gap_count: int = 0
+    #: uncovered host techniques whose detection needs other telemetry
+    uncovered_beyond_telemetry_count: int = 0
     #: uncovered techniques with no Windows/Linux component in ATT&CK
     uncovered_beyond_host_count: int = 0
 
@@ -77,7 +100,8 @@ def summarize_coverage(
     entries = compute_coverage(rules, attack_lookup)
     covered = sum(1 for entry in entries if entry.covered)
     uncovered_entries = [entry for entry in entries if not entry.covered]
-    host_gaps = sum(1 for entry in uncovered_entries if host_relevant(entry.technique))
+    on_host = [entry for entry in uncovered_entries if host_relevant(entry.technique)]
+    writable = sum(1 for entry in on_host if telemetry_readable(entry.technique))
 
     tactic_covered: Counter[str] = Counter()
     tactic_total: Counter[str] = Counter()
@@ -102,6 +126,7 @@ def summarize_coverage(
         total_count=len(entries),
         tactic_totals=tactic_totals,
         unknown_technique_ids=unknown,
-        uncovered_host_gap_count=host_gaps,
-        uncovered_beyond_host_count=len(uncovered_entries) - host_gaps,
+        uncovered_gap_count=writable,
+        uncovered_beyond_telemetry_count=len(on_host) - writable,
+        uncovered_beyond_host_count=len(uncovered_entries) - len(on_host),
     )

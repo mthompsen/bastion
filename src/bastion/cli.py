@@ -218,10 +218,11 @@ def _print_coverage(
         "Coverage counts rules, not proven detections."
     )
     console.print(
-        f"Of those, {summary.uncovered_beyond_host_count} have no Windows/Linux component in "
-        "ATT&CK's platform data and cannot appear in host logs; "
-        f"[bold red]{summary.uncovered_host_gap_count}[/] are host-relevant gaps that more "
-        "rules could close."
+        f"Of those, {summary.uncovered_beyond_host_count} have no Windows/Linux component, "
+        f"{summary.uncovered_beyond_telemetry_count} need telemetry this tool does not read "
+        "(per ATT&CK's detection strategies), and "
+        f"[bold red]{summary.uncovered_gap_count}[/] are writable gaps visible in Windows "
+        "event logs or Linux syslog."
     )
     if summary.unknown_technique_ids:
         ids = ", ".join(summary.unknown_technique_ids)

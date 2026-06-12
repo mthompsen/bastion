@@ -87,7 +87,7 @@ class TestDashboard:
         assert "powershell.exe -nop -w hidden -enc SQBFAFgA" in html
         assert 'class="chip miss"' in html  # uncovered technique chip
         assert 'class="chip ok"' in html
-        assert "techniques with no detection rule" in html
+        assert "writable gaps" in html
 
     def test_raw_log_content_is_html_escaped(self) -> None:
         result, context = build_result()
@@ -98,9 +98,10 @@ class TestDashboard:
     def test_explains_uncovered_split_with_counts(self) -> None:
         result, context = build_result()
         html = render_dashboard(result, SUMMARY, context)
-        assert "host-relevant techniques with no detection rule" in html
-        assert "beyond host-log telemetry" in html
-        assert "Windows or Linux component at all" in html
+        assert "writable gaps: visible in this telemetry, no rule" in html
+        assert "needs telemetry Bastion does not read" in html
+        assert "Linux component at all" in html
+        assert "never understates the work" in html
 
     def test_no_external_resources(self) -> None:
         result, context = build_result()

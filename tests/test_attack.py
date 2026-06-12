@@ -23,6 +23,14 @@ def test_platforms_are_parsed() -> None:
     assert lookup["T1110"].platforms == ["Windows", "Linux", "IaaS"]
 
 
+def test_detection_strategy_log_sources_are_attached() -> None:
+    lookup = load_attack(MINI_STIX)
+    # T1059 has a detection strategy whose analytic names two log sources.
+    assert lookup["T1059"].log_sources == ["WinEventLog:Sysmon", "auditd:SYSCALL"]
+    # Techniques without strategies keep an empty list.
+    assert lookup["T1059.001"].log_sources == []
+
+
 def test_tactics_only_include_mitre_attack_kill_chain() -> None:
     lookup = load_attack(MINI_STIX)
     # The fixture's T1059 also carries a lockheed-martin kill-chain phase.

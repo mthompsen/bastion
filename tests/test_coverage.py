@@ -5,7 +5,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from bastion.attack import load_attack
-from bastion.coverage import compute_coverage, host_relevant, summarize_coverage
+from bastion.coverage import (
+    compute_coverage,
+    host_relevant,
+    summarize_coverage,
+    telemetry_readable,
+)
 from bastion.models import SigmaRule, TechniqueRef
 from bastion.sigma.loader import load_rules
 
@@ -87,7 +92,7 @@ class TestHostRelevance:
         # The gap count must never understate the remaining work.
         assert host_relevant(TechniqueRef(id="T6", name="f", platforms=[]))
 
-    def test_summary_splits_uncovered_by_host_relevance(self) -> None:
+    def test_summary_splits_uncovered_three_ways(self) -> None:
         lookup = {
             "T1059.001": TechniqueRef(
                 id="T1059.001", name="PowerShell", tactics=["execution"], platforms=["Windows"]
@@ -96,16 +101,61 @@ class TestHostRelevance:
                 id="T9100", name="Cloud Only", tactics=["impact"], platforms=["IaaS"]
             ),
             "T9200": TechniqueRef(
-                id="T9200", name="Host Gap", tactics=["impact"], platforms=["Linux"]
+                id="T9200",
+                name="Host Gap",
+                tactics=["impact"],
+                platforms=["Linux"],
+                log_sources=["linux:syslog", "auditd:SYSCALL"],
+            ),
+            "T9300": TechniqueRef(
+                id="T9300",
+                name="Memory Only",
+                tactics=["stealth"],
+                platforms=["Windows"],
+                log_sources=["etw:Microsoft-Windows-Kernel-Process", "macos:unifiedlog"],
             ),
         }
         summary = summarize_coverage([make_rule("a", ["T1059.001"])], lookup)
         assert summary.covered_count == 1
-        assert summary.uncovered_beyond_host_count == 1  # T9100
-        assert summary.uncovered_host_gap_count == 1  # T9200
+        assert summary.uncovered_beyond_host_count == 1  # T9100: no host platform
+        assert summary.uncovered_beyond_telemetry_count == 1  # T9300: no readable source
+        assert summary.uncovered_gap_count == 1  # T9200: syslog-visible
 
     def test_fixture_summary_gap_counts(self) -> None:
-        # The fixture's only uncovered technique (T1059) is host-relevant.
+        # The fixture's only uncovered technique (T1059) is host-relevant and
+        # its detection strategy names a Windows event log source.
         summary = summarize_coverage(RULES, ATTACK)
-        assert summary.uncovered_host_gap_count == 1
+        assert summary.uncovered_gap_count == 1
+        assert summary.uncovered_beyond_telemetry_count == 0
         assert summary.uncovered_beyond_host_count == 0
+
+
+class TestTelemetryReadable:
+    def test_windows_event_log_channels_are_readable(self) -> None:
+        assert telemetry_readable(
+            TechniqueRef(id="T1", name="a", log_sources=["WinEventLog:Sysmon"])
+        )
+        assert telemetry_readable(
+            TechniqueRef(id="T2", name="b", log_sources=["WinEventLog:PowerShell", "NSM:Flow"])
+        )
+
+    def test_linux_syslog_is_readable(self) -> None:
+        assert telemetry_readable(
+            TechniqueRef(id="T3", name="c", log_sources=["linux:syslog"])
+        )
+
+    def test_other_telemetry_is_not(self) -> None:
+        assert not telemetry_readable(
+            TechniqueRef(
+                id="T4",
+                name="d",
+                log_sources=["auditd:SYSCALL", "macos:unifiedlog", "AWS:CloudTrail"],
+            )
+        )
+        assert not telemetry_readable(
+            TechniqueRef(id="T5", name="e", log_sources=["etw:Microsoft-Windows-Threat"])
+        )
+
+    def test_missing_strategy_metadata_counts_as_readable(self) -> None:
+        # The gap count must never understate the remaining work.
+        assert telemetry_readable(TechniqueRef(id="T6", name="f", log_sources=[]))

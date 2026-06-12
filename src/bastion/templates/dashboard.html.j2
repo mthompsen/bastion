@@ -89,8 +89,9 @@
     <div class="stat"><div class="num">{{ result.detections | length }}</div><div class="lbl">detections</div></div>
     <div class="stat"><div class="num">{{ techniques_hit | length }}</div><div class="lbl">techniques observed</div></div>
     <div class="stat"><div class="num">{{ summary.covered_count }}/{{ summary.total_count }}</div><div class="lbl">techniques covered by ruleset</div></div>
-    <div class="stat warn"><div class="num">{{ summary.uncovered_host_gap_count }}</div><div class="lbl">host-relevant techniques with no detection rule</div></div>
-    <div class="stat"><div class="num">{{ summary.uncovered_beyond_host_count }}</div><div class="lbl">uncovered techniques beyond host-log telemetry</div></div>
+    <div class="stat warn"><div class="num">{{ summary.uncovered_gap_count }}</div><div class="lbl">writable gaps: visible in this telemetry, no rule</div></div>
+    <div class="stat"><div class="num">{{ summary.uncovered_beyond_telemetry_count }}</div><div class="lbl">uncovered: needs telemetry Bastion does not read</div></div>
+    <div class="stat"><div class="num">{{ summary.uncovered_beyond_host_count }}</div><div class="lbl">uncovered: no Windows/Linux component</div></div>
   </div>
 
   {% if ctx.unsupported_rule_count or ctx.rule_error_count %}
@@ -161,15 +162,21 @@
     technique, which is not the same as saying the activity would be detected.
   </p>
   <p>
-    The uncovered count splits in two. Per ATT&amp;CK's platform metadata,
-    <strong>{{ summary.uncovered_beyond_host_count }}</strong> of the uncovered techniques have no
-    Windows or Linux component at all: they happen in cloud control planes, identity providers,
-    network devices, ESXi, or on the adversary's own infrastructure before a compromise, so no
-    host-log scanner could ever observe them. The remaining
-    <strong style="color: var(--red)">{{ summary.uncovered_host_gap_count }}</strong> can occur on
-    a monitored host and are genuine gaps that additional rules could close. 100% coverage of
-    this dashboard is therefore not an achievable or honest goal for a host-log tool; closing
-    the host-relevant gap count is.
+    The uncovered count splits three ways, using ATT&amp;CK's platform metadata and the log
+    sources its detection strategies name.
+    <strong>{{ summary.uncovered_beyond_host_count }}</strong> techniques have no Windows or
+    Linux component at all: they happen in cloud control planes, identity providers, network
+    devices, ESXi, or on the adversary's own infrastructure before a compromise, so no host-log
+    scanner could ever observe them.
+    <strong>{{ summary.uncovered_beyond_telemetry_count }}</strong> can occur on a host, but
+    every detection strategy ATT&amp;CK lists for them relies on telemetry Bastion does not
+    read: EDR memory sensors, auditd, eBPF, network monitoring, or macOS sources. The remaining
+    <strong style="color: var(--red)">{{ summary.uncovered_gap_count }}</strong> are writable
+    gaps: ATT&amp;CK maps them to Windows event logs or Linux syslog, the telemetry this tool
+    ingests, and rules in this format could close them. (Techniques without detection-strategy
+    metadata are counted as writable, so the gap number never understates the work.) Full
+    coverage of this matrix is not an achievable or honest goal for a host-log tool; driving
+    the writable-gap count down is.
   </p>
   {% for tactic, buckets in coverage_groups.items() %}
   {% set covered = buckets.covered | length %}

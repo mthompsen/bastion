@@ -88,8 +88,9 @@
     <div class="stat"><div class="num">3</div><div class="lbl">detections</div></div>
     <div class="stat"><div class="num">2</div><div class="lbl">techniques observed</div></div>
     <div class="stat"><div class="num">308/697</div><div class="lbl">techniques covered by ruleset</div></div>
-    <div class="stat warn"><div class="num">216</div><div class="lbl">host-relevant techniques with no detection rule</div></div>
-    <div class="stat"><div class="num">173</div><div class="lbl">uncovered techniques beyond host-log telemetry</div></div>
+    <div class="stat warn"><div class="num">183</div><div class="lbl">writable gaps: visible in this telemetry, no rule</div></div>
+    <div class="stat"><div class="num">33</div><div class="lbl">uncovered: needs telemetry Bastion does not read</div></div>
+    <div class="stat"><div class="num">173</div><div class="lbl">uncovered: no Windows/Linux component</div></div>
   </div>
 
   <div class="banner">
@@ -349,15 +350,21 @@ T1559.001, T1218.010      </span>
     technique, which is not the same as saying the activity would be detected.
   </p>
   <p>
-    The uncovered count splits in two. Per ATT&amp;CK's platform metadata,
-    <strong>173</strong> of the uncovered techniques have no
-    Windows or Linux component at all: they happen in cloud control planes, identity providers,
-    network devices, ESXi, or on the adversary's own infrastructure before a compromise, so no
-    host-log scanner could ever observe them. The remaining
-    <strong style="color: var(--red)">216</strong> can occur on
-    a monitored host and are genuine gaps that additional rules could close. 100% coverage of
-    this dashboard is therefore not an achievable or honest goal for a host-log tool; closing
-    the host-relevant gap count is.
+    The uncovered count splits three ways, using ATT&amp;CK's platform metadata and the log
+    sources its detection strategies name.
+    <strong>173</strong> techniques have no Windows or
+    Linux component at all: they happen in cloud control planes, identity providers, network
+    devices, ESXi, or on the adversary's own infrastructure before a compromise, so no host-log
+    scanner could ever observe them.
+    <strong>33</strong> can occur on a host, but
+    every detection strategy ATT&amp;CK lists for them relies on telemetry Bastion does not
+    read: EDR memory sensors, auditd, eBPF, network monitoring, or macOS sources. The remaining
+    <strong style="color: var(--red)">183</strong> are writable
+    gaps: ATT&amp;CK maps them to Windows event logs or Linux syslog, the telemetry this tool
+    ingests, and rules in this format could close them. (Techniques without detection-strategy
+    metadata are counted as writable, so the gap number never understates the work.) Full
+    coverage of this matrix is not an achievable or honest goal for a host-log tool; driving
+    the writable-gap count down is.
   </p>
   <div class="tactic-row">
     <div>collection</div>

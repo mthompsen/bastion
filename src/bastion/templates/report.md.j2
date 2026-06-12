@@ -43,11 +43,14 @@ enterprise techniques. **{{ uncovered_count }} techniques have no detection rule
 A covered technique has at least one rule tagged to it; that is a much weaker statement than
 "this activity would be detected."
 
-Per ATT&CK's platform metadata, {{ summary.uncovered_beyond_host_count }} of the uncovered
-techniques have no Windows or Linux component (cloud control planes, identity providers,
-network devices, ESXi, or pre-compromise infrastructure) and cannot appear in host logs at
-all. The remaining **{{ summary.uncovered_host_gap_count }}** are host-relevant gaps that
-additional rules could close.
+The uncovered count splits three ways, using ATT&CK's platform metadata and the log sources
+its detection strategies name: {{ summary.uncovered_beyond_host_count }} techniques have no
+Windows or Linux component (cloud control planes, identity providers, network devices, ESXi,
+or pre-compromise infrastructure) and cannot appear in host logs at all;
+{{ summary.uncovered_beyond_telemetry_count }} can occur on a host but are detected only via
+telemetry this tool does not read (EDR memory sensors, auditd, eBPF, network monitoring); the
+remaining **{{ summary.uncovered_gap_count }}** are writable gaps mapped to Windows event
+logs or Linux syslog, which additional rules could close.
 
 | Tactic | Covered | Total | Share |
 |---|---|---|---|

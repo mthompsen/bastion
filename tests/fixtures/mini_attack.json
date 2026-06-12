@@ -77,6 +77,30 @@
       "type": "course-of-action",
       "id": "course-of-action--00000000-0000-4000-8000-000000000009",
       "name": "Not A Technique"
+    },
+    {
+      "type": "x-mitre-detection-strategy",
+      "id": "x-mitre-detection-strategy--00000000-0000-4000-8000-000000000010",
+      "name": "Detection Strategy for Command and Scripting Interpreter",
+      "x_mitre_analytic_refs": [
+        "x-mitre-analytic--00000000-0000-4000-8000-000000000011"
+      ]
+    },
+    {
+      "type": "x-mitre-analytic",
+      "id": "x-mitre-analytic--00000000-0000-4000-8000-000000000011",
+      "name": "Analytic 1",
+      "x_mitre_log_source_references": [
+        { "x_mitre_data_component_ref": "x-mitre-data-component--00000000-0000-4000-8000-000000000012", "name": "WinEventLog:Sysmon", "channel": "EventID 1" },
+        { "x_mitre_data_component_ref": "x-mitre-data-component--00000000-0000-4000-8000-000000000013", "name": "auditd:SYSCALL", "channel": "execve" }
+      ]
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--00000000-0000-4000-8000-000000000014",
+      "relationship_type": "detects",
+      "source_ref": "x-mitre-detection-strategy--00000000-0000-4000-8000-000000000010",
+      "target_ref": "attack-pattern--00000000-0000-4000-8000-000000000003"
     }
   ]
 }
