@@ -68,7 +68,8 @@ def test_scan_without_fetched_data_exits_nonzero(tmp_path: Path) -> None:
         app, ["scan", str(AUTH_LOG), "--rules-dir", str(tmp_path / "missing")]
     )
     assert result.exit_code == 1
-    assert "bastion fetch" in result.output
+    # Collapse rich's terminal wrapping, which varies with path length.
+    assert "bastion fetch" in " ".join(result.output.split())
 
 
 def test_coverage_reports_covered_and_blind_spots() -> None:
@@ -152,4 +153,4 @@ def test_rules_list_platform_filter() -> None:
 def test_rules_list_without_fetched_rules_exits_nonzero(tmp_path: Path) -> None:
     result = runner.invoke(app, ["rules", "list", "--rules-dir", str(tmp_path / "none")])
     assert result.exit_code == 1
-    assert "bastion fetch" in result.output
+    assert "bastion fetch" in " ".join(result.output.split())
