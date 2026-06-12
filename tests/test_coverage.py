@@ -139,9 +139,12 @@ class TestTelemetryReadable:
             TechniqueRef(id="T2", name="b", log_sources=["WinEventLog:PowerShell", "NSM:Flow"])
         )
 
-    def test_linux_syslog_is_readable(self) -> None:
+    def test_linux_syslog_and_auditd_are_readable(self) -> None:
         assert telemetry_readable(
             TechniqueRef(id="T3", name="c", log_sources=["linux:syslog"])
+        )
+        assert telemetry_readable(
+            TechniqueRef(id="T3b", name="c2", log_sources=["auditd:SYSCALL"])
         )
 
     def test_other_telemetry_is_not(self) -> None:
@@ -149,7 +152,7 @@ class TestTelemetryReadable:
             TechniqueRef(
                 id="T4",
                 name="d",
-                log_sources=["auditd:SYSCALL", "macos:unifiedlog", "AWS:CloudTrail"],
+                log_sources=["ebpf:syscalls", "macos:unifiedlog", "AWS:CloudTrail"],
             )
         )
         assert not telemetry_readable(

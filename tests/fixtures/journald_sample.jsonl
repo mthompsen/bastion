@@ -1,0 +1,5 @@
+{"__REALTIME_TIMESTAMP": "1780000500000000", "_HOSTNAME": "web01", "_COMM": "sshd", "_PID": "412", "MESSAGE": "Failed password for invalid user admin from 203.0.113.7 port 39990 ssh2"}
+{"__REALTIME_TIMESTAMP": "1780000501000000", "_HOSTNAME": "web01", "SYSLOG_IDENTIFIER": "sudo", "MESSAGE": "  alice : TTY=pts/0 ; PWD=/home/alice ; USER=root ; COMMAND=/usr/bin/id"}
+not json at all
+{"__REALTIME_TIMESTAMP": "1780000502000000", "_HOSTNAME": "web01", "_COMM": "systemd", "_PID": "1", "MESSAGE": ["binary", "blob"]}
+{"__REALTIME_TIMESTAMP": "1780000503000000", "_HOSTNAME": "web01", "_COMM": "cron", "_PID": "900", "MESSAGE": "pam_unix(cron:session): session opened for user root by (uid=0)"}

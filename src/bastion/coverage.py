@@ -20,9 +20,9 @@ from bastion.models import CoverageEntry, SigmaRule, TechniqueRef
 HOST_PLATFORMS = frozenset({"windows", "linux"})
 
 #: ATT&CK log source names Bastion can actually read: any Windows event
-#: log channel (EVTX ingestion carries whatever the file contains) and
-#: plain Linux syslog/auth text.
-_READABLE_PREFIX = "wineventlog:"
+#: log channel (EVTX ingestion carries whatever the file contains), Linux
+#: auditd records, and plain Linux syslog/auth/journald text.
+_READABLE_PREFIXES = ("wineventlog:", "auditd:")
 _READABLE_NAMES = frozenset({"linux:syslog"})
 
 
@@ -36,7 +36,7 @@ def telemetry_readable(technique: TechniqueRef) -> bool:
     if not technique.log_sources:
         return True
     return any(
-        source.lower().startswith(_READABLE_PREFIX) or source.lower() in _READABLE_NAMES
+        source.lower().startswith(_READABLE_PREFIXES) or source.lower() in _READABLE_NAMES
         for source in technique.log_sources
     )
 

