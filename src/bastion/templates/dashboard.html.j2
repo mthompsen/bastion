@@ -64,6 +64,14 @@
   .chip.miss { color: var(--red); border-color: #6e2c28; }
   .footer { color: var(--muted); font-size: 12px; margin-top: 36px;
             border-top: 1px solid var(--border); padding-top: 10px; }
+  .timeline { border-left: 2px solid var(--border); margin: 12px 0 12px 6px;
+              padding-left: 18px; }
+  .trow { position: relative; margin: 10px 0; }
+  .trow::before { content: ""; position: absolute; left: -23px; top: 6px;
+                  width: 8px; height: 8px; border-radius: 50%;
+                  background: var(--border); }
+  .trow .when { font: 12px Consolas, monospace; color: var(--muted);
+                margin-right: 8px; }
 </style>
 </head>
 <body>
@@ -127,6 +135,22 @@
   </div>
   {% endfor %}
   {% endfor %}
+
+  {% if timeline %}
+  <h2>Timeline</h2>
+  <div class="timeline">
+    {% for detection in timeline %}
+    <div class="trow">
+      <span class="when">{{ detection.event.timestamp.isoformat() if detection.event.timestamp else "no timestamp" }}</span>
+      <span class="badge {{ detection.level }}">{{ detection.level }}</span>
+      {{ detection.rule_title }}
+      <span class="tech">
+        {% for ref in detection.techniques %}{{ ref.id }}{% if not loop.last %}, {% endif %}{% endfor %}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
   <h2>ATT&amp;CK coverage of the loaded ruleset</h2>
   <p>

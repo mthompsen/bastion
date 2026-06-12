@@ -1,0 +1,30 @@
+title: System Language And Location Discovery
+id: 5c9f8a16-3e72-4b4d-a0c5-91d8e6b2f388
+status: experimental
+description: |
+    Detects queries of the system language and geographic region settings, used by malware
+    to fingerprint the host's location before deciding whether to run.
+references:
+    - https://attack.mitre.org/techniques/T1614/
+author: Mason Thompsen
+date: 2026-06-11
+tags:
+    - attack.discovery
+    - attack.t1614
+logsource:
+    product: windows
+    category: process_creation
+detection:
+    selection_reg:
+        CommandLine|contains|all:
+            - 'query'
+            - '\Control\Nls'
+    selection_ps:
+        CommandLine|contains:
+            - 'Get-WinHomeLocation'
+            - 'Get-WinSystemLocale'
+            - 'GetUserGeoId'
+    condition: 1 of selection_*
+falsepositives:
+    - Locale troubleshooting by administrators
+level: low

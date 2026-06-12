@@ -1,0 +1,29 @@
+title: Host Log Enumeration
+id: 2f7b4c93-d816-4e5a-87c1-64a9e0b3d966
+status: experimental
+description: |
+    Detects commands that enumerate authentication and login history logs, such as dumping
+    wtmp/btmp or reading auth.log. Adversaries review host logs to map prior activity and
+    identify accounts or cleanup targets.
+references:
+    - https://attack.mitre.org/techniques/T1654/
+author: Mason Thompsen
+date: 2026-06-11
+tags:
+    - attack.discovery
+    - attack.t1654
+logsource:
+    product: linux
+detection:
+    selection:
+        message|contains:
+            - 'utmpdump'
+            - 'lastlog'
+            - 'cat /var/log/auth'
+            - 'cat /var/log/secure'
+            - '/var/log/wtmp'
+            - '/var/log/btmp'
+    condition: selection
+falsepositives:
+    - Administrators reviewing login history during routine investigations
+level: low

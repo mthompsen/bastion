@@ -1,0 +1,32 @@
+title: SSH Authorized Keys File Modification
+id: 9d4a7b58-2c61-4f3e-a8d9-37b0c5e1f644
+status: experimental
+description: |
+    Detects log lines recording writes to an SSH authorized_keys file. Planting a public key
+    gives an adversary durable, password-less access to the account.
+references:
+    - https://attack.mitre.org/techniques/T1098/004/
+author: Mason Thompsen
+date: 2026-06-11
+tags:
+    - attack.persistence
+    - attack.t1098.004
+logsource:
+    product: linux
+detection:
+    selection_file:
+        message|contains: 'authorized_keys'
+    selection_write:
+        message|contains:
+            - 'echo '
+            - 'tee '
+            - '>>'
+            - 'scp '
+            - 'cp '
+            - 'curl '
+            - 'wget '
+    condition: all of selection_*
+falsepositives:
+    - Users legitimately installing their own SSH keys
+    - Configuration management tools deploying keys
+level: medium

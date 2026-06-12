@@ -15,6 +15,7 @@ from bastion.report import (
     detections_by_tactic,
     render_dashboard,
     render_markdown,
+    render_sarif,
     write_report,
 )
 from bastion.sigma.loader import load_rules
@@ -101,11 +102,67 @@ class TestDashboard:
         assert "<script" not in html
 
 
+class TestSarif:
+    def test_valid_sarif_structure(self) -> None:
+        result, context = build_result()
+        sarif = json.loads(render_sarif(result, context))
+        assert sarif["version"] == "2.1.0"
+        run = sarif["runs"][0]
+        assert run["tool"]["driver"]["name"] == "bastion"
+        assert len(run["results"]) == len(result.detections)
+        rule_ids = {rule["id"] for rule in run["tool"]["driver"]["rules"]}
+        assert {res["ruleId"] for res in run["results"]} <= rule_ids
+
+    def test_level_mapping_and_message_content(self) -> None:
+        result, context = build_result()
+        sarif = json.loads(render_sarif(result, context))
+        res = sarif["runs"][0]["results"][0]
+        assert res["level"] == "error"  # the fixture rule is level high
+        assert "T1059.001" in res["message"]["text"]
+        assert "CommandLine=" in res["message"]["text"]
+        assert res["locations"][0]["physicalLocation"]["artifactLocation"]["uri"] == "sample.evtx"
+        assert res["properties"]["matchedFields"]["CommandLine"]
+
+    def test_no_detections_gives_empty_results(self) -> None:
+        _, context = build_result()
+        empty = ScanResult(events_scanned=1, rules_loaded=1, coverage=SUMMARY.entries)
+        sarif = json.loads(render_sarif(empty, context))
+        assert sarif["runs"][0]["results"] == []
+        assert sarif["runs"][0]["tool"]["driver"]["rules"] == []
+
+
+class TestTimeline:
+    def test_timeline_orders_by_timestamp(self) -> None:
+        from datetime import UTC, datetime
+
+        result, context = build_result()
+        early = result.detections[0].model_copy(deep=True)
+        late = result.detections[0].model_copy(deep=True)
+        early.event.timestamp = datetime(2026, 6, 10, 6, 0, 0, tzinfo=UTC)
+        early.rule_title = "Earlier Detection"
+        late.event.timestamp = datetime(2026, 6, 10, 7, 0, 0, tzinfo=UTC)
+        late.rule_title = "Later Detection"
+        no_ts = result.detections[0].model_copy(deep=True)
+        no_ts.event.timestamp = None
+        no_ts.rule_title = "Timestampless Detection"
+        result.detections = [late, no_ts, early]
+        html = render_dashboard(result, SUMMARY, context)
+        assert "Timeline" in html
+        # Rule titles also appear in the by-tactic section, so compare order
+        # inside the timeline block only.
+        timeline_html = html[html.index('class="timeline"') :]
+        assert timeline_html.index("Earlier Detection") < timeline_html.index("Later Detection")
+        # Detections without a timestamp sort last.
+        assert timeline_html.index("Later Detection") < timeline_html.index(
+            "Timestampless Detection"
+        )
+
+
 class TestWriteReport:
-    def test_writes_all_three_artifacts(self, tmp_path: Path) -> None:
+    def test_writes_all_artifacts(self, tmp_path: Path) -> None:
         result, context = build_result()
         paths = write_report(result, SUMMARY, context, tmp_path / "out")
-        assert set(paths) == {"report.md", "result.json", "dashboard.html"}
+        assert set(paths) == {"report.md", "result.json", "result.sarif", "dashboard.html"}
         for path in paths.values():
             assert path.exists() and path.stat().st_size > 0
 

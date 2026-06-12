@@ -1,0 +1,36 @@
+title: PAM Configuration Modification
+id: 1e8c5f72-64d9-4a1b-bc3e-50f2a9d7e833
+status: experimental
+description: |
+    Detects log lines recording edits to files under /etc/pam.d/. Modified PAM stacks are
+    used to capture credentials or to accept attacker-chosen passwords.
+references:
+    - https://attack.mitre.org/techniques/T1556/003/
+author: Mason Thompsen
+date: 2026-06-11
+tags:
+    - attack.credential-access
+    - attack.persistence
+    - attack.t1556.003
+logsource:
+    product: linux
+detection:
+    selection_path:
+        message|contains: '/etc/pam.d/'
+    selection_write:
+        message|contains:
+            - 'vi '
+            - 'vim '
+            - 'nano '
+            - 'sed -i'
+            - 'tee '
+            - 'echo '
+            - '>>'
+            - 'cp '
+            - 'mv '
+            - 'chmod '
+    condition: all of selection_*
+falsepositives:
+    - Administrators tuning authentication policy
+    - Package upgrades that rewrite PAM configuration
+level: high

@@ -1,20 +1,32 @@
-"""Report rendering: Markdown, JSON, and the self-contained HTML dashboard.
+"""Report rendering: Markdown, JSON, SARIF, and the HTML dashboard.
 
-All three artifacts are rendered from one ScanResult/CoverageSummary pair,
-which keeps their numbers consistent. Output contains no wall-clock
-timestamps, and the dashboard makes no network requests (inline CSS only).
+All artifacts are rendered from one ScanResult/CoverageSummary pair, which
+keeps their numbers consistent. Output contains no wall-clock timestamps,
+and the dashboard makes no network requests (inline CSS only).
 """
 
 from __future__ import annotations
 
+import json
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from jinja2 import Environment, PackageLoader
 
+from bastion import __version__
 from bastion.coverage import CoverageSummary
 from bastion.models import CoverageEntry, Detection, ScanResult
+
+#: Sigma levels mapped to SARIF result levels.
+_SARIF_LEVELS = {
+    "critical": "error",
+    "high": "error",
+    "medium": "warning",
+    "low": "note",
+    "informational": "note",
+}
 
 _LEVEL_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3, "informational": 4}
 
@@ -82,6 +94,14 @@ def _template_args(
     techniques_hit = sorted(
         {ref.id for detection in result.detections for ref in detection.techniques}
     )
+    timeline = sorted(
+        result.detections,
+        key=lambda d: (
+            d.event.timestamp is None,
+            d.event.timestamp.isoformat() if d.event.timestamp else "",
+            d.rule_title,
+        ),
+    )
     return {
         "result": result,
         "summary": summary,
@@ -90,6 +110,7 @@ def _template_args(
         "detection_groups": detections_by_tactic(result.detections),
         "coverage_groups": coverage_by_tactic(summary.entries),
         "uncovered_count": summary.total_count - summary.covered_count,
+        "timeline": timeline,
     }
 
 
@@ -105,21 +126,94 @@ def render_dashboard(
     return _env.get_template("dashboard.html.j2").render(_template_args(result, summary, context))
 
 
+def render_sarif(result: ScanResult, context: ReportContext) -> str:
+    """Serialize the detections as a SARIF 2.1.0 log.
+
+    Each fired Sigma rule becomes a SARIF reporting rule; each detection
+    becomes a result pointing at the scanned log file, with the matched
+    fields and ATT&CK techniques in the message and properties.
+    """
+    rules: dict[str, dict[str, Any]] = {}
+    results: list[dict[str, Any]] = []
+    for detection in result.detections:
+        if detection.rule_id not in rules:
+            rules[detection.rule_id] = {
+                "id": detection.rule_id,
+                "name": detection.rule_title,
+                "defaultConfiguration": {
+                    "level": _SARIF_LEVELS.get(detection.level, "warning")
+                },
+                "properties": {
+                    "sigmaLevel": detection.level,
+                    "attackTechniques": [ref.id for ref in detection.techniques],
+                },
+            }
+        evidence = "; ".join(f"{k}={v}" for k, v in detection.matched_fields.items())
+        techniques = ", ".join(f"{ref.id} {ref.name}" for ref in detection.techniques)
+        message = detection.rule_title
+        if techniques:
+            message += f" [{techniques}]"
+        if evidence:
+            message += f" | {evidence}"
+        sarif_result: dict[str, Any] = {
+            "ruleId": detection.rule_id,
+            "level": _SARIF_LEVELS.get(detection.level, "warning"),
+            "message": {"text": message},
+            "locations": [
+                {
+                    "physicalLocation": {
+                        "artifactLocation": {"uri": context.logfile}
+                    }
+                }
+            ],
+            "properties": {
+                "matchedFields": detection.matched_fields,
+                "attackTechniques": [ref.id for ref in detection.techniques],
+                "eventSource": detection.event.source,
+            },
+        }
+        if detection.event.timestamp is not None:
+            sarif_result["properties"]["eventTimestamp"] = (
+                detection.event.timestamp.isoformat()
+            )
+        results.append(sarif_result)
+
+    sarif = {
+        "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+        "version": "2.1.0",
+        "runs": [
+            {
+                "tool": {
+                    "driver": {
+                        "name": "bastion",
+                        "version": __version__,
+                        "rules": list(rules.values()),
+                    }
+                },
+                "results": results,
+            }
+        ],
+    }
+    return json.dumps(sarif, indent=2)
+
+
 def write_report(
     result: ScanResult,
     summary: CoverageSummary,
     context: ReportContext,
     outdir: Path,
 ) -> dict[str, Path]:
-    """Write report.md, result.json and dashboard.html into ``outdir``."""
+    """Write report.md, result.json, result.sarif and dashboard.html into ``outdir``."""
     outdir.mkdir(parents=True, exist_ok=True)
     paths = {
         "report.md": outdir / "report.md",
         "result.json": outdir / "result.json",
+        "result.sarif": outdir / "result.sarif",
         "dashboard.html": outdir / "dashboard.html",
     }
     paths["report.md"].write_text(render_markdown(result, summary, context), encoding="utf-8")
     paths["result.json"].write_text(result.model_dump_json(indent=2), encoding="utf-8")
+    paths["result.sarif"].write_text(render_sarif(result, context), encoding="utf-8")
     paths["dashboard.html"].write_text(
         render_dashboard(result, summary, context), encoding="utf-8"
     )

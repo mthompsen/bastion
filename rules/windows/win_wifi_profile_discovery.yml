@@ -1,0 +1,27 @@
+title: Wi-Fi Profile Enumeration Via Netsh
+id: 8e5b2d64-a937-4f0c-b1e8-72c6d9f4a077
+status: experimental
+description: |
+    Detects netsh.exe enumerating saved wireless network profiles. Listing Wi-Fi profiles
+    (and exporting them with key=clear) reveals network names and stored pre-shared keys.
+references:
+    - https://attack.mitre.org/techniques/T1016/002/
+author: Mason Thompsen
+date: 2026-06-11
+tags:
+    - attack.discovery
+    - attack.t1016.002
+logsource:
+    product: windows
+    category: process_creation
+detection:
+    selection_img:
+        Image|endswith: '\netsh.exe'
+    selection_cli:
+        CommandLine|contains|all:
+            - 'wlan'
+            - 'show'
+    condition: all of selection_*
+falsepositives:
+    - Network troubleshooting by administrators or support staff
+level: medium

@@ -111,7 +111,8 @@ bastion/
 │   └── attack/                   # cached ATT&CK STIX bundle (gitignored; fetched)
 ├── examples/
 │   ├── logs/                     # small committed sample logs (evtx + linux), attributed
-│   └── output/                   # committed real sample run (report + dashboard + json)
+│   └── output/                   # committed real sample run (report + dashboard + json + sarif)
+├── rules/                        # hand-written local rule pack (loaded alongside the cache)
 ├── scripts/
 │   └── fetch_data.py
 ├── src/bastion/
@@ -238,7 +239,7 @@ Enums / aliases:
 - CLI (`rich`): a table of detections (rule, level, technique, evidence snippet) and a
   coverage summary line ("X detections across Y techniques; ruleset covers Z of the
   enterprise matrix").
-- JSON: full `ScanResult` serialized. A SARIF-shaped option is a stretch goal.
+- JSON: full `ScanResult` serialized, plus a SARIF 2.1.0 log of the detections.
 - HTML dashboard (Jinja2, single self-contained file): detections grouped by ATT&CK tactic,
   severity colour-coding, a coverage view that shows both covered and uncovered areas, and
   per-detection evidence (the matched fields plus the raw log line). No external network
@@ -260,7 +261,8 @@ command and produces the committed sample artifacts.
 ## 12. Output artifacts
 
 After `bastion report examples/logs/<sample> -o out/`: `report.md`, `result.json`,
-`dashboard.html`. The README shows a real run against committed sample attack telemetry, with
+`result.sarif`, `dashboard.html`. The README shows a real run against committed sample attack
+telemetry, with
 `examples/output/` committed so a reviewer sees real detections and a real coverage map
 without running anything.
 
@@ -279,8 +281,10 @@ without running anything.
    end. Capture the committed sample run.
 6. [x] Polish. README (detection engineering background, architecture diagram, the sample
    run and a dashboard screenshot), docstrings, `--help`, coverage >= 80%.
-7. (Stretch, open) SARIF output; more of the Sigma condition grammar; one or two hand-written
-   rules mapped to ATT&CK; timeline view in the dashboard.
+7. [x] Stretch. SARIF 2.1.0 output as a fourth report artifact; extended Sigma grammar
+   (cidr/exists/numeric predicates, cased matching, windash/base64/base64offset transforms
+   with utf16 encodings); a hand-written local rule pack under `rules/` covering eight
+   techniques the upstream ruleset does not tag; a timeline view in the dashboard.
 
 ## 14. Testing and quality requirements
 
@@ -299,10 +303,12 @@ without running anything.
 - [x] `bastion scan` parses a real sample log and reports detections, each with the matched
   fields and the resolved ATT&CK technique name.
 - [x] The matcher correctly evaluates the documented Sigma grammar subset. Unsupported
-  constructs are reported, not crashed on, and do not inflate coverage. (96% of Windows rules
-  evaluable at the pinned release; the rest disclosed.)
+  constructs are reported, not crashed on, and do not inflate coverage. (2,454 of 2,456
+  upstream Windows rules evaluable at the pinned release; the remaining aggregation rules
+  disclosed.)
 - [x] `bastion coverage` reports covered techniques and blind spots, without implying total
-  visibility. (306/697 techniques at the pinned datasets; 391 uncovered techniques named.)
+  visibility. (385/697 techniques at the pinned datasets including the local pack; 312
+  uncovered techniques named.)
 - [x] One bad rule or malformed record never aborts a scan.
 - [x] `bastion report` emits report.md, result.json, and a self-contained dashboard.html from
   a real committed sample run (`examples/output/`, produced from EVTX-ATTACK-SAMPLES

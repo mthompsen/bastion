@@ -15,9 +15,13 @@ Detection identifiers
       wildcards) as substrings of the raw record and every field value.
 
 Value modifiers
-    ``contains``, ``startswith``, ``endswith``, ``re``, ``all``; see
-    :mod:`bastion.sigma.modifiers`. Anything else (``base64``, ``windash``,
-    ``cidr``, chained transforms, ...) is unsupported.
+    Match predicates: ``contains``, ``startswith``, ``endswith``, ``re``,
+    ``cidr``, ``exists``, ``gt``/``gte``/``lt``/``lte``, plus ``cased`` for
+    case-sensitive string matching and ``all`` for AND-list semantics.
+    Value transforms, applied before a string predicate: ``windash``,
+    ``base64``, ``base64offset``, optionally preceded by ``utf16le`` /
+    ``wide`` / ``utf16be``. See :mod:`bastion.sigma.modifiers`. Anything
+    else (``fieldref``, ``expand``, ``minute``, ...) is unsupported.
 
 Condition expressions
     identifiers, ``and`` / ``or`` / ``not``, parentheses,
@@ -38,17 +42,16 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import cast
 
-from bastion.models import Event, SigmaRule
+from bastion.models import Event, FieldValue, SigmaRule
 from bastion.sigma import modifiers as mods
 from bastion.sigma.modifiers import RuleValue
 
-_PREDICATES: dict[str, Callable[..., bool]] = {
-    "": mods.match_equals,
-    "contains": mods.match_contains,
-    "startswith": mods.match_startswith,
-    "endswith": mods.match_endswith,
-    "re": mods.match_re,
-}
+#: Predicates that accept the ``cased`` flag.
+_STRING_PREDICATES = {"", "contains", "startswith", "endswith"}
+_PREDICATE_NAMES = _STRING_PREDICATES | {"re", "cidr", "exists", "gt", "gte", "lt", "lte"}
+#: Encodings applied before a base64 transform.
+_ENCODINGS = {"utf16le": "utf-16-le", "wide": "utf-16-le", "utf16be": "utf-16-be"}
+_B64_TRANSFORMS = {"base64", "base64offset"}
 
 _RESERVED_KEYS = {"condition", "timeframe"}
 _KEYWORDS = {"and", "or", "not", "of", "(", ")"}
@@ -129,36 +132,123 @@ def _eval_identifier(value: object, event: Event) -> MatchResult:
     raise UnsupportedRuleError(f"unsupported identifier shape: {type(value).__name__}")
 
 
+@dataclass
+class _FieldSpec:
+    """A parsed ``Field|modifier|...`` chain."""
+
+    field: str
+    predicate: str = ""
+    match_all: bool = False
+    cased: bool = False
+    windash: bool = False
+    encoding: str | None = None
+    b64: str | None = None
+
+    @property
+    def has_transforms(self) -> bool:
+        return self.windash or self.b64 is not None
+
+
 def _eval_map(spec: dict[object, object], event: Event) -> MatchResult:
     evidence: dict[str, str] = {}
-    for field_spec, rule_value in spec.items():
-        field_name, predicate, match_all = _parse_field_spec(str(field_spec))
+    for raw_spec, rule_value in spec.items():
+        field_spec = _parse_field_spec(str(raw_spec))
         if isinstance(rule_value, list):
             values = cast("list[RuleValue]", rule_value)
         else:
             values = [cast("RuleValue", rule_value)]
-        field_value = event.fields.get(field_name)
-        combine = all if match_all else any
+        field_value = event.fields.get(field_spec.field)
+        combine = all if field_spec.match_all else any
         if not values:
             return MatchResult(matched=False)
-        if not combine(predicate(field_value, value) for value in values):
+        if not combine(_value_matches(field_spec, field_value, value) for value in values):
             return MatchResult(matched=False)
-        evidence[field_name] = "(absent)" if field_value is None else str(field_value)
+        evidence[field_spec.field] = "(absent)" if field_value is None else str(field_value)
     return MatchResult(matched=True, matched_fields=evidence)
 
 
-def _parse_field_spec(field_spec: str) -> tuple[str, Callable[..., bool], bool]:
-    """Split ``Field|modifier|all`` into (field name, predicate, all-flag)."""
-    parts = field_spec.split("|")
-    field_name, modifier_chain = parts[0], parts[1:]
-    match_all = "all" in modifier_chain
-    modifier_chain = [modifier for modifier in modifier_chain if modifier != "all"]
-    if len(modifier_chain) > 1:
-        raise UnsupportedRuleError(f"chained modifiers are not supported: {field_spec!r}")
-    modifier = modifier_chain[0] if modifier_chain else ""
-    if modifier not in _PREDICATES:
-        raise UnsupportedRuleError(f"unsupported modifier {modifier!r} in {field_spec!r}")
-    return field_name, _PREDICATES[modifier], match_all
+def _parse_field_spec(raw: str) -> _FieldSpec:
+    """Parse a field spec with its modifier chain, validating combinations."""
+    parts = raw.split("|")
+    spec = _FieldSpec(field=parts[0])
+    for modifier in parts[1:]:
+        name = modifier.lower()
+        if name == "all":
+            spec.match_all = True
+        elif name == "cased":
+            spec.cased = True
+        elif name == "windash":
+            spec.windash = True
+        elif name in _ENCODINGS:
+            if spec.encoding is not None:
+                raise UnsupportedRuleError(f"multiple encodings in {raw!r}")
+            spec.encoding = _ENCODINGS[name]
+        elif name in _B64_TRANSFORMS:
+            if spec.b64 is not None:
+                raise UnsupportedRuleError(f"multiple base64 transforms in {raw!r}")
+            spec.b64 = name
+        elif name in _PREDICATE_NAMES:
+            if spec.predicate:
+                raise UnsupportedRuleError(f"multiple match modifiers in {raw!r}")
+            spec.predicate = name
+        else:
+            raise UnsupportedRuleError(f"unsupported modifier {modifier!r} in {raw!r}")
+    if spec.encoding is not None and spec.b64 is None:
+        raise UnsupportedRuleError(f"{raw!r}: utf16 encodings require a base64 transform")
+    if spec.cased and spec.predicate not in _STRING_PREDICATES:
+        raise UnsupportedRuleError(f"{raw!r}: 'cased' only applies to string matches")
+    if spec.has_transforms and spec.predicate not in _STRING_PREDICATES:
+        raise UnsupportedRuleError(f"{raw!r}: value transforms require a string match")
+    return spec
+
+
+def _value_matches(spec: _FieldSpec, field_value: FieldValue, rule_value: RuleValue) -> bool:
+    """Does one rule value (after transforms) satisfy the predicate?"""
+    if rule_value is None and not spec.has_transforms and spec.predicate == "":
+        return field_value is None
+    candidates = _candidate_values(spec, rule_value)
+    return any(_apply_predicate(spec, field_value, candidate) for candidate in candidates)
+
+
+def _candidate_values(spec: _FieldSpec, rule_value: RuleValue) -> list[RuleValue]:
+    """Expand a rule value through windash/encoding/base64 transforms."""
+    if not spec.has_transforms:
+        return [rule_value]
+    if rule_value is None:
+        raise UnsupportedRuleError("null values cannot be combined with value transforms")
+    texts = [str(rule_value)]
+    if spec.windash:
+        texts = [variant for text in texts for variant in mods.windash_variants(text)]
+    if spec.b64 is None:
+        return list(texts)
+    encoding = spec.encoding or "utf-8"
+    candidates: list[RuleValue] = []
+    for text in texts:
+        data = text.encode(encoding)
+        if spec.b64 == "base64":
+            candidates.append(mods.encode_base64(data))
+        else:
+            candidates.extend(mods.base64offset_candidates(data))
+    return candidates
+
+
+def _apply_predicate(spec: _FieldSpec, field_value: FieldValue, candidate: RuleValue) -> bool:
+    predicate = spec.predicate
+    if predicate == "":
+        return mods.match_equals(field_value, candidate, cased=spec.cased)
+    if predicate == "contains":
+        return mods.match_contains(field_value, candidate, cased=spec.cased)
+    if predicate == "startswith":
+        return mods.match_startswith(field_value, candidate, cased=spec.cased)
+    if predicate == "endswith":
+        return mods.match_endswith(field_value, candidate, cased=spec.cased)
+    if predicate == "re":
+        return mods.match_re(field_value, candidate)
+    if predicate == "cidr":
+        return mods.match_cidr(field_value, candidate)
+    if predicate == "exists":
+        return mods.match_exists(field_value, candidate)
+    return mods.match_compare(field_value, candidate, predicate)
 
 
 def _eval_keywords(keywords: list[object], event: Event) -> MatchResult:

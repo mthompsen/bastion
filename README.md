@@ -3,9 +3,9 @@
 A command-line detection engine for host logs. Bastion ingests Windows Sysmon/EVTX or Linux
 auth/syslog files, evaluates them in-process against the public
 [SigmaHQ](https://github.com/SigmaHQ/sigma) ruleset, maps every match to its
-[MITRE ATT&CK](https://attack.mitre.org/) technique, and writes a terminal report, JSON, and a
-self-contained HTML dashboard. Alongside the alerts it produces a coverage map of which ATT&CK
-techniques the loaded ruleset can detect and which ones it cannot.
+[MITRE ATT&CK](https://attack.mitre.org/) technique, and writes a terminal report, JSON,
+SARIF, and a self-contained HTML dashboard. Alongside the alerts it produces a coverage map
+of which ATT&CK techniques the loaded ruleset can detect and which ones it cannot.
 
 Bastion is defensive tooling. It reads log files you own and recognizes traces of known attack
 techniques; it does not generate or execute anything malicious.
@@ -42,6 +42,7 @@ have. Bastion treats the denominator as part of the result. Every run reports:
 flowchart LR
     LOG[Log file<br/>.evtx / auth.log / syslog] --> ING[ingest/<br/>normalize to Events]
     SR[SigmaHQ rules<br/>pinned r2026-04-01] --> LD[sigma/loader.py]
+    LR[local rules/ pack] --> LD
     LD --> MT[sigma/matcher.py<br/>documented grammar subset]
     AT[ATT&CK STIX bundle<br/>pinned v19.1] --> AK[attack.py<br/>technique lookup]
     ING --> EN[engine.py<br/>rules x events -> detections]
@@ -55,6 +56,7 @@ flowchart LR
     RP --> T2[result.json]
     RP --> T3[dashboard.html]
     RP --> T4[report.md]
+    RP --> T5[result.sarif]
 ```
 
 `ingest/` normalizes both log families into one `Event` shape: EVTX System plus Sysmon
@@ -62,11 +64,14 @@ EventData fields on Windows, process/pid/user/message on Linux. Malformed record
 with a warning.
 
 `sigma/` loads the cached ruleset and evaluates each rule's detection block directly against
-events. There is no SIEM and no query translation. The supported grammar subset (field maps
-with `contains`/`startswith`/`endswith`/`re`/`all` modifiers, wildcards with Sigma escaping,
-keyword lists, `and`/`or`/`not`, parentheses, `N of` / `all of`) is documented in
-[`matcher.py`](src/bastion/sigma/matcher.py); anything outside it raises a recorded
-`UnsupportedRuleError`.
+events. There is no SIEM and no query translation. The supported grammar subset is documented
+in [`matcher.py`](src/bastion/sigma/matcher.py): field maps with the
+`contains`/`startswith`/`endswith`/`re`/`cidr`/`exists`/`gt`/`gte`/`lt`/`lte` predicates,
+`cased` and `all` flags, the `windash`/`base64`/`base64offset` value transforms (with
+`utf16le`/`wide`/`utf16be` encodings), wildcards with Sigma escaping, keyword lists, and
+conditions built from `and`/`or`/`not`, parentheses, and `N of` / `all of`. Anything outside
+the subset raises a recorded `UnsupportedRuleError`; at the pinned release that leaves 2 of
+2,458 Windows rules unevaluable (aggregation rules), both disclosed in every report.
 
 `engine.py` pre-filters rules by platform and Sigma event category, so a `registry_set` rule
 is never evaluated against a process-creation event, and retires erroring rules without
@@ -86,6 +91,11 @@ $ bastion scan examples/logs/sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx
 +-----------------------------------------------------------------------------+
 | Rule                 | Level  | ATT&CK               | Evidence             |
 |----------------------+--------+----------------------+----------------------|
+| Potential Regsvr32   | medium | T1218.010 Regsvr32   | Image=C:\Windows\Sys |
+| Commandline Flag     |        |                      | tem32\regsvr32.exe;  |
+| Anomaly              |        |                      | CommandLine=/u /s    |
+|                      |        |                      | /i:https://raw.githu |
+|                      |        |                      | busercontent.com/... |
 | Potentially          | medium | T1218.010 Regsvr32   | Image=C:\Windows\Sys |
 | Suspicious Regsvr32  |        |                      | tem32\regsvr32.exe;  |
 | HTTP/FTP Pattern     |        |                      | CommandLine=/u /s    |
@@ -95,22 +105,32 @@ $ bastion scan examples/logs/sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx
 | Initiated By         |        | Object Model,        | Image=C:\Windows\Sys |
 | Regsvr32.EXE         |        | T1218.010 Regsvr32   | tem32\regsvr32.exe   |
 +-----------------------------------------------------------------------------+
-2 detections across 2 techniques (6 events, 2456 rules); ruleset covers 306 of
+3 detections across 2 techniques (6 events, 2458 rules); ruleset covers 308 of
 697 enterprise techniques.
-94 rules use unsupported Sigma grammar and were not evaluated (recorded, not
+1 rules use unsupported Sigma grammar and were not evaluated (recorded, not
 counted as coverage).
 ```
 
 The committed artifacts of this exact run live in `examples/output/`:
-[`report.md`](examples/output/report.md), [`result.json`](examples/output/result.json), and
-[`dashboard.html`](examples/output/dashboard.html). You can look at real detections and a real
-coverage map without running anything.
+[`report.md`](examples/output/report.md), [`result.json`](examples/output/result.json),
+[`result.sarif`](examples/output/result.sarif), and
+[`dashboard.html`](examples/output/dashboard.html). You can look at real detections, a
+timeline, and a real coverage map without running anything.
 
 ![Bastion dashboard](docs/dashboard.png)
 
 The same flow works on Linux text logs. Scanning the synthetic intrusion trace in
 `examples/logs/syslog_attack_sample.log` fires the SigmaHQ reverse-shell and
-command-history-tampering rules (T1059.004, T1070.003) with keyword evidence.
+command-history-tampering rules (T1059.004, T1070.003) plus the local pack's shadow-file
+rule (T1003.008), each with its matching evidence.
+
+## Local rule pack
+
+The upstream ruleset leaves hundreds of techniques untagged, so the repository ships a small
+hand-written pack under [`rules/`](rules/README.md): eight Sigma rules covering techniques
+the pinned SigmaHQ release does not, from `/etc/shadow` reads (T1003.008) and systemd-timer
+persistence (T1053.006) to Wi-Fi profile enumeration via netsh (T1016.002). They are loaded
+automatically alongside the fetched cache and tested like any other component.
 
 ## Quick start
 
@@ -121,7 +141,7 @@ pip install -e .
 bastion fetch                # one-time: cache Sigma rules + ATT&CK STIX (then fully offline)
 bastion scan LOGFILE         # detections in the terminal
 bastion coverage             # ATT&CK coverage map of the ruleset, including blind spots
-bastion report LOGFILE -o out/   # report.md + result.json + dashboard.html
+bastion report LOGFILE -o out/   # report.md + result.json + result.sarif + dashboard.html
 bastion rules list           # loaded rules and their ATT&CK techniques
 ```
 

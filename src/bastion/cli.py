@@ -29,7 +29,7 @@ from bastion.fetch import (
     sigma_rules_path,
 )
 from bastion.ingest import EvtxSource, select_source
-from bastion.models import Platform, ScanResult
+from bastion.models import Platform, ScanResult, SigmaRule
 from bastion.report import ReportContext, write_report
 from bastion.sigma import load_rules
 
@@ -42,6 +42,10 @@ rules_app = typer.Typer(help="Inspect the loaded Sigma ruleset.", no_args_is_hel
 app.add_typer(rules_app, name="rules")
 
 console = Console()
+
+#: Hand-written rules shipped with the repository, loaded alongside the
+#: fetched cache whenever --rules-dir is not overridden.
+LOCAL_RULES_DIR = Path("rules")
 
 _LEVEL_STYLES = {
     "critical": "bold red",
@@ -68,7 +72,10 @@ PlatformFlag = Annotated[
 ]
 RulesDirFlag = Annotated[
     Path | None,
-    typer.Option("--rules-dir", help="Sigma rules directory (default: the fetched cache)."),
+    typer.Option(
+        "--rules-dir",
+        help="Sigma rules directory (default: the fetched cache plus the local rules/ pack).",
+    ),
 ]
 AttackFileFlag = Annotated[
     Path | None,
@@ -85,6 +92,15 @@ def _require(path: Path, what: str) -> Path:
         console.print(f"[red]{what} not found at {path}.[/] Run [bold]bastion fetch[/] first.")
         raise typer.Exit(code=1)
     return path
+
+
+def _load_ruleset(rules_dir: Path | None, platform: Platform | None) -> list[SigmaRule]:
+    """Load the rules to evaluate: an explicit directory, or cache + local pack."""
+    directory = _require(rules_dir or sigma_rules_path(), "Sigma rules")
+    rules = load_rules(directory, platform=platform)
+    if rules_dir is None and LOCAL_RULES_DIR.is_dir():
+        rules += load_rules(LOCAL_RULES_DIR, platform=platform)
+    return rules
 
 
 def _level_cell(level: str) -> str:
@@ -169,10 +185,9 @@ def coverage(
     ] = False,
 ) -> None:
     """Show the ATT&CK coverage map of the loaded ruleset, including blind spots."""
-    directory = _require(rules_dir or sigma_rules_path(), "Sigma rules")
     bundle = _require(attack_file or attack_bundle_path(), "ATT&CK STIX bundle")
     override: Platform | None = platform.value if platform else None
-    rules = load_rules(directory, platform=override)
+    rules = _load_ruleset(rules_dir, override)
     attack_data = load_attack_data(bundle)
     summary = summarize_coverage(rules, attack_data.techniques)
     _print_coverage(summary, attack_data.version, len(rules), full)
@@ -312,11 +327,10 @@ def rules_list(
     ] = 50,
 ) -> None:
     """List loaded Sigma rules and their ATT&CK techniques."""
-    directory = _require(rules_dir or sigma_rules_path(), "Sigma rules")
     override: Platform | None = platform.value if platform else None
-    rules = load_rules(directory, platform=override)
+    rules = _load_ruleset(rules_dir, override)
 
-    table = Table(title=f"Sigma rules ({directory})")
+    table = Table(title="Loaded Sigma rules")
     table.add_column("Title", overflow="fold", max_width=60)
     table.add_column("Level")
     table.add_column("Logsource")
@@ -345,14 +359,13 @@ def _run_scan(
     caveat notes), the coverage summary, the ATT&CK bundle version, and
     the platform the log was treated as.
     """
-    directory = _require(rules_dir or sigma_rules_path(), "Sigma rules")
     bundle = _require(attack_file or attack_bundle_path(), "ATT&CK STIX bundle")
 
     override: Platform | None = platform.value if platform else None
     source = select_source(logfile, override)
     log_platform: Platform = "windows" if isinstance(source, EvtxSource) else "linux"
 
-    rules = load_rules(directory, platform=log_platform)
+    rules = _load_ruleset(rules_dir, log_platform)
     attack_data = load_attack_data(bundle)
     outcome = engine.scan(source.parse(logfile), rules, attack_data.techniques)
     summary = summarize_coverage(rules, attack_data.techniques)

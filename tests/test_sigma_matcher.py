@@ -224,6 +224,88 @@ class TestConditions:
         assert result.matched_fields == {}
 
 
+class TestTransformsAndPredicates:
+    def test_windash_contains(self) -> None:
+        event = make_event(CommandLine="powershell.exe /nop /enc SQBFAFgA")
+        rule = make_rule({"s": {"CommandLine|contains|windash": " -enc "}, "condition": "s"})
+        assert evaluate(rule, event)
+
+    def test_base64_contains(self) -> None:
+        import base64 as b64
+
+        encoded = b64.b64encode(b"http://evil.example/payload").decode()
+        event = make_event(CommandLine=f"certutil -decode {encoded} out.bin")
+        rule = make_rule(
+            {"s": {"CommandLine|base64|contains": "http://evil.example/payload"}, "condition": "s"}
+        )
+        assert evaluate(rule, event)
+
+    @pytest.mark.parametrize("prefix", ["", "X", "XY"])
+    def test_base64offset_matches_any_alignment(self, prefix: str) -> None:
+        import base64 as b64
+
+        stream = b64.b64encode(f"{prefix}IEX (New-Object Net.WebClient)Z".encode()).decode()
+        event = make_event(CommandLine=f"powershell -enc {stream}")
+        rule = make_rule(
+            {
+                "s": {"CommandLine|base64offset|contains": "IEX (New-Object Net.WebClient)"},
+                "condition": "s",
+            }
+        )
+        assert evaluate(rule, event)
+
+    def test_utf16le_base64offset(self) -> None:
+        import base64 as b64
+
+        payload = b64.b64encode("Invoke-Mimikatz".encode("utf-16-le")).decode()
+        event = make_event(CommandLine=f"powershell -enc {payload}")
+        rule = make_rule(
+            {
+                "s": {"CommandLine|utf16le|base64offset|contains": "Invoke-Mimikatz"},
+                "condition": "s",
+            }
+        )
+        assert evaluate(rule, event)
+
+    def test_cased_contains(self) -> None:
+        rule_hit = make_rule({"s": {"CommandLine|contains|cased": "-enc"}, "condition": "s"})
+        rule_miss = make_rule({"s": {"CommandLine|contains|cased": "-ENC"}, "condition": "s"})
+        assert evaluate(rule_hit, PS_EVENT)
+        assert not evaluate(rule_miss, PS_EVENT)
+
+    def test_cidr(self) -> None:
+        event = make_event(DestinationIp="10.13.37.5")
+        rule = make_rule({"s": {"DestinationIp|cidr": "10.13.37.0/24"}, "condition": "s"})
+        assert evaluate(rule, event)
+        miss = make_rule({"s": {"DestinationIp|cidr": "192.168.0.0/16"}, "condition": "s"})
+        assert not evaluate(miss, event)
+
+    def test_exists(self) -> None:
+        present = make_rule({"s": {"CommandLine|exists": True}, "condition": "s"})
+        absent = make_rule({"s": {"NoSuchField|exists": False}, "condition": "s"})
+        wrong = make_rule({"s": {"NoSuchField|exists": True}, "condition": "s"})
+        assert evaluate(present, PS_EVENT)
+        assert evaluate(absent, PS_EVENT)
+        assert not evaluate(wrong, PS_EVENT)
+
+    def test_numeric_comparisons(self) -> None:
+        event = make_event(EventID=4624)
+        assert evaluate(make_rule({"s": {"EventID|gt": 4000}, "condition": "s"}), event)
+        assert evaluate(make_rule({"s": {"EventID|gte": 4624}, "condition": "s"}), event)
+        assert evaluate(make_rule({"s": {"EventID|lt": 5000}, "condition": "s"}), event)
+        assert not evaluate(make_rule({"s": {"EventID|lte": 4623}, "condition": "s"}), event)
+
+    def test_windash_with_all_modifier(self) -> None:
+        event = make_event(CommandLine="net.exe user /add backdoor")
+        rule = make_rule(
+            {
+                "s": {"CommandLine|contains|windash|all": [" -add", "backdoor"]},
+                "condition": "s",
+            }
+        )
+        assert evaluate(rule, event)
+
+
 class TestUnsupportedGrammar:
     def test_aggregation_condition(self) -> None:
         rule = make_rule({"s": {"EventID": 1}, "condition": "s | count() > 5"})
@@ -236,8 +318,28 @@ class TestUnsupportedGrammar:
             evaluate(rule, PS_EVENT)
 
     def test_unknown_modifier(self) -> None:
-        rule = make_rule({"s": {"CommandLine|base64offset|contains": "x"}, "condition": "s"})
+        rule = make_rule({"s": {"CommandLine|fieldref": "OtherField"}, "condition": "s"})
         with pytest.raises(UnsupportedRuleError, match="modifier"):
+            evaluate(rule, PS_EVENT)
+
+    def test_two_match_modifiers(self) -> None:
+        rule = make_rule({"s": {"CommandLine|contains|endswith": "x"}, "condition": "s"})
+        with pytest.raises(UnsupportedRuleError, match="multiple match"):
+            evaluate(rule, PS_EVENT)
+
+    def test_utf16_without_base64(self) -> None:
+        rule = make_rule({"s": {"CommandLine|utf16le|contains": "x"}, "condition": "s"})
+        with pytest.raises(UnsupportedRuleError, match="base64"):
+            evaluate(rule, PS_EVENT)
+
+    def test_cased_with_non_string_predicate(self) -> None:
+        rule = make_rule({"s": {"EventID|gt|cased": 1}, "condition": "s"})
+        with pytest.raises(UnsupportedRuleError, match="cased"):
+            evaluate(rule, PS_EVENT)
+
+    def test_null_with_transform(self) -> None:
+        rule = make_rule({"s": {"CommandLine|base64|contains": None}, "condition": "s"})
+        with pytest.raises(UnsupportedRuleError, match="null"):
             evaluate(rule, PS_EVENT)
 
     def test_unknown_identifier_in_condition(self) -> None:

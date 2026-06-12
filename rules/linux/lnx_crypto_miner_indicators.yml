@@ -1,0 +1,27 @@
+title: Crypto Miner Indicators In Logs
+id: 6a3d9e41-7f25-4c8b-92e6-b1d4f8a0c755
+status: experimental
+description: |
+    Detects well-known cryptocurrency miner binaries and stratum pool URLs appearing in host
+    logs. Miners deployed after a compromise consume compute for the attacker's benefit.
+references:
+    - https://attack.mitre.org/techniques/T1496/001/
+author: Mason Thompsen
+date: 2026-06-11
+tags:
+    - attack.impact
+    - attack.t1496.001
+logsource:
+    product: linux
+detection:
+    keywords:
+        - 'xmrig'
+        - 'stratum+tcp://'
+        - 'stratum+ssl://'
+        - 'minerd'
+        - 'cryptonight'
+        - 'nicehash'
+    condition: keywords
+falsepositives:
+    - Hosts that legitimately run mining software
+level: high

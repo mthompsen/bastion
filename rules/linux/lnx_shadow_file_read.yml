@@ -1,0 +1,25 @@
+title: Shadow File Read Attempt
+id: 7c2f9a3e-51b4-4d8a-9f6e-08a3c2d4e511
+status: experimental
+description: |
+    Detects log lines recording access to /etc/shadow, such as a sudo command reading the
+    password hash database. Hashes from the shadow file are a common target for offline
+    cracking after privilege escalation.
+references:
+    - https://attack.mitre.org/techniques/T1003/008/
+author: Mason Thompsen
+date: 2026-06-11
+tags:
+    - attack.credential-access
+    - attack.t1003.008
+logsource:
+    product: linux
+    service: auth
+detection:
+    selection:
+        message|contains: '/etc/shadow'
+    condition: selection
+falsepositives:
+    - Administrators performing account maintenance or backups
+    - Security tooling that audits the shadow file
+level: high

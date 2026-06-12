@@ -1,0 +1,29 @@
+title: Systemd Timer Unit Creation Or Activation
+id: 4b6e1d27-83af-49c0-b5d2-19e7f30a6c22
+status: experimental
+description: |
+    Detects commands that enable or start a systemd timer unit, recorded in sudo or shell
+    audit log lines. Adversaries use timer units as a cron alternative for recurring
+    execution and persistence.
+references:
+    - https://attack.mitre.org/techniques/T1053/006/
+author: Mason Thompsen
+date: 2026-06-11
+tags:
+    - attack.persistence
+    - attack.execution
+    - attack.t1053.006
+logsource:
+    product: linux
+detection:
+    selection_cmd:
+        message|contains:
+            - 'systemctl enable'
+            - 'systemctl start'
+            - 'systemctl daemon-reload'
+    selection_timer:
+        message|contains: '.timer'
+    condition: all of selection_*
+falsepositives:
+    - Administrators managing legitimate timer units
+level: medium
