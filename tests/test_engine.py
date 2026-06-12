@@ -51,7 +51,9 @@ class TestScan:
         assert detection.level == "high"
         assert detection.matched_fields["CommandLine"] == PS_EVENT.fields["CommandLine"]
         assert detection.techniques == [
-            TechniqueRef(id="T1059.001", name="PowerShell", tactics=["execution"])
+            TechniqueRef(
+                id="T1059.001", name="PowerShell", tactics=["execution"], platforms=["Windows"]
+            )
         ]
         assert detection.event is PS_EVENT
 

@@ -33,6 +33,7 @@ class TechniqueRef(BaseModel):
     id: str
     name: str
     tactics: list[str] = Field(default_factory=list)
+    platforms: list[str] = Field(default_factory=list)
 
 
 class SigmaRule(BaseModel):

@@ -95,6 +95,13 @@ class TestDashboard:
         assert "<Event><EventData>" not in html
         assert "&lt;Event&gt;" in html
 
+    def test_explains_uncovered_split_with_counts(self) -> None:
+        result, context = build_result()
+        html = render_dashboard(result, SUMMARY, context)
+        assert "host-relevant techniques with no detection rule" in html
+        assert "beyond host-log telemetry" in html
+        assert "Windows or Linux component at all" in html
+
     def test_no_external_resources(self) -> None:
         result, context = build_result()
         html = render_dashboard(result, SUMMARY, context)

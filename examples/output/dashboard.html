@@ -88,7 +88,8 @@
     <div class="stat"><div class="num">3</div><div class="lbl">detections</div></div>
     <div class="stat"><div class="num">2</div><div class="lbl">techniques observed</div></div>
     <div class="stat"><div class="num">308/697</div><div class="lbl">techniques covered by ruleset</div></div>
-    <div class="stat warn"><div class="num">389</div><div class="lbl">techniques with no detection rule</div></div>
+    <div class="stat warn"><div class="num">216</div><div class="lbl">host-relevant techniques with no detection rule</div></div>
+    <div class="stat"><div class="num">173</div><div class="lbl">uncovered techniques beyond host-log telemetry</div></div>
   </div>
 
   <div class="banner">
@@ -346,6 +347,17 @@ T1559.001, T1218.010      </span>
     enterprise techniques. <strong style="color: var(--red)">389 techniques have
     no detection rule at all.</strong> A green chip below means at least one rule is tagged to the
     technique, which is not the same as saying the activity would be detected.
+  </p>
+  <p>
+    The uncovered count splits in two. Per ATT&amp;CK's platform metadata,
+    <strong>173</strong> of the uncovered techniques have no
+    Windows or Linux component at all: they happen in cloud control planes, identity providers,
+    network devices, ESXi, or on the adversary's own infrastructure before a compromise, so no
+    host-log scanner could ever observe them. The remaining
+    <strong style="color: var(--red)">216</strong> can occur on
+    a monitored host and are genuine gaps that additional rules could close. 100% coverage of
+    this dashboard is therefore not an achievable or honest goal for a host-log tool; closing
+    the host-relevant gap count is.
   </p>
   <div class="tactic-row">
     <div>collection</div>

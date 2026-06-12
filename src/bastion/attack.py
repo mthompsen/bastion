@@ -63,6 +63,7 @@ def load_attack_data(stix_path: Path) -> AttackData:
             id=attack_id.upper(),
             name=str(obj.get("name", "")),
             tactics=_tactics(obj),
+            platforms=[str(p) for p in obj.get("x_mitre_platforms", [])],
         )
     return data
 

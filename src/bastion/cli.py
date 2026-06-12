@@ -217,6 +217,12 @@ def _print_coverage(
         f"techniques; [bold red]{uncovered} techniques have no detection rule[/]. "
         "Coverage counts rules, not proven detections."
     )
+    console.print(
+        f"Of those, {summary.uncovered_beyond_host_count} have no Windows/Linux component in "
+        "ATT&CK's platform data and cannot appear in host logs; "
+        f"[bold red]{summary.uncovered_host_gap_count}[/] are host-relevant gaps that more "
+        "rules could close."
+    )
     if summary.unknown_technique_ids:
         ids = ", ".join(summary.unknown_technique_ids)
         console.print(

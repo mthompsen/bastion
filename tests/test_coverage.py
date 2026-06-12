@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from bastion.attack import load_attack
-from bastion.coverage import compute_coverage, summarize_coverage
-from bastion.models import SigmaRule
+from bastion.coverage import compute_coverage, host_relevant, summarize_coverage
+from bastion.models import SigmaRule, TechniqueRef
 from bastion.sigma.loader import load_rules
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -69,3 +69,43 @@ def test_empty_ruleset_covers_nothing() -> None:
     assert summary.covered_count == 0
     assert summary.total_count == 3
     assert all(not entry.covered for entry in summary.entries)
+
+
+class TestHostRelevance:
+    def test_host_platforms_are_relevant(self) -> None:
+        assert host_relevant(TechniqueRef(id="T1", name="a", platforms=["Windows"]))
+        assert host_relevant(TechniqueRef(id="T2", name="b", platforms=["IaaS", "Linux"]))
+
+    def test_non_host_platforms_are_not(self) -> None:
+        assert not host_relevant(TechniqueRef(id="T3", name="c", platforms=["IaaS", "SaaS"]))
+        assert not host_relevant(TechniqueRef(id="T4", name="d", platforms=["PRE"]))
+        assert not host_relevant(
+            TechniqueRef(id="T5", name="e", platforms=["Network Devices", "ESXi"])
+        )
+
+    def test_missing_platform_metadata_counts_as_relevant(self) -> None:
+        # The gap count must never understate the remaining work.
+        assert host_relevant(TechniqueRef(id="T6", name="f", platforms=[]))
+
+    def test_summary_splits_uncovered_by_host_relevance(self) -> None:
+        lookup = {
+            "T1059.001": TechniqueRef(
+                id="T1059.001", name="PowerShell", tactics=["execution"], platforms=["Windows"]
+            ),
+            "T9100": TechniqueRef(
+                id="T9100", name="Cloud Only", tactics=["impact"], platforms=["IaaS"]
+            ),
+            "T9200": TechniqueRef(
+                id="T9200", name="Host Gap", tactics=["impact"], platforms=["Linux"]
+            ),
+        }
+        summary = summarize_coverage([make_rule("a", ["T1059.001"])], lookup)
+        assert summary.covered_count == 1
+        assert summary.uncovered_beyond_host_count == 1  # T9100
+        assert summary.uncovered_host_gap_count == 1  # T9200
+
+    def test_fixture_summary_gap_counts(self) -> None:
+        # The fixture's only uncovered technique (T1059) is host-relevant.
+        summary = summarize_coverage(RULES, ATTACK)
+        assert summary.uncovered_host_gap_count == 1
+        assert summary.uncovered_beyond_host_count == 0

@@ -17,6 +17,12 @@ def test_load_attack_indexes_techniques_and_subtechniques() -> None:
     assert lookup["T1110"].tactics == ["credential-access"]
 
 
+def test_platforms_are_parsed() -> None:
+    lookup = load_attack(MINI_STIX)
+    assert lookup["T1059.001"].platforms == ["Windows"]
+    assert lookup["T1110"].platforms == ["Windows", "Linux", "IaaS"]
+
+
 def test_tactics_only_include_mitre_attack_kill_chain() -> None:
     lookup = load_attack(MINI_STIX)
     # The fixture's T1059 also carries a lockheed-martin kill-chain phase.

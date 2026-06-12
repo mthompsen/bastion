@@ -16,6 +16,25 @@ from dataclasses import dataclass, field
 
 from bastion.models import CoverageEntry, SigmaRule, TechniqueRef
 
+#: ATT&CK platform names a host-log scanner can observe.
+HOST_PLATFORMS = frozenset({"windows", "linux"})
+
+
+def host_relevant(technique: TechniqueRef) -> bool:
+    """Can this technique, per ATT&CK's platform metadata, occur on a
+    Windows or Linux host at all?
+
+    Techniques whose platforms are exclusively cloud control planes,
+    identity providers, network devices, ESXi, or pre-compromise (PRE)
+    leave no trace in host logs, so an uncovered one is a telemetry
+    limitation rather than a missing rule. Techniques without platform
+    metadata are treated as host-relevant so the gap count never
+    understates the work remaining.
+    """
+    if not technique.platforms:
+        return True
+    return any(platform.lower() in HOST_PLATFORMS for platform in technique.platforms)
+
 
 @dataclass
 class CoverageSummary:
@@ -28,6 +47,10 @@ class CoverageSummary:
     tactic_totals: dict[str, tuple[int, int]] = field(default_factory=dict)
     #: technique ids tagged by rules but unknown to ATT&CK (deprecated, typos)
     unknown_technique_ids: list[str] = field(default_factory=list)
+    #: uncovered techniques that could occur on a Windows/Linux host
+    uncovered_host_gap_count: int = 0
+    #: uncovered techniques with no Windows/Linux component in ATT&CK
+    uncovered_beyond_host_count: int = 0
 
 
 def compute_coverage(
@@ -53,6 +76,8 @@ def summarize_coverage(
     """Coverage entries plus the aggregate numbers reports lead with."""
     entries = compute_coverage(rules, attack_lookup)
     covered = sum(1 for entry in entries if entry.covered)
+    uncovered_entries = [entry for entry in entries if not entry.covered]
+    host_gaps = sum(1 for entry in uncovered_entries if host_relevant(entry.technique))
 
     tactic_covered: Counter[str] = Counter()
     tactic_total: Counter[str] = Counter()
@@ -77,4 +102,6 @@ def summarize_coverage(
         total_count=len(entries),
         tactic_totals=tactic_totals,
         unknown_technique_ids=unknown,
+        uncovered_host_gap_count=host_gaps,
+        uncovered_beyond_host_count=len(uncovered_entries) - host_gaps,
     )

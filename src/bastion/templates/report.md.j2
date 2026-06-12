@@ -43,6 +43,12 @@ enterprise techniques. **{{ uncovered_count }} techniques have no detection rule
 A covered technique has at least one rule tagged to it; that is a much weaker statement than
 "this activity would be detected."
 
+Per ATT&CK's platform metadata, {{ summary.uncovered_beyond_host_count }} of the uncovered
+techniques have no Windows or Linux component (cloud control planes, identity providers,
+network devices, ESXi, or pre-compromise infrastructure) and cannot appear in host logs at
+all. The remaining **{{ summary.uncovered_host_gap_count }}** are host-relevant gaps that
+additional rules could close.
+
 | Tactic | Covered | Total | Share |
 |---|---|---|---|
 {% for tactic, (covered, total) in summary.tactic_totals.items() %}
