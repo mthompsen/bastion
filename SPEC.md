@@ -1,8 +1,7 @@
 # Bastion - Sigma/ATT&CK Detection Engine
 
-Design specification. This is the document Bastion was designed and built against, kept in the
-repository as the project's design record. All core phases (1-6) are complete; see
-[README.md](README.md) for usage and a worked example.
+Design specification: architecture, domain logic, and the reasoning behind the main choices.
+For usage and a worked example, start with [README.md](README.md).
 
 As-built data pins: Sigma release `r2026-04-01`, ATT&CK enterprise STIX `v19.1`. The supported
 Sigma grammar subset is documented in
@@ -20,7 +19,7 @@ detect. Output formats: CLI, JSON, and a static HTML dashboard.
 
 ## 2. Goals
 
-- Demonstrate detection engineering end to end: ingest telemetry, evaluate detection logic,
+- Cover detection engineering end to end: ingest telemetry, evaluate detection logic,
   enrich with adversary-technique context, report.
 - Work against the real ecosystem standards (the actual SigmaHQ ruleset and official MITRE
   ATT&CK data) rather than invented formats.
@@ -263,30 +262,10 @@ command and produces the committed sample artifacts.
 After `bastion report examples/logs/<sample> -o out/`: `report.md`, `result.json`,
 `result.sarif`, `dashboard.html`. The README shows a real run against committed sample attack
 telemetry, with
-`examples/output/` committed so a reviewer sees real detections and a real coverage map
-without running anything.
+`examples/output/` committed so the detections and the coverage map are visible without
+running anything.
 
-## 13. Build phases (done in order)
-
-1. [x] Scaffold + models + ingest. Repo, packaging, `models.py`, the `Event` shape, both
-   ingesters (Linux first, then EVTX), fixture logs, tests, CLI skeleton, green CI.
-2. [x] ATT&CK. `fetch_data.py` (ATT&CK half), `attack.py` STIX parsing, technique lookup,
-   tests against a mini STIX fixture.
-3. [x] Sigma loading + matching. `loader.py`, `modifiers.py`, `matcher.py` with a documented
-   supported grammar subset; extensive matcher/modifier unit tests against fixture rules and
-   events.
-4. [x] Engine + coverage. `engine.py` (rules over events to detections with evidence),
-   `coverage.py`. `scan` and `coverage` commands.
-5. [x] Report + dashboard. `report.py`: CLI, JSON, and the HTML dashboard. `report` end to
-   end. Capture the committed sample run.
-6. [x] Polish. README (detection engineering background, architecture diagram, the sample
-   run and a dashboard screenshot), docstrings, `--help`, coverage >= 80%.
-7. [x] Stretch. SARIF 2.1.0 output as a fourth report artifact; extended Sigma grammar
-   (cidr/exists/numeric predicates, cased matching, windash/base64/base64offset transforms
-   with utf16 encodings); a hand-written local rule pack under `rules/` covering eight
-   techniques the upstream ruleset does not tag; a timeline view in the dashboard.
-
-## 14. Testing and quality requirements
+## 13. Testing and quality
 
 - pytest covers: each modifier, the matcher across condition forms, both ingesters (fixture
   logs), ATT&CK resolution, engine detection and evidence capture, coverage computation.
@@ -295,29 +274,29 @@ without running anything.
 - No network in tests (mini fixtures for Sigma rules and STIX), no host access, no secrets.
   All tests OS-independent and offline.
 
-## 15. Acceptance criteria
+## 14. Capabilities as built
 
-- [x] `pip install -e .`; `bastion --help` works, all subcommands documented.
-- [x] `bastion fetch` caches the real Sigma ruleset and ATT&CK STIX bundle; the flow then runs
+- `pip install -e .`; `bastion --help` works, all subcommands documented.
+- `bastion fetch` caches the real Sigma ruleset and ATT&CK STIX bundle; the flow then runs
   offline.
-- [x] `bastion scan` parses a real sample log and reports detections, each with the matched
+- `bastion scan` parses a real sample log and reports detections, each with the matched
   fields and the resolved ATT&CK technique name.
-- [x] The matcher correctly evaluates the documented Sigma grammar subset. Unsupported
+- The matcher correctly evaluates the documented Sigma grammar subset. Unsupported
   constructs are reported, not crashed on, and do not inflate coverage. (2,454 of 2,456
   upstream Windows rules evaluable at the pinned release; the remaining aggregation rules
   disclosed.)
-- [x] `bastion coverage` reports covered techniques and blind spots, without implying total
+- `bastion coverage` reports covered techniques and blind spots, without implying total
   visibility. (385/697 techniques at the pinned datasets including the local pack; 312
   uncovered techniques named.)
-- [x] One bad rule or malformed record never aborts a scan.
-- [x] `bastion report` emits report.md, result.json, and a self-contained dashboard.html from
+- One bad rule or malformed record never aborts a scan.
+- `bastion report` emits report.md, result.json, and a self-contained dashboard.html from
   a real committed sample run (`examples/output/`, produced from EVTX-ATTACK-SAMPLES
   telemetry).
-- [x] Lint, strict type-check, and tests green (coverage ~96% against an 80% gate). The CI
+- Lint, strict type-check, and tests green (coverage ~96% against an 80% gate). The CI
   workflow runs the same gates on Ubuntu/Windows across Python 3.11/3.12. README includes the
   architecture diagram, sample output, and a dashboard screenshot.
 
-## 16. Implementation notes
+## 15. Implementation notes
 
 - The Sigma release and ATT&CK STIX version are pinned so detections and coverage numbers are
   reproducible and exact figures can be cited.
@@ -329,5 +308,6 @@ without running anything.
 - The sample logs are inert records of past attacks, used to test detection. The tool never
   generates, executes, or assists attacks; it only recognizes their traces. That boundary is
   kept clean in code and in the README.
-- The README is written for a human reviewer: what detection-as-code is, why mapping to
-  ATT&CK matters, why coverage reporting matters, then the diagram and the sample run.
+- The README leads with the background a reader needs: what detection-as-code is, why
+  mapping to ATT&CK matters, why coverage reporting matters, then the diagram and the
+  sample run.
