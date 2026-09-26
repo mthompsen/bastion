@@ -14,5 +14,18 @@ activity kept for detection testing: plain text and event data, nothing executab
   [EVTX-ATTACK-SAMPLES](https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES) corpus by
   [@sbousseaden](https://github.com/sbousseaden), used with attribution.
 
+## License notice for the EVTX samples
+
+The two `.evtx` files above are copies from the upstream
+[EVTX-ATTACK-SAMPLES](https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES) project, which is
+published under the GNU General Public License v3.0 (`LICENSE.GPL` in that repository). They are
+data files, redistributed here unmodified and with attribution, and they are separate from
+Bastion's own code, which is MIT licensed (see the repository `LICENSE`). Nothing in Bastion
+links against or derives from them; they are inputs the tool reads. The two synthetic Linux
+logs were written for this project and are covered by Bastion's MIT license.
+
+Pre-release item: move the EVTX samples to fetch-on-demand by pinned upstream commit, so the
+repository carries only the manifest and attribution rather than GPL-licensed data.
+
 The committed run in `examples/output/` was produced from the BITS-job sample with
 `bastion report examples/logs/sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx -o examples/output`.
