@@ -25,6 +25,7 @@ from dataclasses import dataclass, field
 
 from bastion.attack import resolve_techniques
 from bastion.models import Detection, Event, SigmaRule, TechniqueRef
+from bastion.sigma.filters import SigmaFilter
 from bastion.sigma.matcher import UnsupportedRuleError, match
 
 logger = logging.getLogger(__name__)
@@ -67,6 +68,37 @@ class ScanOutcome:
     unsupported_rules: dict[str, str] = field(default_factory=dict)
     rule_errors: dict[str, str] = field(default_factory=dict)
     unresolved_techniques: list[str] = field(default_factory=list)
+    #: rule id -> detections suppressed by filter documents
+    filtered: dict[str, int] = field(default_factory=dict)
+    #: filter id -> suppressions it caused
+    filter_hits: dict[str, int] = field(default_factory=dict)
+    #: filter id -> why it could not be evaluated (it then fails open: detections are kept)
+    filter_errors: dict[str, str] = field(default_factory=dict)
+
+
+def _suppressed(
+    rule: SigmaRule,
+    event: Event,
+    candidates: Sequence[tuple[SigmaFilter, SigmaRule]],
+    outcome: ScanOutcome,
+) -> bool:
+    """Does a filter document naming this rule match the event? Errors fail open."""
+    for sigma_filter, pseudo in candidates:
+        if sigma_filter.id in outcome.filter_errors:
+            continue
+        if not sigma_filter.applies_to_source(event, rule):
+            continue
+        try:
+            hit = match(pseudo, event).matched
+        except Exception as exc:  # a broken filter must never hide a detection
+            logger.warning("filter %s (%s) failed: %s", sigma_filter.id, sigma_filter.title, exc)
+            outcome.filter_errors[sigma_filter.id] = str(exc)
+            continue
+        if hit:
+            outcome.filtered[rule.id] = outcome.filtered.get(rule.id, 0) + 1
+            outcome.filter_hits[sigma_filter.id] = outcome.filter_hits.get(sigma_filter.id, 0) + 1
+            return True
+    return False
 
 
 def rule_applies(rule: SigmaRule, event: Event) -> bool:
@@ -87,12 +119,23 @@ def scan(
     events: Iterable[Event],
     rules: Sequence[SigmaRule],
     attack_lookup: dict[str, TechniqueRef],
+    filters: Sequence[SigmaFilter] = (),
 ) -> ScanOutcome:
-    """Evaluate every applicable rule against every event."""
+    """Evaluate every applicable rule against every event.
+
+    ``filters`` are Sigma filter documents: a detection whose rule a filter names is
+    suppressed when the filter's selection matches the same event, and every suppression
+    is counted on the outcome. A filter the matcher cannot evaluate fails open.
+    """
     outcome = ScanOutcome(rules_evaluated=len(rules))
     retired: set[str] = set()
     technique_cache: dict[str, list[TechniqueRef]] = {}
     unresolved_seen: set[str] = set()
+    filters_by_rule: dict[str, list[tuple[SigmaFilter, SigmaRule]]] = {}
+    for sigma_filter in filters:
+        pseudo = sigma_filter.as_rule()
+        for rule_id in sigma_filter.rule_ids:
+            filters_by_rule.setdefault(rule_id, []).append((sigma_filter, pseudo))
     # The logsource pre-filter's inputs are per rule, so read them once rather than per event.
     prepared = [
         (
@@ -129,6 +172,10 @@ def scan(
                 retired.add(rule.id)
                 continue
             if not result.matched:
+                continue
+            if rule.id in filters_by_rule and _suppressed(
+                rule, event, filters_by_rule[rule.id], outcome
+            ):
                 continue
             if rule.id not in technique_cache:
                 resolved, unresolved = resolve_techniques(rule.attack_techniques, attack_lookup)

@@ -59,6 +59,7 @@ from bastion.fetch import attack_bundle_path, sigma_rules_path
 from bastion.models import Event, SigmaRule
 from bastion.pins import pin_summary
 from bastion.sigma import load_rules
+from bastion.sigma.filters import SigmaFilter, load_filters
 
 DEFAULT_SEED = 20260926
 DEFAULT_BUDGET = 20.0
@@ -80,6 +81,7 @@ class BenchConfig:
     baseline_sets: tuple[str, ...] = ()
     channels: tuple[str, ...] | None = None
     citadel_dir: Path | None = None
+    filters_dir: Path | None = None
     resume: bool = True
     max_events_per_capture: int | None = None
     run_name: str | None = None
@@ -150,6 +152,7 @@ class RuleSet:
     by_id: dict[str, SigmaRule]
     evaluability: EvaluabilityReport
     hunting_ids: set[str]
+    filters: list[SigmaFilter] = field(default_factory=list)
 
     def for_platform(self, platform: str) -> list[SigmaRule]:
         return [r for r in self.rules if r.logsource.get("product", "").lower() in {platform, ""}]
@@ -166,7 +169,8 @@ def load_ruleset(config: BenchConfig) -> RuleSet:
         by_id.setdefault(rule.id, rule)
     report = check_rules(rules)
     hunting = {r.id for r in rules if is_hunting(r)}
-    return RuleSet(rules, by_id, report, hunting)
+    filters = load_filters(config.filters_dir or config.repo_root / "filters")
+    return RuleSet(rules, by_id, report, hunting, filters)
 
 
 def load_attack(config: BenchConfig) -> AttackData:
@@ -301,6 +305,7 @@ def evaluate_capture(
     hunting_ids: set[str],
     split: str,
     limit: int | None = None,
+    filters: Sequence[SigmaFilter] = (),
 ) -> CaptureOutcome:
     """Run the engine over one capture exactly as ``bastion scan`` would."""
     first: datetime | None = None
@@ -317,7 +322,7 @@ def evaluate_capture(
                 last = when if last is None or when > last else last
             yield event
 
-    outcome = engine.scan(tracked(), rules, attack.techniques)
+    outcome = engine.scan(tracked(), rules, attack.techniques, filters)
     counts: Counter[str] = Counter(d.rule_id for d in outcome.detections)
     by_rule = {r.id: r for r in rules}
     fired = [
@@ -351,6 +356,7 @@ def evaluate_capture(
         rule_errors=len(outcome.rule_errors),
         expected_matches=dict(capture.expected_matches),
         notes=notes,
+        filtered=dict(outcome.filtered),
     )
 
 
@@ -426,6 +432,7 @@ def run_bench(
                     ruleset.hunting_ids,
                     split,
                     config.max_events_per_capture,
+                    ruleset.filters,
                 )
             except Exception as exc:  # a broken file must not end the run
                 outcome = CaptureOutcome(
@@ -563,6 +570,18 @@ def summarize(
             ],
             "local_rule_ids": sorted(r.id for r in local_rules),
             "local_rules_hunting": sorted(r.id for r in local_rules if r.id in ruleset.hunting_ids),
+            "filters_loaded": sorted(f.id for f in ruleset.filters),
+            "suppressed_by_filters": dict(
+                sorted(
+                    Counter(
+                        {
+                            rule_id: sum(o.filtered.get(rule_id, 0) for o in outcomes)
+                            for o in outcomes
+                            for rule_id in o.filtered
+                        }
+                    ).items()
+                )
+            ),
         },
         "coverage": {name: rate.as_dict() for name, rate in coverage.items()},
         "blind_spots_alerting_class": blind_spot_split(ruleset.rules, attack),

@@ -65,6 +65,13 @@ def render_report(summary: Mapping[str, Any]) -> str:
             f"Local pack: {len(rules['local_rule_ids'])} rules, of which "
             f"{len(rules['local_rules_hunting'])} are hunting class by status."
         )
+    if rules.get("filters_loaded"):
+        suppressed = sum(rules.get("suppressed_by_filters", {}).values())
+        add("")
+        add(
+            f"Filter documents loaded: {', '.join(rules['filters_loaded'])}. Detections suppressed "
+            f"by them across every capture: {suppressed} (per rule in summary.json)."
+        )
     add("")
     add("## Coverage (claim-by-tag, not validated detection)")
     add("")

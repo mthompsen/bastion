@@ -81,3 +81,7 @@ class ScanResult(BaseModel):
     events_scanned: int = 0
     rules_loaded: int = 0
     coverage: list[CoverageEntry] = Field(default_factory=list)
+    #: detections suppressed by Sigma filter documents, per rule id (disclosed, never silent)
+    filtered_detections: dict[str, int] = Field(default_factory=dict)
+    #: ids of the filter documents that were loaded for this scan
+    filters_applied: list[str] = Field(default_factory=list)

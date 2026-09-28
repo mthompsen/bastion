@@ -33,6 +33,7 @@ from bastion.ingest import EvtxSource, select_source
 from bastion.models import Platform, ScanResult, SigmaRule
 from bastion.report import ReportContext, write_report
 from bastion.sigma import load_rules
+from bastion.sigma.filters import SigmaFilter, load_filters
 
 app = typer.Typer(
     name="bastion",
@@ -52,6 +53,8 @@ console = Console()
 #: Hand-written rules shipped with the repository, loaded alongside the
 #: fetched cache whenever --rules-dir is not overridden.
 LOCAL_RULES_DIR = Path("rules")
+#: Sigma filter documents shipped with the repository (environment exclusions as files).
+FILTERS_DIR = Path("filters")
 
 _LEVEL_STYLES = {
     "critical": "bold red",
@@ -87,6 +90,13 @@ AttackFileFlag = Annotated[
     Path | None,
     typer.Option("--attack-file", help="ATT&CK STIX bundle (default: the fetched cache)."),
 ]
+FiltersDirFlag = Annotated[
+    Path | None,
+    typer.Option(
+        "--filters-dir",
+        help="Sigma filter documents to apply (default: the repository filters/ directory).",
+    ),
+]
 LogfileArg = Annotated[
     Path,
     typer.Argument(exists=True, dir_okay=False, readable=True, help="Log file to scan."),
@@ -109,6 +119,11 @@ def _load_ruleset(rules_dir: Path | None, platform: Platform | None) -> list[Sig
     return rules
 
 
+def _load_filters(filters_dir: Path | None) -> list[SigmaFilter]:
+    """Sigma filter documents: an explicit directory, or the repository's ``filters/``."""
+    return load_filters(filters_dir or FILTERS_DIR)
+
+
 def _level_cell(level: str) -> str:
     return f"[{_LEVEL_STYLES.get(level, '')}]{level}[/]"
 
@@ -129,6 +144,15 @@ def _print_scan_caveats(outcome: engine.ScanOutcome) -> None:
         console.print(
             f"[yellow]Technique tags not found in ATT&CK (deprecated or unknown):[/] {ids}"
         )
+    if outcome.filtered:
+        suppressed = sum(outcome.filtered.values())
+        console.print(
+            f"[yellow]{suppressed} detections suppressed by {len(outcome.filter_hits)} filter "
+            f"document(s)[/] ({', '.join(sorted(outcome.filter_hits))}); counted, not hidden."
+        )
+    if outcome.filter_errors:
+        ids = ", ".join(sorted(outcome.filter_errors))
+        console.print(f"[yellow]Filter documents that could not be evaluated (kept open):[/] {ids}")
 
 
 @app.callback(invoke_without_command=True)
@@ -148,9 +172,10 @@ def scan(
     platform: PlatformFlag = None,
     rules_dir: RulesDirFlag = None,
     attack_file: AttackFileFlag = None,
+    filters_dir: FiltersDirFlag = None,
 ) -> None:
     """Scan a log file against the Sigma ruleset and print detections."""
-    result, outcome, _, _, _ = _run_scan(logfile, platform, rules_dir, attack_file)
+    result, outcome, _, _, _ = _run_scan(logfile, platform, rules_dir, attack_file, filters_dir)
 
     if not result.detections:
         console.print("[green]No detections.[/]")
@@ -290,10 +315,11 @@ def report(
     platform: PlatformFlag = None,
     rules_dir: RulesDirFlag = None,
     attack_file: AttackFileFlag = None,
+    filters_dir: FiltersDirFlag = None,
 ) -> None:
     """Full run: report.md + result.json + dashboard.html."""
     result, outcome, summary, attack_version, log_platform = _run_scan(
-        logfile, platform, rules_dir, attack_file
+        logfile, platform, rules_dir, attack_file, filters_dir
     )
     context = ReportContext(
         logfile=logfile.name,
@@ -575,6 +601,7 @@ def _run_scan(
     platform: PlatformOption | None,
     rules_dir: Path | None,
     attack_file: Path | None,
+    filters_dir: Path | None = None,
 ) -> tuple[ScanResult, engine.ScanOutcome, CoverageSummary, str | None, Platform]:
     """Shared scan pipeline: ingest → rules → engine → ScanResult.
 
@@ -589,14 +616,17 @@ def _run_scan(
     log_platform: Platform = "windows" if isinstance(source, EvtxSource) else "linux"
 
     rules = _load_ruleset(rules_dir, log_platform)
+    filters = _load_filters(filters_dir)
     attack_data = load_attack_data(bundle)
-    outcome = engine.scan(source.parse(logfile), rules, attack_data.techniques)
+    outcome = engine.scan(source.parse(logfile), rules, attack_data.techniques, filters)
     summary = summarize_coverage(rules, attack_data.techniques)
     result = ScanResult(
         detections=outcome.detections,
         events_scanned=outcome.events_scanned,
         rules_loaded=len(rules),
         coverage=summary.entries,
+        filtered_detections=dict(outcome.filtered),
+        filters_applied=[f.id for f in filters],
     )
     return result, outcome, summary, attack_data.version, log_platform
 

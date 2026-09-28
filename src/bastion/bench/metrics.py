@@ -139,6 +139,8 @@ class CaptureOutcome:
     expected_matches: dict[str, int | None] = field(default_factory=dict)
     notes: dict[str, str] = field(default_factory=dict)
     skipped: str | None = None
+    #: rule id -> detections suppressed by filter documents on this capture
+    filtered: dict[str, int] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
