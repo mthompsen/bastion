@@ -155,6 +155,17 @@ bastion rules list           # loaded rules and their ATT&CK techniques
 `--help`-documented and exits non-zero on error. Datasets are pinned for reproducibility
 (Sigma release r2026-04-01, ATT&CK STIX v19.1) and cached under `data/`, which is gitignored.
 
+## Measurement harness
+
+Coverage above is a claim-by-tag number. `bastion bench` measures what the ruleset actually
+detects on labelled captures: SigmaHQ `regression_data`, EVTX-ATTACK-SAMPLES, Splunk
+attack_data (Linux auditd), Nextron evtx-baseline goodware for benign replay, and in-repo
+fixtures. Corpora are fetched by pinned commit into a cache outside the repository
+(`bastion bench fetch`), assigned to a dev or held-out split in `bench/manifest.toml`, and every
+run writes `bench/results/<date>-<commit>/summary.json` and `report.md` where every rate carries
+its numerator, denominator, basis, corpus and pins. The baseline and its definitions are in
+[`docs/milestones/B1.md`](docs/milestones/B1.md).
+
 ## Development
 
 ```console
