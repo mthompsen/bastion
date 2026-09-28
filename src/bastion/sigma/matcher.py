@@ -37,9 +37,9 @@ evaluated to true, tying the alert back to the log content behind it.
 from __future__ import annotations
 
 import fnmatch
-import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from functools import cache
 from typing import cast
 
 from bastion.models import Event, FieldValue, SigmaRule
@@ -95,9 +95,8 @@ def match(rule: SigmaRule, event: Event) -> MatchResult:
             cache[name] = _eval_identifier(identifiers[name], event)
         return cache[name].matched
 
-    matched = any(
-        _eval_condition(str(condition), list(identifiers), resolve) for condition in conditions
-    )
+    names = tuple(identifiers)
+    matched = any(_compile_condition(str(condition), names)(resolve) for condition in conditions)
     if not matched:
         return MatchResult(matched=False)
 
@@ -132,9 +131,9 @@ def _eval_identifier(value: object, event: Event) -> MatchResult:
     raise UnsupportedRuleError(f"unsupported identifier shape: {type(value).__name__}")
 
 
-@dataclass
+@dataclass(frozen=True)
 class _FieldSpec:
-    """A parsed ``Field|modifier|...`` chain."""
+    """A parsed ``Field|modifier|...`` chain. Immutable, so parses are shared across events."""
 
     field: str
     predicate: str = ""
@@ -167,32 +166,42 @@ def _eval_map(spec: dict[object, object], event: Event) -> MatchResult:
     return MatchResult(matched=True, matched_fields=evidence)
 
 
+@cache
 def _parse_field_spec(raw: str) -> _FieldSpec:
-    """Parse a field spec with its modifier chain, validating combinations."""
+    """Parse a field spec with its modifier chain, validating combinations.
+
+    Cached: the same spec string is parsed once per process and the frozen
+    result is shared. Errors are not cached, so an invalid spec raises on
+    every call exactly as before.
+    """
     parts = raw.split("|")
-    spec = _FieldSpec(field=parts[0])
+    predicate = ""
+    match_all = cased = windash = False
+    encoding: str | None = None
+    b64: str | None = None
     for modifier in parts[1:]:
         name = modifier.lower()
         if name == "all":
-            spec.match_all = True
+            match_all = True
         elif name == "cased":
-            spec.cased = True
+            cased = True
         elif name == "windash":
-            spec.windash = True
+            windash = True
         elif name in _ENCODINGS:
-            if spec.encoding is not None:
+            if encoding is not None:
                 raise UnsupportedRuleError(f"multiple encodings in {raw!r}")
-            spec.encoding = _ENCODINGS[name]
+            encoding = _ENCODINGS[name]
         elif name in _B64_TRANSFORMS:
-            if spec.b64 is not None:
+            if b64 is not None:
                 raise UnsupportedRuleError(f"multiple base64 transforms in {raw!r}")
-            spec.b64 = name
+            b64 = name
         elif name in _PREDICATE_NAMES:
-            if spec.predicate:
+            if predicate:
                 raise UnsupportedRuleError(f"multiple match modifiers in {raw!r}")
-            spec.predicate = name
+            predicate = name
         else:
             raise UnsupportedRuleError(f"unsupported modifier {modifier!r} in {raw!r}")
+    spec = _FieldSpec(parts[0], predicate, match_all, cased, windash, encoding, b64)
     if spec.encoding is not None and spec.b64 is None:
         raise UnsupportedRuleError(f"{raw!r}: utf16 encodings require a base64 transform")
     if spec.cased and spec.predicate not in _STRING_PREDICATES:
@@ -206,8 +215,19 @@ def _value_matches(spec: _FieldSpec, field_value: FieldValue, rule_value: RuleVa
     """Does one rule value (after transforms) satisfy the predicate?"""
     if rule_value is None and not spec.has_transforms and spec.predicate == "":
         return field_value is None
-    candidates = _candidate_values(spec, rule_value)
+    if spec.has_transforms:
+        # The type is part of the key: ``1``, ``1.0`` and ``True`` hash alike but stringify apart.
+        candidates = _cached_candidates(spec, type(rule_value).__name__, rule_value)
+    else:
+        candidates = (rule_value,)
     return any(_apply_predicate(spec, field_value, candidate) for candidate in candidates)
+
+
+@cache
+def _cached_candidates(
+    spec: _FieldSpec, _type_name: str, rule_value: RuleValue
+) -> tuple[RuleValue, ...]:
+    return tuple(_candidate_values(spec, rule_value))
 
 
 def _candidate_values(spec: _FieldSpec, rule_value: RuleValue) -> list[RuleValue]:
@@ -257,35 +277,92 @@ def _eval_keywords(keywords: list[object], event: Event) -> MatchResult:
     )
     for keyword in keywords:
         regex = mods.wildcard_to_regex(str(keyword))
-        if re.search(regex, haystack, re.IGNORECASE):
+        if mods.compiled(regex, mods.IGNORECASE).search(haystack):
             return MatchResult(matched=True, matched_fields={"keyword": str(keyword)})
     return MatchResult(matched=False)
 
 
-# --- condition expression parsing -------------------------------------------
+# --- condition expression compilation ----------------------------------------
+
+Resolve = Callable[[str], bool]
+Node = Callable[[Resolve], bool]
+"""A compiled condition: given an identifier resolver, the condition's truth."""
 
 
-def _eval_condition(condition: str, names: list[str], resolve: Callable[[str], bool]) -> bool:
+@cache
+def _compile_condition(condition: str, names: tuple[str, ...]) -> Node:
+    """Compile a condition string into a callable, once per (condition, identifier names).
+
+    Evaluation order and short-circuit behaviour are those of the original
+    interpreting parser: both operands of ``and`` and ``or`` are always
+    evaluated, left first, so every referenced identifier lands in the
+    evidence cache. Grammar errors are raised here, on the first ``match``
+    call for the rule, with the same messages as before; errors are not
+    cached, so later calls raise again.
+    """
     if "|" in condition:
         raise UnsupportedRuleError(f"aggregation conditions are not supported: {condition!r}")
     tokens = condition.replace("(", " ( ").replace(")", " ) ").split()
     if not tokens:
         raise UnsupportedRuleError("empty condition")
-    parser = _ConditionParser(tokens, names, resolve)
-    result = parser.parse_or()
+    parser = _ConditionParser(tokens, names)
+    node = parser.parse_or()
     if parser.peek() is not None:
         raise UnsupportedRuleError(f"trailing tokens in condition: {condition!r}")
-    return result
+    return node
+
+
+def _eval_condition(condition: str, names: list[str], resolve: Resolve) -> bool:
+    """Evaluate a condition against a resolver (compiles and caches on first use)."""
+    return _compile_condition(condition, tuple(names))(resolve)
+
+
+def _or(left: Node, right: Node) -> Node:
+    def node(resolve: Resolve) -> bool:
+        first = left(resolve)
+        second = right(resolve)
+        return first or second
+
+    return node
+
+
+def _and(left: Node, right: Node) -> Node:
+    def node(resolve: Resolve) -> bool:
+        first = left(resolve)
+        second = right(resolve)
+        return first and second
+
+    return node
+
+
+def _not(child: Node) -> Node:
+    return lambda resolve: not child(resolve)
+
+
+def _name(name: str) -> Node:
+    return lambda resolve: resolve(name)
+
+
+def _quantifier(selected: tuple[str, ...], count: int | None) -> Node:
+    """``all of`` when ``count`` is None, else ``count of``. Every selected identifier is
+    evaluated, never short-circuited."""
+
+    def node(resolve: Resolve) -> bool:
+        hits = sum(1 for name in selected if resolve(name))
+        if count is None:
+            return hits == len(selected)
+        return hits >= count
+
+    return node
 
 
 class _ConditionParser:
-    """Recursive-descent parser for the supported condition grammar."""
+    """Recursive-descent parser for the supported condition grammar, producing Nodes."""
 
-    def __init__(self, tokens: list[str], names: list[str], resolve: Callable[[str], bool]):
+    def __init__(self, tokens: list[str], names: tuple[str, ...]):
         self._tokens = tokens
         self._pos = 0
         self._names = names
-        self._resolve = resolve
 
     def peek(self) -> str | None:
         return self._tokens[self._pos] if self._pos < len(self._tokens) else None
@@ -297,32 +374,30 @@ class _ConditionParser:
         self._pos += 1
         return token
 
-    def parse_or(self) -> bool:
+    def parse_or(self) -> Node:
         result = self.parse_and()
         while (token := self.peek()) is not None and token.lower() == "or":
             self._next()
             # No short-circuiting: every referenced identifier should land in
             # the evidence cache, and "near" semantics never apply here.
-            right = self.parse_and()
-            result = result or right
+            result = _or(result, self.parse_and())
         return result
 
-    def parse_and(self) -> bool:
+    def parse_and(self) -> Node:
         result = self.parse_not()
         while (token := self.peek()) is not None and token.lower() == "and":
             self._next()
-            right = self.parse_not()
-            result = result and right
+            result = _and(result, self.parse_not())
         return result
 
-    def parse_not(self) -> bool:
+    def parse_not(self) -> Node:
         token = self.peek()
         if token is not None and token.lower() == "not":
             self._next()
-            return not self.parse_not()
+            return _not(self.parse_not())
         return self.parse_primary()
 
-    def parse_primary(self) -> bool:
+    def parse_primary(self) -> Node:
         token = self._next()
         lowered = token.lower()
         if token == "(":
@@ -336,24 +411,22 @@ class _ConditionParser:
             raise UnsupportedRuleError(f"unexpected token {token!r} in condition")
         return self._resolve_name(token)
 
-    def _parse_quantifier(self, count_token: str) -> bool:
+    def _parse_quantifier(self, count_token: str) -> Node:
         if self._next().lower() != "of":
             raise UnsupportedRuleError(f"expected 'of' after {count_token!r}")
         target = self._next()
         if target.lower() == "them":
-            selected = list(self._names)
+            selected = tuple(self._names)
         elif "*" in target:
-            selected = [name for name in self._names if fnmatch.fnmatchcase(name, target)]
+            selected = tuple(name for name in self._names if fnmatch.fnmatchcase(name, target))
         else:
-            selected = [name for name in self._names if name == target]
+            selected = tuple(name for name in self._names if name == target)
         if not selected:
             raise UnsupportedRuleError(f"condition references unknown identifier(s): {target!r}")
-        hits = sum(1 for name in selected if self._resolve(name))
-        if count_token.lower() == "all":
-            return hits == len(selected)
-        return hits >= int(count_token)
+        count = None if count_token.lower() == "all" else int(count_token)
+        return _quantifier(selected, count)
 
-    def _resolve_name(self, name: str) -> bool:
+    def _resolve_name(self, name: str) -> Node:
         if name not in self._names:
             raise UnsupportedRuleError(f"condition references unknown identifier: {name!r}")
-        return self._resolve(name)
+        return _name(name)

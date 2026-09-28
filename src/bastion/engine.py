@@ -93,11 +93,29 @@ def scan(
     retired: set[str] = set()
     technique_cache: dict[str, list[TechniqueRef]] = {}
     unresolved_seen: set[str] = set()
+    # The logsource pre-filter's inputs are per rule, so read them once rather than per event.
+    prepared = [
+        (
+            rule,
+            rule.logsource.get("product", "").lower(),
+            _CATEGORY_EVENT_IDS.get(rule.logsource.get("category", "").lower()),
+        )
+        for rule in rules
+    ]
 
     for event in events:
         outcome.events_scanned += 1
-        for rule in rules:
-            if rule.id in retired or not rule_applies(rule, event):
+        is_windows = event.platform == "windows"
+        event_id = event.fields.get("EventID")
+        for rule, product, allowed_ids in prepared:
+            if rule.id in retired or (product and product != event.platform):
+                continue
+            if (
+                allowed_ids is not None
+                and is_windows
+                and isinstance(event_id, int)
+                and event_id not in allowed_ids
+            ):
                 continue
             try:
                 result = match(rule, event)

@@ -29,11 +29,14 @@ from __future__ import annotations
 import base64
 import ipaddress
 import re
+from functools import cache
 
 from bastion.models import FieldValue
 
 #: Rule values as they come out of YAML.
 RuleValue = str | int | float | bool | None
+
+IGNORECASE = re.IGNORECASE
 
 
 def _to_text(value: FieldValue | RuleValue) -> str:
@@ -42,6 +45,18 @@ def _to_text(value: FieldValue | RuleValue) -> str:
     return str(value)
 
 
+@cache
+def compiled(pattern: str, flags: int = 0) -> re.Pattern[str]:
+    """Compile a regex once per process.
+
+    ``re``'s own cache holds 512 entries and a ruleset carries thousands of
+    patterns, so it thrashes; this cache is unbounded. An invalid pattern
+    raises ``re.error`` from here, as it did from ``re.search`` before.
+    """
+    return re.compile(pattern, flags)
+
+
+@cache
 def wildcard_to_regex(pattern: str) -> str:
     """Translate a Sigma wildcard pattern into an anchored regex.
 
@@ -77,7 +92,7 @@ def match_equals(field_value: FieldValue, rule_value: RuleValue, cased: bool = F
     if isinstance(rule_value, str) and ("*" in rule_value or "?" in rule_value):
         regex = wildcard_to_regex(rule_value)
         flags = 0 if cased else re.IGNORECASE
-        return re.fullmatch(regex, _to_text(field_value), flags) is not None
+        return compiled(regex, flags).fullmatch(_to_text(field_value)) is not None
     if cased:
         return _to_text(field_value) == _to_text(rule_value)
     return _to_text(field_value).casefold() == _to_text(rule_value).casefold()
@@ -186,4 +201,4 @@ def match_re(field_value: FieldValue, rule_value: RuleValue) -> bool:
     which the engine records as a rule-evaluation error rather than a miss."""
     if field_value is None or rule_value is None:
         return False
-    return re.search(_to_text(rule_value), _to_text(field_value)) is not None
+    return compiled(_to_text(rule_value)).search(_to_text(field_value)) is not None
