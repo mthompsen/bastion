@@ -1,0 +1,10 @@
+# Bench configuration committed with the repository (START_PROMPT section 7).
+
+[budget]
+# Benign replay budget: alerts per host per day on goodware baselines, alerting class only.
+alerts_per_host_day = 20.0
+
+[split]
+seed = 20260926
+# Corpora whose captures never enter the held-out split.
+dev_only = ["citadel_captures"]

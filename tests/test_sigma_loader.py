@@ -29,6 +29,7 @@ def test_rule_fields_are_extracted() -> None:
     ps = rules["Suspicious Encoded PowerShell Command"]
     assert ps.id == "11111111-1111-4111-8111-111111111111"
     assert ps.level == "high"
+    assert ps.status == "test"
     assert ps.logsource == {"product": "windows", "category": "process_creation"}
     assert "selection_img" in ps.detection
     assert ps.detection["condition"] == "selection_img and selection_cli and not filter_legit"
@@ -84,3 +85,18 @@ def test_missing_id_falls_back_to_file_stem(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     assert load_rules(tmp_path)[0].id == "no_id"
+
+
+def test_missing_status_is_empty_and_status_is_lowercased(tmp_path: Path) -> None:
+    (tmp_path / "no_status.yml").write_text(
+        "title: No Status\ndetection:\n    s:\n        EventID: 1\n    condition: s\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "upper_status.yml").write_text(
+        "title: Upper Status\nstatus: Experimental\n"
+        "detection:\n    s:\n        EventID: 1\n    condition: s\n",
+        encoding="utf-8",
+    )
+    by_title = {rule.title: rule for rule in load_rules(tmp_path)}
+    assert by_title["No Status"].status == ""
+    assert by_title["Upper Status"].status == "experimental"

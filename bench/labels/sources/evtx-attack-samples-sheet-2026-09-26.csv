@@ -1,0 +1,200 @@
+Tactic,Technique,ID,Procedure related detection traces
+Execution,"Command and Scripting Interpreter",T1059,revshell_cmd_svchost_sysmon_1.evtx
+Execution,Signed Binary Proxy Execution,T1218,susp_explorer_exec_root_cmdline_rimpq_CyberRaiju.evtx
+Execution,Scheduled Task,T1053,Short time living scheduled task (4698 followed by 4699 in less than 1 min time window)
+Execution,Signed Binary Proxy Execution,T1218,susp_explorer_exec.evtx
+Execution,Signed Binary Proxy Execution,T1218,sysmon_11_1_lolbas_downldr_desktopimgdownldr.evtx
+,,,windows_bits_4_59_60_lolbas desktopimgdownldr.evtx
+Execution,Signed Binary Proxy Execution,T1218,rogue_msi_url_1040_1042.evtx
+Execution,Windows Management Instrumentation,T1047,Sysmon 1 - wmighost_sysmon_20_21_1.evtx (scrcons.exe)
+Execution,Signed Binary Proxy Execution,T1218,MSI Package Exec - Meterpreter Reverse TCP - Sysmon Exec - Exec_sysmon_meterpreter_reversetcp_msipackage.evtx
+Persistence,Windows Management Instrumentation Event Subscription,T1084,WMI CommandLineConsumer -> sysmon_20_21_1_CommandLineEventConsumer.evtx
+"Defense Evasion, Execution",Rundll32,T1085,Execution via Rundll32.exe (url.dll ieframe.dll)|OpenURL FileProtocolHandler]-> exec_sysmon_1_11_lolbin_rundll32_openurl_FileProtocolHandler.evtx
+Defense Evasion,Masquerading,T1036,Sysmon_10_1_ppid_spoofing.evtx
+"Defense Evasion, Execution",Rundll32,T1085,Launch an executable by calling OpenURL in shdocvw.dll -> exec_sysmon_1_11_lolbin_rundll32_shdocvw_openurl.evtx
+Defense Evasion,DLL Search Order Hijacking,T1038,Sysmon 7 dllhijack_cdpsshims_CDPSvc
+Defense Evasion,DLL Search Order Hijacking,T1038,Sysmon 7 Update Session Orchestrator Dll Hijack.evtx
+"Defense Evasion, Execution",Rundll32,T1085,Launch an executable payload by calling RouteTheCall in zipfldr.dll -> exec_sysmon_1_11_lolbin_rundll32_zipfldr_RouteTheCall.evtx
+"Defense Evasion, Execution",Rundll32,T1085,Launch an executable by calling the RegisterOCX function in Advpack.dll -> exec_sysmon_1_lolbin_rundll32_advpack_RegisterOCX.evtx
+Defense Evasion,Signed Binary Proxy Execution,T1218,Executes payload using the Program Compatibility Assistant (pcalua.exe) -> exec_sysmon_1_lolbin_pcalua.evtx
+"Defense Evasion, Execution",Rundll32,T1085,Execute payload by calling pcwutl.dll LaunchApplication function -> exec_sysmon_1_rundll32_pcwutl_launchapplication.evtx
+Defense Evasion,Signed Binary Proxy Execution,T1218,"Execute payload using ""ftp.exe -s:ftp_cmd.txt"" binary -> sysmon_1_ftp.evtx"
+"Defense Evasion, Execution",Regsvr32,T1117,Execute sct stuff using regsvr32\scrobj.dll from pastebin (both ms binaries renamed and normal ones captured) -> exec_sysmon_1_lolbin_renamed_regsvr32_scrobj.evtx & exec_sysmon_lobin_regsvr32_sct.evtx
+"Defense Evasion, Execution",Scripting,T1064,AMSI bypass via jscript9.dll (not instrumented by AMSI) -> exec_sysmon_1_7_jscript9_defense_evasion.evtx
+"Defense Evasion, Execution",Rundll32,T1085,rundll32 (mshtml RunHTMLApplication)-> mshta -> schtasks.exe -> exec_persist_rundll32_mshta_scheduledtask_sysmon_1_3_11.evtx
+Initial Access,Drive-by Compromise,T1189,"Exec via Drive-by ""Adobe Flash CVE-2018-15982"" -> exec_driveby_cve-2018-15982_sysmon_1_10.evtx (SrcImg=iexplorer.exe and CallTrace contains ""UNKNOWN"")"
+"Defense Evasion, Execution",XSL Script Processing,T1220,Exec of cmds/code via XSL (Extensible Markup Language) and WMIC & MSXSL -> exec_wmic_xsl_internet_sysmon_3_1_11.evtx & exec_msxsl_xsl_sysmon_1_7.evtx
+Lateral Movement,PowerShell,T1086,Reverse Shell via PowerCat -> powercat_revShell_sysmon_1_3.evtx
+"Execution, Persistence",NA,NA,Exec & Persist from Volume Shadow Copy -> sysmon_exec_from_vss_persistence.evtx
+Defense Evasion,Signed Binary Proxy Execution,T1218,Lol-bin exec stuff via vshadow.exe (external MS SDK utility) -> sysmon_lolbin_bohops_vshadow_exec.evtx
+"Defense Evasion, Execution","Scripting, Mshta","T1064, T1170",SharpShooter vbs and hta stagless payload executed to deliver (in-memory) meterpreter shellcode -> sysmon_vbs_sharpshooter_stageless_meterpreter.evtx & sysmon_mshta_sharpshooter_stageless_meterpreter.evtx
+Defense Evasion,Process Injection,T1055,"Traces of Invoke-ReflectivePEInjection (sysmon 10, 8) to inject meterpreter into notepad (sysmon 10,1, 3) -> Sysmon_meterpreter_ReflectivePEInjection_to_notepad_.evtx"
+Execution,Compiled HTML File,T1223,Execution via malicious Compilted HTML file -> Sysmon_Exec_CompiledHTML.evtx (parent_process_name = hh.exe)
+"Defense Evasion, Execution",Control Panel Items,T1196,Execution via CPL module - Shell32.dll!Control_RunDLL (sysmon_1_11_rundll32_cpl_ostap.evtx) - Ostap JS malware
+Discovery,Account Discovery,T1087,PsLoggedOn.exe traces on the destination host
+Discovery,Account Discovery,T1087,BloodHoundAD\SharpHound (with default scan options) traces on one target host
+Discovery,Account Discovery,T1087,Domain Admins Group enumeration - 4661 (SAM_GROUP S-1-5-21-domain-512) - DC logs
+Discovery,Process Discovery,T1057,"Process Listing via meterpreter ""ps"" command - meterpreter_ps_cmd_process_listing_sysmon_10.evtx (more than 10 of sysmon 10 events from same src process and twoard different target images and with same calltrace and granted access)"
+Discovery,Account Discovery,T1087,Invoke-UserHunter traces on the source machine --> Recon_Sysmon_3_Invoke_UserHunter_SourceMachine.evtx
+Discovery,Account Discovery,T1087,Discovery_sysmon_18_Invoke_UserHunter_NetSessionEnum_DC-srvsvc.evtx
+Discovery,Network Share Discovery,T1135,"Traces of shares enumeration using ""net view \target /all"" on a target host using sysmon -> enum_shares_target_sysmon_3_18.evtx"
+Discovery,Account Discovery,T1087,Enumeration of local user or group in Win10/16 and above will leave eventids 4798 or 4799 if enabled -> discovery_local_user_or_group_windows_security_4799_4798.evtx
+Persistence,Application Shimming,T1138,"Application Shimming: sysmon (13 11) and windows native event 500 ""Microsoft-Windows-Application-Experience\Program-Telemetry"""
+Persistence,Valid Accounts,T1078,Assigning required DCSync AD extended rights to a backdoor regular account (PowerView DACL_DCSync_Right_Powerview_ Add-DomainObjectAcl) - EventIDs 5136 & 4662
+Persistence,Windows Management Instrumentation Event Subscription,T1084,WMIGhost malware sysmon 20 21 and 1 (ActiveScriptEventConsumer) - wmighost_sysmon_20_21_1.evtx
+Persistence,Valid Accounts,T1138,"DCShadow - 4742 Computer Account changed - SPN contains ""GC"" and ""HOST"" - persistence_security_dcshadow_4742.evtx"
+Persistence,BITS Jobs,T1197,Bitsadminexec - sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx (runtime traces) & persist_bitsadmin_Microsoft-Windows-Bits-Client-Operational.evtx (creation and runtime traces)
+Persistence,Accessibility Features,T1015,Persistent System Access via replacing onscreenkeyboard PE with cmd.exe -> persistence_accessibility_features_osk_sysmon1.evtx
+Persistence,Component Object Model Hijacking,T1122,Persistence via COM hijack of : {BCDE0395-E52F-467C-8E3D-C4579291692E} - CLSID_MMDeviceEnumerator (used i.e. by Firefox) -> persist_firefox_comhijack_sysmon_11_13_7_1.evtx
+Persistence,Component Object Model Hijacking,T1122,"Persistence via COM hijack of ""Outlook Protocol Manager"" using TreatAs key for clsid lookup redirection (Turla APT Outlook backdoor) -> persist_turla_outlook_backdoor_comhijack.evtx"
+Persistence,Registry Run Keys / Startup Folder,T1060,Startup++ -> persistence_startup_UserShellStartup_Folder_Changed_sysmon_13.evtx
+Persistence,Logon Scripts,T1037,Via Winlogon Shell registry -> sysmon_13_1_persistence_via_winlogon_shell.evtx (13 for reg change 1 with parentproc eqto userinit.exe for runtime detection)
+Persistence,Image File Execution Options Injection,T1183,Persistence using IFEO GlobalFlag and SilentProcessExit ImageFile Hijack (evil.exe starts when notepad.exe is closed) -> persistence_SilentProcessExit_ImageHijack_sysmon_13_1.evtx (evil.exe is started as a child of werfault.exe)
+Privilege Escalation,Access Token Manipulation,T1134,Via Named Pipe Impersonation - sysmon_13_1_meterpreter_getsystem_NamedPipeImpersonation.evtx (.\pipe\random present in sysmon 1 cmdline and in service registry) and System_7045_namedpipe_privesc.evtx for default windows system event 7045 (service creation)
+Privilege Escalation,Access Token Manipulation,T1134,Elevate from administrator to NT AUTHORITY SYSTEM using handle inheritance (lsass.exe spawn process) -> sysmon_privesc_from_admin_to_system_handle_inheritance.evtx
+Privilege Escalation,Scheduled Task,T1053,Execution as System via a local temp scheduled task creation that runs as system -> sysmon_1_11_exec_as_system_via_schedtask.evtx
+Privilege Escalation,Scheduled Task and Token Impersonation,"T1053 
+T1134",PrivEsc_SeImpersonatePriv_enabled_back_for_upnp_localsvc_4698.evtx
+Privilege Escalation,Access Token Manipulation,T1134/005,4765_sidhistory_add_t1178.evtx
+Privilege Escalation,Access Token Manipulation,T1134,Invoke_TokenDuplication_UAC_Bypass4624.evtx
+Privilege Escalation,Access Token Manipulation,T1134,win10_4703_SeDebugPrivilege_enabled.evtx
+Privilege Escalation,Access Token Manipulation,T1134,4624 LT3 AnonymousLogon Localhost - JuicyPotato.evtx
+Privilege Escalation,Access Token Manipulation,T1134,Rotten Potato exploit to esc from service account to local system via impersonation (bits COM fetch RPC rogue server NTLM MITM)-> privesc_rotten_potato_from_webshell_metasploit_sysmon_1_8_3.evtx
+Privilege Escalation,Access Token Manipulation,T1134,"Invoke-BypassUACTokenManipulation and Invoke-TokenDuplication have a hardcoded default domain\user (o\l) within CreateProcessWithLogonW, which create an artifacts in event 4624 with logon type equal to 9 and Network Account Name: l, Network Account Domain: o"
+Credential Access,Input Prompt,T1141,Phish_windows_credentials_powershell_scriptblockLog_4104.evtx
+Credential Access,BruteForce,T1110,MSSQL_multiple_failed_logon_EventID_18456.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass via EventViewer (mscfile\shell\open set to a cmd) - Sysmon 13 and 1 -> Sysmon_13_1_UAC_Bypass_EventVwrBypass.evtx
+Privilege Escalation,Bypass User Account Control,T1088,"UAC Bypass via hijacking the ""IsolatedCommand"" value in ""shell\runas\command"" - Sysmon 13 and 1 -> Sysmon_13_1_UACBypass_SDCLTBypass.evtx"
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass via rogue WScript.exe manifest -> sysmon_11_1_15_WScriptBypassUAC.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass via App Path Control.exe Hijack -> sysmon_1_13_UACBypass_AppPath_Control.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass using perfmon and registry key manipulation -> sysmon_13_1_12_11_perfmonUACBypass.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass using compmgmtlauncher and registry key manip -> sysmon_13_1_compmgmtlauncherUACBypass.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass using cliconfg (DLL - NTWDBLIB.dll) -> sysmon_11_1_7_uacbypass_cliconfg.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass using using mcx2prov.exe (CRYPTBASE DLL) -> sysmon_1_7_11_mcx2prov_uacbypass.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass using migwiz.exe (CRYPTBASE DLL) -> sysmon_1_7_11_migwiz.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass using sysprep.exe (CRYPTBASE DLL) -> sysmon_1_7_11_sysprep_uacbypass.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass using token manipulation -> security_4624_4673_token_manip.evtx (LT=9 and SeTcbPrivilege use)
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass using using cmstp and ini file -> sysmon_1_13_11_cmstp_ini_uacbypass.evtx (dllhost.exe {3E5FC7F9-9A51-4367-9063-A120244FBEC7} hosting CMSTPLUA and spawning desired elevated process)
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass via mocking Windows Trusted Folders -> sysmon_11_7_1_uacbypass_windirectory_mocking.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass method 33 of UACME (registry \hms-settings\shell\open\command\) -> Stsmon_UACME_33.evtx [Big thanks to UACME folks]
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass method 34 of UACME (Environment variable expansion windir and hijac\exec of default scheduled task silentcleanup) -> Sysmon_UACME_34.evtx.
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass method 30 of UACME (DLL hijack wow64log.dll) -> Sysmon_UACME_30.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass method 32 of UACME (DLL hijack: duser.dll or osksupport.dll) -> Sysmon_UACME_32.evtx [not stable]
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass method 22 of UACME (DLL hijack: comctl32.dll ParentProc consent.exe) -> Sysmon_UACME_22.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass method 23 (DLL hijck: DismCore.dll ParentProc Dism.exe) -> Sysmon_UACME_23.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass 36 and 37 of UACME failed but left FileCreation artifact tied to DLL hijack (MsCoree.dll GdiPlus.dll) both tested on [Version 10.0.17763.615]
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass 38 of UACME parent process is mmc.exe and .msc file creation -> Sysmon_UACME_38.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass method 39 of UACME (Dll hijack pe386.dll loaded by mmc.exe) -> Sysmon_UACME_39.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass method 41 of UACME (parent process dllhost.exe with CMSTPLUA COM CLSID in the cmdline) -> Sysmon_UACME_41.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass method 43 of UACME (parent process dllhost.exe with Color Management COM CLSID in the cmdline) -> Sysmon_UACME_43.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UAC Bypass method 45 of UACME (registry change) -> Sysmon_UACME_45.evtx
+Privilege Escalation,Bypass User Account Control,T1088,"UAC Bypass method 53 of UACME (reg change, control.exe parent proc of elevated payload) -> Sysmon_UACME_53.evtx"
+Privilege Escalation,Bypass User Account Control,T1088,"UAC Bypass method 56 of UACME (reg change, WSReset.exe as parent process) -> Sysmon_UACME_56.evtx"
+Privilege Escalation,Bypass User Account Control,T1088,Sysmon_uacme_58.evtx
+Privilege Escalation,Bypass User Account Control,T1088,UACME_61_Changepk.evtx
+Privilege Escalation,Exploitation,T1068,CVE-2020-0796_SMBV3Ghost_LocalPrivEsc_Sysmon_3_1_10.evtx
+Privilege Escalation,Exploitation,T1068,PrivEsc_CVE-2020-1313_Sysmon_13_UScheduler_Cmdline.evtx
+Privilege Escalation,Exploitation,T1068,RogueWinRM.evtx
+Privilege Escalation,Access Token Manipulation,T1134,PrivEsc_Imperson_NetSvc_to_Sys_Decoder_Sysmon_1_17_18.evtx
+Privilege Escalation,Access Token Manipulation,T1134,PrivEsc_NetSvc_SessionToken_Retrival_via_localSMB_Auth_5145.evtx
+Privilege Escalation,Access Token Manipulation,T1134,privesc_roguepotato_sysmon_17_18.evtx
+Privilege Escalation,Access Token Manipulation,T1134,privesc_seimpersonate_tosys_spoolsv_sysmon_17_18.evtx
+Privilege Escalation,Hijack Execution Flow,T1574,privesc_unquoted_svc_sysmon_1_11.evtx
+Privilege Escalation,Exploitation,T1068,privesc_registry_symlink_CVE-2020-1377.evtx
+Privilege Escalation,NA,NA,PrivExchange by @_dirkjan (Relay of Exchange Machine account via NTLM to AD and perform a privchage to elevate to domain admin) -> priveschange_dirkjan.evtx
+Credential Access,BruteForce,T1110,kerberos_pwd_spray_4771.evtx
+Credential Access,Credential Dumping,T1003,CA_hashdump_4663_4656_lsass_access.evtx
+Credential Access,Pass the Ticket,T1097,Sysmon17_18_kekeo_tsssp_default_np.evtx
+Credential Access,Credential Dumping,T1003,DE_BYOV_Zam64_CA_Memdump_sysmon_7_10.evtx
+Credential Access,Credential Dumping,T1003,Sysmon_2x10_lsass_with_different_pid_RtlCreateProcessReflection.evtx
+Credential Access,Credential Dumping,T1003,Powershell_4104_MiniDumpWriteDump_Lsass.evtx
+Credential Access,Credential Dumping,T1003,DC_applog_ntdsutil_dfir_325_326_327.evtx
+Credential Access,Credential Dumping,T1003,CA_protectedstorage_5145_rpc_masterkey.evtx
+Credential Access,Credential Dumping,T1003,Sysmon_10_1_memdump_comsvcs_minidump.evtx
+Credential Access,Credential Dumping,T1003,CA_teamviewer-dumper_sysmon_10.evtx
+Credential Access,Credentials in Files,T1081,Discovery of sensitive IIS config files and saved passwords using IIS appcmd.exe utility -> sysmon_1_iis_pwd_and_config_discovery_appcmd.evtx
+Credential Access,Credential Dumping,T1003,Memory dump of lsass.exe using procdump.exe and taskmgr.exe (sysmon 10 & 11)
+Credential Access,Credential Dumping,T1003,Mimikatz sekurlsa::logonpasswords (sysmon 10)
+Credential Access,Credential Dumping,T1003,CA_Mimikatz_Memssp_Default_Logs_Sysmon_11.evtx
+Credential Access,Input Capture,T1056,Traces of a KeyLogger using DirectInput (sysmon 13)
+Credential Access,Credentials in Files,T1081,"Browser's saved credentials - 4663 - test conducted for Opera , Chrome and FireFox"
+Credential Access,Account Manipulation,T1098,"Assining ""SPN"" to regular user account as a prep step for kerberoasting (ACL_ForcePwd_SPNAdd_User_Computer_Accounts)"
+Credential Access,Account Manipulation,T1098,4794_DSRM_password_change_t1098.evtx
+Credential Access,Credential Dumping,T1003,BabyShark Mimikatz via PowerShell - sysmon 7 and 10 (babyshark_mimikatz_powershell.evtx)
+Credential Access,Credential Dumping,T1003,"Keefarce HKTL - dump credentials from keepass pwd mgmt solution (CA_keefarce_keepass_credump.evtx) - Sysmon 8, 7 (CreateRemoteThread ImageLoad)"
+Credential Access,Credential Dumping,T1003,KeeThief - Keepass MasterDB pwd dumper (CA_keepass_KeeThief_Get-KeePassDatabaseKey.evtx) - sysmon CreateRemoteThread
+Credential Access,Credentials in Files,T1081,Lazagne.exe - Browsers Saved Credentials access - 4663 (CA_chrome_firefox_opera_4663.evtx)
+Credential Access,Credentials in Files,T1081,CA_4624_4625_LogonType2_LogonProc_chrome.evtx
+Credential Access,Credential Dumping,T1003,Meterpreter - HashDump command
+Credential Access,Credential Dumping,T1003,Invoke-Mimikatz from Github: sysmon_3_10_Invoke-Mimikatz_hosted_Github.evtx
+Credential Access,Credential Dumping,T1003,DCSync traces on a Domain Controller - Security 4662 - CA_DCSync_4662.evtx [Properties: {1131f6ad-9c07-11d1-f79f-00c04fc2dcd2} or Replicating Directory Changes Allâ€ extended right]
+Credential Access,Credential Dumping,T1003,"Lsass memory dump using Outflank Dumpert HKTL and @hoangprod's AndrewSpecial lsass memdump utility -> sysmon_10_11_outlfank_dumpert_and_andrewspecial_memdump.evtx (sysmon 10 with CallTrace pointing to dbghelp.dll -> MiniDumpWriteDump) and "".dmp"" file written to disk (almost same IOC as for #1 with procdump.exe or taskmgr.exe)"
+Lateral Movement,Remote Desktop Protocol,T1076,sharprdp_sysmon_7_mstscax.dll.evtx
+Lateral Movement,Remote Desktop Protocol,T1076,LM_sysmon_1_12_13_3_tsclient_SharpRdp.evtx
+Lateral Movement,Remote Desktop Protocol,T1076,LM_sysmon_3_12_13_1_SharpRDP.evtx
+Lateral Movement,Remote Desktop Protocol,T1076,DFIR_RDP_Client_TimeZone_RdpCoreTs_104_example.evtx
+Lateral Movement,xp_cmd,NA,sysmon_1_exec_via_sql_xpcmdshell.evtx
+Lateral Movement,xp_cmd,NA,MSSQL_15281_xp_cmdshell_exec_failed_attempt.evtx
+Lateral Movement,Remote Services,T1021,LM_wmi_PoisonHandler_Mr-Un1k0d3r_sysmon_1_13.evtx
+Lateral Movement,Distributed Component Object Model,T1175,LM_dcom_shwnd_shbrwnd_mmc20_failed_traces_system_10016.evtx
+Lateral Movement,Remote Services,T1021,"smb_bi_auth_conn_spoolsample.evtx, spoolsample_5145.evtx"
+Lateral Movement,Remote Services and Service Execution,"T1021, T1035",RemCom (open source psexec) traces on target host eventid 5145
+Lateral Movement,Remote Services,T1021,"PsExec traces on target host - 5145 - (psexec -r ""renamed psexec service name"")"
+Lateral Movement,Windows Admin Shares,T1077,New Share object created - 5142 (net share print=c:\windows\system32 grant:...)
+Lateral Movement,Pass the Hash,T1075,Pass the hash using Mimikatz's sekurlsa::pth - 4624 from source machine (logon type=9 logonproc=seclogon)
+Lateral Movement,Remote Services,T1021,WMI - 4648 with AI attribute pointing to WMIC process - source machine
+Lateral Movement,Remote Services,T1021,WMI - 4624 (logon type =3) followed by 2x 4688 (wmiprvse.exe -> calc.exe) - target machine
+Lateral Movement,Remote Services,T1021,RPC over TCP/IP - 4648 with AI attribute pointing to RPCSS SPN - source machine
+Lateral Movement,Windows Admin Shares,T1077,Remote File Write/Copy - 5145 [Accesses: WriteData (or AddFile)]
+Lateral Movement,Windows Admin Shares,T1077,remote_file_copy_system_proc_file_write_sysmon_11.evtx
+Lateral Movement,Remote Services,T1021,Remote Scheduled Task Creation via ATSVC named pipe - 5145 (ShareName:IPC$ Relative Target Name: atsvc) on target host
+Lateral Movement,Remote Services,T1021,remote task update 4624 4702 same logonid.evtx
+Lateral Movement,Remote Services,T1021,"Remote Service Creation - 5145 (IPC$ svcctl, WriteData) 7045 (SystemEvent with svc details) - both from target host"
+Lateral Movement,via named pipe,NA,Remote Shell over namedpipe - Sysmon 18 (Image:System) and 3 (SourcePort:445) -> lm_sysmon_18_remshell_over_namedpipe.evtx
+Lateral Movement,Distributed Component Object Model,T1175,DCOM via MMC20.APPLICATION COM Object - Sysmon Process Create and NetConnect -> LM_impacket_docmexec_mmc_sysmon_01.evtx
+Lateral Movement,Remote Services,T1021,WMIEXEC - Process Creation - Sysmon - LM_wmiexec_impacket_sysmon_whoami.evtx
+Lateral Movement,Remote Services and Service Execution,"T1021, T1035",PSEXEC - Sysmon - LM_sysmon_psexec_smb_meterpreter.evtx
+Lateral Movement,Distributed Component Object Model,T1175,LM via DCOM ShellBrowserWindow or ShellWindows COM classes - explorer.exe with internal IP addresses network connections over RPC high port numbers -> LM_sysmon_3_DCOM_ShellBrowserWindow_ShellWindows.evtx
+Lateral Movement,Distributed Component Object Model,T1175,LM via DCOM MSHTA (known as LethalHTA) -> LM_DCOM_MSHTA_LethalHTA_Sysmon_3_1.evtx
+Lateral Movement,Windows Admin Shares,T1077,LM via writing to the startup folder exposed via tsclient (RDP local resources default share sysmon 11) -> LM_tsclient_startup_folder.evtx
+Lateral Movement,Windows Remote Management,T1028,Remote execution via WinRM from target host (sysmon process create winrshost.exe) -> LM_winrm_exec_sysmon_1_winrshost.evtx
+Lateral Movement,Windows Remote Management,T1028,Remote PowerShell Session (sysmon process create wsmprovhost.exe) -> LM_PowershellRemoting_sysmon_1_wsmprovhost.evtx
+Lateral Movement,Shared Webroot,T1051,LM via WebShell (w3wp.exe -> cmd.exe -> whoami.exe) -> LM_typical_IIS_webshell_sysmon_1_10_traces.evtx
+Defense Evasion,Modify Existing Service,T1031,"RDP Service settings's tampering - RDPWrap, UniversalTermsrvPatch"
+Defense Evasion,Indicator Removal on Host,T1070,"System and Security Log cleared: 104 System, 1102 Security"
+Defense Evasion,Timestomp,T1099,"Time stomping and DLL Side Loading ""NvSmartMax.dll"" (DE_timestomp_and_dll_sideloading_and_RunPersist.evtx)"
+Defense Evasion,Disabling Security Tools,T1089,Process Suspended - ProcessAccess with GrantedAccess eq to 0x800 - process_suspend_sysmon_10_ga_800.evtx
+Defense Evasion,Process Injection,T1055,Sysmon_10_Evasion_Suspicious_NtOpenProcess_CallTrace.evtx
+Defense Evasion,Disabling Security Tools,T1089,DE_EventLog_Service_Crashed.evtx
+Defense Evasion,Process Injection,T1055,Meterpreter Migrate cmd from untrusted process to a trusted one (explorer.exe) - meterpreter_migrate_to_explorer_sysmon_8.evtx
+Defense Evasion,Process Injection,T1055,Win_4985_T1186_Process_Doppelganging.evtx
+Defense Evasion,Process Injection,T1055,evasion_codeinj_odzhan_conhost_sysmon_10_1.evtx
+Defense Evasion,Process Injection,T1055,evasion_codeinj_odzhan_spoolsv_sysmon_10_1.evtx
+Defense Evasion,DLL Side-Loading and More,T1073,faxhell_sysmon_7_1_18_3_bindshell_dllhijack.evtx
+Defense Evasion,Timestomp,T1099,Timestomp MACE attributes - sysmon 2 (filecreatetime) and 11 (file creation) - sysmon_2_11_evasion_timestomp_MACE.evtx
+Defense Evasion,Disabling Security Tools,T1089,Office VBA Sensitive Security Setting Changed -> de_sysmon_13_VBA_Security_AccessVBOM.evtx
+Defense Evasion,Disabling Security Tools,T1089,"PowerShell CLM local machine environment variable ""__PSLockdownPolicy"" removed-> DE_Powershell_CLM_Disabled_Sysmon_12.evtx"
+Defense Evasion,Disabling Security Tools,T1089,Sysmon_12_DE_AntiForensics_MRU_DeleteKey.evtx
+Defense Evasion,Disabling Security Tools,T1089,User Account Control Disabled - Sysmon EID 12/12 -> DE_UAC_Disabled_Sysmon_12_13.evtx
+Defense Evasion,Process Injection,T1055,Unmanaged PowerShell via PSInject -> de_unmanagedpowershell_psinject_sysmon_7_8_10.evtx
+Defense Evasion,Disabling Security Tools,T1089,PowerShell scriptblock logging deleted or disbaled -> de_PsScriptBlockLogging_disabled_sysmon12_13.evtx
+Defense Evasion,Disabling Security Tools,T1089,PowerShell Execution Policy Changed - de_powershell_execpolicy_changed_sysmon_13.evtx
+Defense Evasion,DLL Side-Loading and Process Hollowing,T1073 and T1093,"APT10 DLL side loading ""jli.dll via jjs.exe"", ProcessHollowing masqurading as svchost.exe -> apt10_jjs_sideloading_prochollowing_persist_as_service_sysmon_1_7_8_13.evtx"
+Defense Evasion,Disabling Security Tools,T1089,"Allow remote unauthenticated users ""NullSessionPipe registry"" to connect to a rogue named pipe -> LM_add_new_namedpipe_tp_nullsession_registry_turla_like_ttp.evtx"
+Command and Control,Connection Proxy,T1090,RDP Tunneling via SSH - eventid 4624 - Logon Type 10 and Source IP eq to loopback IP address
+Command and Control,Connection Proxy,T1090,RDP Tunneling via SSH - eventid 1149 - TerminalServices-RemoteConnectionManagerOperational - RDP source IP loopback IP address
+Command and Control,Connection Proxy,T1090,RDP Tunneling via SSH - Sysmon eventid 3 - local port forwarding to/from loopback IP (svchost.exe <-> plink.exe)
+Command and Control,Connection Proxy,T1090,RDP Tunneling via SSH - eventid 5156 - local port forwarding to/from loopback IP to 3389 rdp port
+Command and Control,Connection Proxy,T1090,RDP Port forwarding via netsh portproxy cmd -> de_portforward_netsh_rdp_sysmon_13_1.evtx
+Discovery,"UEFI Settings Discovery, System Firmware",NA,Discovery_UEFI_Settings_rweverything_sysmon_6.evtx
+Defense Evasion,Disabling Security Tools,"T1089, T1014",DE_KernelDebug_and_TestSigning_ON_Security_4826.evtx
+Defense Evasion,Rootkit,T1014,DSE_bypass_BYOV_TDL_dummydriver_sysmon_6_7_13.evtx
+Persistence,Valid Accounts,T1078,Network_Service_Guest_added_to_admins_4732.evtx
+Persistence,Boot or Logon Autostart Execution,T1547,Persistence_Winsock_Catalog Change EventId_1.evtx
+Persistence,Registry Run Key,T1547.001,evasion_persis_hidden_run_keyvalue_sysmon_13.evtx
+Persistence,Logon Script,T1037.001,persistence_pendingGPO_sysmon_13.evtx
+Persistence,Boot or Logon Autostart Execution,T1547,sysmon_1_smss_child_proc_bootexecute_setupexecute.evtx
+Persistence,Valid Accounts,T1078,sysmon_local_account_creation_and_added_admingroup_12_13.evtx
+Persistence,Valid Accounts,T1078,persist_valid_account_guest_rid_hijack.evtx
+Command and Control,Ingress Tool Transfer,T1105,windows_bits_4_59_60_lolbas desktopimgdownldr.evtx
+Command and Control,Connection Proxy,T1090,"tunna_iis_rdp_smb_tunneling_sysmon_3.evtx, Tunna_rdp_tunnel_IIS.log"

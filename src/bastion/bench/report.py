@@ -1,0 +1,229 @@
+"""Render a bench summary as Markdown. Every number carries its basis and the pins."""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from typing import Any
+
+
+def _rate_line(rate: Mapping[str, Any]) -> str:
+    n, d = rate["numerator"], rate["denominator"]
+    if d == 0:
+        return f"{n} of {d} (no captures)"
+    if rate.get("suppressed"):
+        return f"{n} of {d} (percentage suppressed, fewer than 5 captures)"
+    return f"{n} of {d} ({n / d:.1%}, 95% CI {rate['low']:.1%} to {rate['high']:.1%})"
+
+
+def _rate_row(label: str, rate: Mapping[str, Any]) -> str:
+    return f"| {label} | {_rate_line(rate)} | {rate['basis']} |"
+
+
+def render_report(summary: Mapping[str, Any]) -> str:
+    pins = summary["pins"]
+    rules = summary["rules"]
+    lines: list[str] = []
+    add = lines.append
+    add("# Bastion bench results")
+    add("")
+    add(
+        f"Run `{summary['run']}`, Bastion {summary['bastion']['version']} at commit "
+        f"`{summary['bastion']['commit']}`. Sigma `{pins['sigma']}` "
+        f"(`{pins['sigma_commit'][:7]}`), "
+        f"ATT&CK {pins['attack']}. Split seed {summary['seed']}. Splits evaluated: "
+        f"{', '.join(summary['splits_evaluated'])}."
+    )
+    if summary.get("event_cap_per_capture"):
+        add(f"Event cap per capture: {summary['event_cap_per_capture']} (stated on affected rows).")
+    add("")
+    add(
+        "Every rate below is numerator of denominator with a Wilson 95% interval and its basis. "
+        "Hunting class (status experimental, unsupported, deprecated, or the threat-hunting tree) "
+        "never raises a headline number."
+    )
+    add("")
+    add("## Rules")
+    add("")
+    add("| Loaded | Alerting class | Hunting class | Not evaluable (grammar) |")
+    add("|-:|-:|-:|-:|")
+    add(
+        f"| {rules['loaded']} | {rules['alerting']} | {rules['hunting']} | "
+        f"{rules['not_evaluable']} |"
+    )
+    if rules["not_evaluable_by_reason"]:
+        add("")
+        add(
+            "Not evaluable by reason: "
+            + ", ".join(f"{k} {v}" for k, v in rules["not_evaluable_by_reason"].items())
+            + ". Files: "
+            + ", ".join(rules["not_evaluable_files"])
+            + "."
+        )
+    if rules["local_rules_hunting"]:
+        add("")
+        add(
+            f"Local pack: {len(rules['local_rule_ids'])} rules, of which "
+            f"{len(rules['local_rules_hunting'])} are hunting class by status."
+        )
+    add("")
+    add("## Coverage (claim-by-tag, not validated detection)")
+    add("")
+    add("| Metric | Value | Basis |")
+    add("|:-|:-|:-|")
+    for name, rate in summary["coverage"].items():
+        add(_rate_row(name, rate))
+    gaps = summary["blind_spots_alerting_class"]
+    add("")
+    add(
+        f"Uncovered by the alerting class: {gaps['uncovered']} techniques, of which "
+        f"{gaps['beyond_host']} have no Windows or Linux component, {gaps['beyond_telemetry']} "
+        f"need telemetry Bastion does not read, and {gaps['writable_gaps']} are writable gaps."
+    )
+    for split in ("test", "dev"):
+        block = summary["rates"][split]
+        add("")
+        add(
+            f"## Detection on labelled captures, {split} split"
+            + (" (held out)" if split == "test" else " (development)")
+        )
+        add("")
+        add("| Metric | Value | Basis |")
+        add("|:-|:-|:-|")
+        add(_rate_row("Detection rate (technique recall)", block["detection_rate"]))
+        add(_rate_row("Any-alert rate", block["any_alert_rate"]))
+        add(_rate_row("Validated coverage", block["validated_coverage_over_labelled"]))
+        add(_rate_row("Validated coverage, full matrix", block["validated_coverage_over_matrix"]))
+        add("")
+        add(
+            f"Captures: {block['captures']}. Hits counted only through parent/sub-technique "
+            f"hierarchy: {block['hierarchical_hits']}. Cross-firing: "
+            f"{block['cross_firing']['cross_fired_alerts']} alerts on "
+            f"{block['cross_firing']['captures_with_cross_firing']} captures from rules tagged to "
+            "another technique."
+        )
+        if block["per_tactic"]:
+            add("")
+            add("| Tactic | Detection rate | Captures |")
+            add("|:-|:-|-:|")
+            for tactic, rate in block["per_tactic"].items():
+                add(f"| {tactic} | {_rate_line(rate)} | {rate['denominator']} |")
+        if block["per_technique"]:
+            add("")
+            add("| Technique | Detected | Captures |")
+            add("|:-|-:|-:|")
+            for technique, rate in block["per_technique"].items():
+                add(f"| {technique} | {rate['numerator']} | {rate['denominator']} |")
+        offenders = block["cross_firing"]["top_offenders"]
+        if offenders:
+            add("")
+            add(
+                "Top cross-firing rules: "
+                + "; ".join(f"{o['title']} ({o['alerts']})" for o in offenders[:8])
+                + "."
+            )
+    reg = summary["regression"]
+    add("")
+    add("## SigmaHQ regression suite")
+    add("")
+    add("| Metric | Value | Basis |")
+    add("|:-|:-|:-|")
+    add(_rate_row("Rule regression pass rate", reg["pass_rate"]))
+    add("")
+    add(
+        "Pass means Bastion's match count equals the expected count exactly (SigmaHQ's own runner "
+        "treats more matches as a warning, not a failure)."
+    )
+    if reg["skipped_by_reason"]:
+        add("")
+        add(
+            "Skipped by reason: "
+            + "; ".join(f"{k}: {v}" for k, v in reg["skipped_by_reason"].items())
+            + "."
+        )
+    if reg["by_logsource"]:
+        add("")
+        add("| Logsource | Passed | Failed |")
+        add("|:-|-:|-:|")
+        for key, counts in reg["by_logsource"].items():
+            add(f"| {key} | {counts['passed']} | {counts['failed']} |")
+    if reg["failures"]:
+        add("")
+        add("| Failing rule | Logsource | Expected | Actual | Events |")
+        add("|:-|:-|-:|-:|-:|")
+        for failure in reg["failures"][:60]:
+            expected = "1 or more" if failure["expected"] is None else failure["expected"]
+            add(
+                f"| {failure['rule_title']} | {failure['logsource']} | {expected} | "
+                f"{failure['actual']} | {failure['events']} |"
+            )
+        if len(reg["failures"]) > 60:
+            add(f"| and {len(reg['failures']) - 60} more, see summary.json | | | | |")
+    for label, key in (
+        ("Benign replay, evtx-baseline goodware", "evtx_baseline"),
+        ("Own-lab background outside run windows (Citadel)", "citadel_background"),
+    ):
+        volume = summary["benign"][key]
+        add("")
+        add(f"## {label}")
+        add("")
+        if volume["hosts"] == 0:
+            add("No captures scanned.")
+            continue
+        rate = volume["per_host_day"]
+        rate_medium = volume["per_host_day_medium_plus"]
+        add(
+            "| Hosts | Host-days scanned | Events | Alerts | Alerts per host-day | "
+            "Medium+ per host-day | Budget | Within budget |"
+        )
+        add("|-:|-:|-:|-:|-:|-:|-:|:-|")
+        add(
+            f"| {volume['hosts']} | {volume['host_days']:.2f} | {volume['events']} | "
+            f"{volume['alerts']} | {rate:.2f} | {rate_medium:.2f} | {volume['budget']} | "
+            f"{'yes' if volume['within_budget'] else 'no'} |"
+        )
+        if volume["notes"]:
+            add("")
+            add("Notes: " + "; ".join(volume["notes"]) + ".")
+        if volume["per_rule"]:
+            add("")
+            add("| Rule | Level | Alerts | Per host-day | On known-FPs list |")
+            add("|:-|:-|-:|-:|:-|")
+            for entry in volume["per_rule"][:25]:
+                add(
+                    f"| {entry['title']} | {entry['level']} | {entry['alerts']} | "
+                    f"{entry['per_host_day']:.2f} | {'yes' if entry['known_fp'] else 'no'} |"
+                )
+    ladder = summary["ladder"]["distribution"]
+    add("")
+    add("## Evidence ladder (strongest evidence per enterprise technique)")
+    add("")
+    add("| Held-out-proven | Sample-proven | Fixture-proven | Rule-only | None |")
+    add("|-:|-:|-:|-:|-:|")
+    add(
+        f"| {ladder['held-out-proven']} | {ladder['sample-proven']} | {ladder['fixture-proven']} "
+        f"| {ladder['rule-only']} | {ladder['none']} |"
+    )
+    rob = summary["robustness"]
+    add("")
+    add("## Robustness (Summiting the Pyramid)")
+    add("")
+    add(
+        f"{rob['scored']} of {rob['rules']} rules scored; {rob['unscored']} unscored. "
+        "Scoring starts in B4."
+    )
+    caps = summary["captures"]
+    add("")
+    add("## Captures")
+    add("")
+    add(
+        f"{caps['total']} captures evaluated: "
+        + ", ".join(f"{k} {v}" for k, v in caps["by_kind"].items())
+        + f". Unlabelled positive captures (scanned, in no rate): {caps['unlabelled_positive']}. "
+        f"Skipped: {len(caps['skipped'])}."
+    )
+    if summary.get("notes"):
+        add("")
+        add("Notes: " + "; ".join(summary["notes"]) + ".")
+    add("")
+    add("Pins: " + ", ".join(f"{k} {v}" for k, v in pins.items()) + ".")
+    return "\n".join(lines) + "\n"

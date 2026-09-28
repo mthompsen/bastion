@@ -101,6 +101,13 @@
       "relationship_type": "detects",
       "source_ref": "x-mitre-detection-strategy--00000000-0000-4000-8000-000000000010",
       "target_ref": "attack-pattern--00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--00000000-0000-4000-8000-000000000015",
+      "relationship_type": "revoked-by",
+      "source_ref": "attack-pattern--00000000-0000-4000-8000-000000000006",
+      "target_ref": "attack-pattern--00000000-0000-4000-8000-000000000004"
     }
   ]
 }

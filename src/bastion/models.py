@@ -44,6 +44,9 @@ class SigmaRule(BaseModel):
     id: str
     title: str
     level: Severity = "medium"
+    #: Sigma lifecycle status (``stable``, ``test``, ``experimental``, ``deprecated``,
+    #: ``unsupported``); empty when the rule file carries none.
+    status: str = ""
     description: str = ""
     logsource: dict[str, str] = Field(default_factory=dict)
     detection: dict[str, Any] = Field(default_factory=dict)

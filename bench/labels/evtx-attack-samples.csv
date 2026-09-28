@@ -1,0 +1,286 @@
+# EVTX-ATTACK-SAMPLES technique labels, derived from the author's mapping sheet.
+# Corpus: sbousseaden/EVTX-ATTACK-SAMPLES at 4ceed2f4706daf601c212a8f91c113dd85349a2c (GPL-3.0).
+# Sheet: https://docs.google.com/spreadsheets/d/12V5T9j6Fi3JSmMpAsMwovnWqRFKzzI9l2iXS5dEsnrs/export?format=csv
+# Sheet retrieved 2026-09-26, sha256 2d6c1f1b74736cb6661dcdff0a6002cb52a284b94d87ab52dcd3fa619d10a881.
+# Technique ids are as the sheet wrote them; retired ids are resolved through ATT&CK
+# revoked-by links at bench time. Empty technique_ids means the sheet names no technique
+# for the file (scanned-unlabelled). Regenerate with scripts/build_evtx_labels.py.
+path,tactic_folder,technique_ids,sheet_rows
+AutomatedTestingTools/Malware/DE_timestomp_and_dll_sideloading_and_RunPersist.evtx,AutomatedTestingTools,T1099,164
+AutomatedTestingTools/Malware/rundll32_cmd_schtask.evtx,AutomatedTestingTools,,
+AutomatedTestingTools/Malware/rundll32_hollowing_wermgr_masquerading.evtx,AutomatedTestingTools,,
+AutomatedTestingTools/Malware/sideloading_injection_persistence_run_key.evtx,AutomatedTestingTools,,
+AutomatedTestingTools/Malware/sideloading_uacbypass_rundll32_injection_c2.evtx,AutomatedTestingTools,,
+AutomatedTestingTools/PanacheSysmon_vs_AtomicRedTeam01.evtx,AutomatedTestingTools,,
+AutomatedTestingTools/WinDefender_Events_1117_1116_AtomicRedTeam.evtx,AutomatedTestingTools,,
+AutomatedTestingTools/panache_sysmon_vs_EDRTestingScript.evtx,AutomatedTestingTools,,
+Command and Control/DE_RDP_Tunnel_5156.evtx,Command and Control,,
+Command and Control/DE_RDP_Tunneling_4624.evtx,Command and Control,,
+Command and Control/DE_RDP_Tunneling_TerminalServices-RemoteConnectionManagerOperational_1149.evtx,Command and Control,,
+Command and Control/DE_sysmon-3-rdp-tun.evtx,Command and Control,,
+Command and Control/bits_openvpn.evtx,Command and Control,,
+Command and Control/tunna_iis_rdp_smb_tunneling_sysmon_3.evtx,Command and Control,T1090,199
+Credential Access/4794_DSRM_password_change_t1098.evtx,Credential Access,T1098,121
+Credential Access/ACL_ForcePwd_SPNAdd_User_Computer_Accounts.evtx,Credential Access,,
+Credential Access/CA_4624_4625_LogonType2_LogonProc_chrome.evtx,Credential Access,T1081,126
+Credential Access/CA_DCSync_4662.evtx,Credential Access,T1003,129
+Credential Access/CA_Mimikatz_Memssp_Default_Logs_Sysmon_11.evtx,Credential Access,T1003,117
+Credential Access/CA_PetiPotam_etw_rpc_efsr_5_6.evtx,Credential Access,,
+Credential Access/CA_chrome_firefox_opera_4663.evtx,Credential Access,T1081,125
+Credential Access/CA_hashdump_4663_4656_lsass_access.evtx,Credential Access,T1003,105
+Credential Access/CA_keefarce_keepass_credump.evtx,Credential Access,T1003,123
+Credential Access/CA_keepass_KeeThief_Get-KeePassDatabaseKey.evtx,Credential Access,T1003,124
+Credential Access/CA_protectedstorage_5145_rpc_masterkey.evtx,Credential Access,T1003,111
+Credential Access/CA_sysmon_hashdump_cmd_meterpreter.evtx,Credential Access,,
+Credential Access/CA_teamviewer-dumper_sysmon_10.evtx,Credential Access,T1003,113
+Credential Access/LsassSilentProcessExit_process_exit_monitor_3001_lsass.evtx,Credential Access,,
+Credential Access/MSSQL_multiple_failed_logon_EventID_18456.evtx,Credential Access,T1110,64
+Credential Access/Powershell_4104_MiniDumpWriteDump_Lsass.evtx,Credential Access,T1003,109
+Credential Access/Sysmon13_MachineAccount_Password_Hash_Changed_via_LsarSetSecret.evtx,Credential Access,,
+Credential Access/Sysmon_13_Local_Admin_Password_Changed.evtx,Credential Access,,
+Credential Access/Zerologon_CVE-2020-1472_DFIR_System_NetLogon_Error_EventID_5805.evtx,Credential Access,,
+Credential Access/Zerologon_VoidSec_CVE-2020-1472_4626_LT3_Anonym_follwedby_4742_DC_Anony_DC.evtx,Credential Access,,
+Credential Access/babyshark_mimikatz_powershell.evtx,Credential Access,T1003,122
+Credential Access/dc_applog_ntdsutil_dfir_325_326_327.evtx,Credential Access,T1003,110
+Credential Access/discovery_sysmon_1_iis_pwd_and_config_discovery_appcmd.evtx,Credential Access,,
+Credential Access/etw_rpc_zerologon.evtx,Credential Access,,
+Credential Access/kerberos_pwd_spray_4771.evtx,Credential Access,T1110,104
+Credential Access/phish_windows_credentials_powershell_scriptblockLog_4104.evtx,Credential Access,T1141,63
+Credential Access/ppl_bypass_ppldump_knowdll_hijack_sysmon_security.evtx,Credential Access,,
+Credential Access/remote_pwd_reset_rpc_mimikatz_postzerologon_target_DC.evtx,Credential Access,,
+Credential Access/remote_sam_registry_access_via_backup_operator_priv.evtx,Credential Access,,
+Credential Access/sysmon17_18_kekeo_tsssp_default_np.evtx,Credential Access,T1097,106
+Credential Access/sysmon_10_11_lsass_memdump.evtx,Credential Access,,
+Credential Access/sysmon_10_11_outlfank_dumpert_and_andrewspecial_memdump.evtx,Credential Access,T1003,130
+Credential Access/sysmon_10_1_memdump_comsvcs_minidump.evtx,Credential Access,T1003,112
+Credential Access/sysmon_10_lsass_mimikatz_sekurlsa_logonpasswords.evtx,Credential Access,,
+Credential Access/sysmon_13_keylogger_directx.evtx,Credential Access,,
+Credential Access/sysmon_2x10_lsass_with_different_pid_RtlCreateProcessReflection.evtx,Credential Access,T1003,108
+Credential Access/sysmon_3_10_Invoke-Mimikatz_hosted_Github.evtx,Credential Access,T1003,128
+Credential Access/sysmon_rdrleakdiag_lsass_dump.evtx,Credential Access,,
+Credential Access/tutto_malseclogon.evtx,Credential Access,,
+Defense Evasion/DE_104_system_log_cleared.evtx,Defense Evasion,,
+Defense Evasion/DE_1102_security_log_cleared.evtx,Defense Evasion,,
+Defense Evasion/DE_BYOV_Zam64_CA_Memdump_sysmon_7_10.evtx,Defense Evasion,T1003,107
+Defense Evasion/DE_EventLog_Service_Crashed.evtx,Defense Evasion,T1089,167
+Defense Evasion/DE_Fake_ComputerAccount_4720.evtx,Defense Evasion,,
+Defense Evasion/DE_KernelDebug_and_TestSigning_ON_Security_4826.evtx,Defense Evasion,T1089 T1014,189
+Defense Evasion/DE_Powershell_CLM_Disabled_Sysmon_12.evtx,Defense Evasion,T1089,175
+Defense Evasion/DE_ProcessHerpaderping_Sysmon_11_10_1_7.evtx,Defense Evasion,,
+Defense Evasion/DE_UAC_Disabled_Sysmon_12_13.evtx,Defense Evasion,T1089,177
+Defense Evasion/DE_WinEventLogSvc_Crash_System_7036.evtx,Defense Evasion,,
+Defense Evasion/DE_remote_eventlog_svc_crash_byt3bl33d3r_sysmon_17_1_3.evtx,Defense Evasion,,
+Defense Evasion/DE_renamed_psexec_service_sysmon_17_18.evtx,Defense Evasion,,
+Defense Evasion/DE_suspicious_remote_eventlog_svc_access_5145.evtx,Defense Evasion,,
+Defense Evasion/DE_xp_cmdshell_enabled_MSSQL_EID_15457.evtx,Defense Evasion,,
+Defense Evasion/DSE_bypass_BYOV_TDL_dummydriver_sysmon_6_7_13.evtx,Defense Evasion,T1014,190
+Defense Evasion/Sysmon 7  Update Session Orchestrator Dll Hijack.evtx,Defense Evasion,,
+Defense Evasion/Sysmon 7 dllhijack_cdpsshims_CDPSvc.evtx,Defense Evasion,,
+Defense Evasion/Sysmon_10_Evasion_Suspicious_NtOpenProcess_CallTrace.evtx,Defense Evasion,T1055,166
+Defense Evasion/Sysmon_12_DE_AntiForensics_MRU_DeleteKey.evtx,Defense Evasion,T1089,176
+Defense Evasion/Win_4985_T1186_Process_Doppelganging.evtx,Defense Evasion,T1055,169
+Defense Evasion/apt10_jjs_sideloading_prochollowing_persist_as_service_sysmon_1_7_8_13.evtx,Defense Evasion,T1073 T1093,181
+Defense Evasion/de_PsScriptBlockLogging_disabled_sysmon12_13.evtx,Defense Evasion,T1089,179
+Defense Evasion/de_hiding_files_via_attrib_cmdlet.evtx,Defense Evasion,,
+Defense Evasion/de_portforward_netsh_rdp_sysmon_13_1.evtx,Defense Evasion,T1090,187
+Defense Evasion/de_powershell_execpolicy_changed_sysmon_13.evtx,Defense Evasion,T1089,180
+Defense Evasion/de_sysmon_13_VBA_Security_AccessVBOM.evtx,Defense Evasion,T1089,174
+Defense Evasion/de_unmanagedpowershell_psinject_sysmon_7_8_10.evtx,Defense Evasion,T1055,178
+Defense Evasion/evasion_codeinj_odzhan_conhost_sysmon_10_1.evtx,Defense Evasion,T1055,170
+Defense Evasion/evasion_codeinj_odzhan_spoolsv_sysmon_10_1.evtx,Defense Evasion,T1055,171
+Defense Evasion/faxhell_sysmon_7_1_18_3_bindshell_dllhijack.evtx,Defense Evasion,T1073,172
+Defense Evasion/meterpreter_migrate_to_explorer_sysmon_8.evtx,Defense Evasion,T1055,168
+Defense Evasion/process_suspend_sysmon_10_ga_800.evtx,Defense Evasion,T1089,165
+Defense Evasion/sideloading_wwlib_sysmon_7_1_11.evtx,Defense Evasion,,
+Defense Evasion/sysmon_10_1_ppid_spoofing.evtx,Defense Evasion,T1036,13
+Defense Evasion/sysmon_13_rdp_settings_tampering.evtx,Defense Evasion,,
+Defense Evasion/sysmon_2_11_evasion_timestomp_MACE.evtx,Defense Evasion,T1099,173
+Discovery/4799_remote_local_groups_enumeration.evtx,Discovery,,
+Discovery/Discovery_Remote_System_NamedPipes_Sysmon_18.evtx,Discovery,,
+Discovery/dicovery_4661_net_group_domain_admins_target.evtx,Discovery,,
+Discovery/discovery_UEFI_Settings_rweverything_sysmon_6.evtx,Discovery,,188
+Discovery/discovery_bloodhound.evtx,Discovery,,
+Discovery/discovery_enum_shares_target_sysmon_3_18.evtx,Discovery,,
+Discovery/discovery_local_user_or_group_windows_security_4799_4798.evtx,Discovery,T1087,41
+Discovery/discovery_meterpreter_ps_cmd_process_listing_sysmon_10.evtx,Discovery,,
+Discovery/discovery_psloggedon.evtx,Discovery,,
+Discovery/discovery_sysmon_18_Invoke_UserHunter_NetSessionEnum_DC-srvsvc.evtx,Discovery,T1087,39
+Discovery/discovery_sysmon_3_Invoke_UserHunter_SourceMachine.evtx,Discovery,,
+Execution/Exec_sysmon_meterpreter_reversetcp_msipackage.evtx,Execution,T1218,10
+Execution/Exec_via_cpl_Application_Experience_EventID_17_ControlPanelApplet.evtx,Execution,,
+Execution/Sysmon_Exec_CompiledHTML.evtx,Execution,T1223,32
+Execution/Sysmon_meterpreter_ReflectivePEInjection_to_notepad_.evtx,Execution,T1055,31
+Execution/evasion_execution_imageload_wuauclt_lolbas.evtx,Execution,,
+Execution/exec_driveby_cve-2018-15982_sysmon_1_10.evtx,Execution,T1189,25
+Execution/exec_msxsl_xsl_sysmon_1_7.evtx,Execution,T1220,26
+Execution/exec_persist_rundll32_mshta_scheduledtask_sysmon_1_3_11.evtx,Execution,T1085,24
+Execution/exec_sysmon_1_11_lolbin_rundll32_openurl_FileProtocolHandler.evtx,Execution,T1085,12
+Execution/exec_sysmon_1_11_lolbin_rundll32_shdocvw_openurl.evtx,Execution,T1085,14
+Execution/exec_sysmon_1_11_lolbin_rundll32_zipfldr_RouteTheCall.evtx,Execution,T1085,17
+Execution/exec_sysmon_1_7_jscript9_defense_evasion.evtx,Execution,T1064,23
+Execution/exec_sysmon_1_ftp.evtx,Execution,,
+Execution/exec_sysmon_1_lolbin_pcalua.evtx,Execution,T1218,19
+Execution/exec_sysmon_1_lolbin_renamed_regsvr32_scrobj.evtx,Execution,T1117,22
+Execution/exec_sysmon_1_lolbin_rundll32_advpack_RegisterOCX.evtx,Execution,T1085,18
+Execution/exec_sysmon_1_rundll32_pcwutl_LaunchApplication.evtx,Execution,T1085,20
+Execution/exec_sysmon_lobin_regsvr32_sct.evtx,Execution,T1117,22
+Execution/exec_wmic_xsl_internet_sysmon_3_1_11.evtx,Execution,T1220,26
+Execution/execution_evasion_visual_studio_prebuild_event.evtx,Execution,,
+Execution/revshell_cmd_svchost_sysmon_1.evtx,Execution,T1059,2
+Execution/rogue_msi_url_1040_1042.evtx,Execution,T1218,8
+Execution/susp_explorer_exec.evtx,Execution,T1218,5
+Execution/susp_explorer_exec_root_cmdline_@rimpq_@CyberRaiju.evtx,Execution,,
+Execution/sysmon_11_1_lolbas_downldr_desktopimgdownldr.evtx,Execution,T1218,6
+Execution/sysmon_1_11_rundll32_cpl_ostap.evtx,Execution,T1196,33
+Execution/sysmon_exec_from_vss_persistence.evtx,Execution,,28
+Execution/sysmon_lolbas_rundll32_zipfldr_routethecall_shell.evtx,Execution,,
+Execution/sysmon_lolbin_bohops_vshadow_exec.evtx,Execution,T1218,29
+Execution/sysmon_mshta_sharpshooter_stageless_meterpreter.evtx,Execution,T1064 T1170,30
+Execution/sysmon_vbs_sharpshooter_stageless_meterpreter.evtx,Execution,T1064 T1170,30
+Execution/sysmon_zipexec.evtx,Execution,,
+Execution/temp_scheduled_task_4698_4699.evtx,Execution,,
+Execution/windows_bits_4_59_60_lolbas desktopimgdownldr.evtx,Execution,T1218 T1105,7 198
+Lateral Movement/DFIR_RDP_Client_TimeZone_RdpCoreTs_104_example.evtx,Lateral Movement,T1076,134
+Lateral Movement/ImpersonateUser-via local Pass The Hash Sysmon and Security.evtx,Lateral Movement,,
+Lateral Movement/LM_4624_mimikatz_sekurlsa_pth_source_machine.evtx,Lateral Movement,,
+Lateral Movement/LM_5145_Remote_FileCopy.evtx,Lateral Movement,,
+Lateral Movement/LM_DCOM_MSHTA_LethalHTA_Sysmon_3_1.evtx,Lateral Movement,T1175,157
+Lateral Movement/LM_ImageLoad_NFSH_Sysmon_7.evtx,Lateral Movement,,
+Lateral Movement/LM_NewShare_Added_Sysmon_12_13.evtx,Lateral Movement,,
+Lateral Movement/LM_PowershellRemoting_sysmon_1_wsmprovhost.evtx,Lateral Movement,T1028,160
+Lateral Movement/LM_REMCOM_5145_TargetHost.evtx,Lateral Movement,,
+Lateral Movement/LM_Remote_Service01_5145_svcctl.evtx,Lateral Movement,,
+Lateral Movement/LM_Remote_Service02_7045.evtx,Lateral Movement,,
+Lateral Movement/LM_ScheduledTask_ATSVC_target_host.evtx,Lateral Movement,,
+Lateral Movement/LM_WMIC_4648_rpcss.evtx,Lateral Movement,,
+Lateral Movement/LM_WMI_4624_4688_TargetHost.evtx,Lateral Movement,,
+Lateral Movement/LM_add_new_namedpipe_tp_nullsession_registry_turla_like_ttp.evtx,Lateral Movement,T1089,182
+Lateral Movement/LM_dcom_shwnd_shbrwnd_mmc20_failed_traces_system_10016.evtx,Lateral Movement,T1175,138
+Lateral Movement/LM_impacket_docmexec_mmc_sysmon_01.evtx,Lateral Movement,T1175,153
+Lateral Movement/LM_regsvc_DirectoryServiceExtPt_Lsass_NTDS_AdamXpn.evtx,Lateral Movement,,
+Lateral Movement/LM_renamed_psexecsvc_5145.evtx,Lateral Movement,,
+Lateral Movement/LM_sysmon_1_12_13_3_tsclient_SharpRdp.evtx,Lateral Movement,T1076,132
+Lateral Movement/LM_sysmon_3_12_13_1_SharpRDP.evtx,Lateral Movement,T1076,133
+Lateral Movement/LM_sysmon_3_DCOM_ShellBrowserWindow_ShellWindows.evtx,Lateral Movement,T1175,156
+Lateral Movement/LM_sysmon_psexec_smb_meterpreter.evtx,Lateral Movement,T1021 T1035,155
+Lateral Movement/LM_sysmon_remote_task_src_powershell.evtx,Lateral Movement,,
+Lateral Movement/LM_tsclient_startup_folder.evtx,Lateral Movement,T1077,158
+Lateral Movement/LM_typical_IIS_webshell_sysmon_1_10_traces.evtx,Lateral Movement,T1051,161
+Lateral Movement/LM_winrm_exec_sysmon_1_winrshost.evtx,Lateral Movement,T1028,159
+Lateral Movement/LM_winrm_target_wrmlogs_91_wsmanShellStarted_poorLog.evtx,Lateral Movement,,
+Lateral Movement/LM_wmi_PoisonHandler_Mr-Un1k0d3r_sysmon_1_13.evtx,Lateral Movement,T1021,137
+Lateral Movement/LM_wmiexec_impacket_sysmon_whoami.evtx,Lateral Movement,T1021,154
+Lateral Movement/LM_xp_cmdshell_MSSQL_Events.evtx,Lateral Movement,,
+Lateral Movement/MSSQL_15281_xp_cmdshell_exec_failed_attempt.evtx,Lateral Movement,,136
+Lateral Movement/RemotePowerShell_MS_Windows-Remote_Management_EventID_169.evtx,Lateral Movement,,
+Lateral Movement/dfir_rdpsharp_target_RdpCoreTs_168_68_131.evtx,Lateral Movement,,
+Lateral Movement/lateral_movement_startup_3_11.evtx,Lateral Movement,,
+Lateral Movement/lm_remote_registry_sysmon_1_13_3.evtx,Lateral Movement,,
+Lateral Movement/lm_sysmon_18_remshell_over_namedpipe.evtx,Lateral Movement,,152
+Lateral Movement/net_share_drive_5142.evtx,Lateral Movement,,
+Lateral Movement/powercat_revShell_sysmon_1_3.evtx,Lateral Movement,T1086,27
+Lateral Movement/remote task update 4624 4702 same logonid.evtx,Lateral Movement,T1021,150
+Lateral Movement/remote_file_copy_system_proc_file_write_sysmon_11.evtx,Lateral Movement,T1077,148
+Lateral Movement/sharprdp_sysmon_7_mstscax.dll.evtx,Lateral Movement,T1076,131
+Lateral Movement/smb_bi_auth_conn_spoolsample.evtx,Lateral Movement,T1021,139
+Lateral Movement/smbmap_upload_exec_sysmon.evtx,Lateral Movement,,
+Lateral Movement/spoolsample_5145.evtx,Lateral Movement,T1021,139
+Lateral Movement/sysmon_1_exec_via_sql_xpcmdshell.evtx,Lateral Movement,,135
+Lateral Movement/wmi_remote_registry_sysmon.evtx,Lateral Movement,,
+Other/emotet/exec_emotet_ps_4104.evtx,Other,,
+Other/emotet/exec_emotet_ps_800_get-item.evtx,Other,,
+Other/emotet/exec_emotet_ps_800_invoke-item.evtx,Other,,
+Other/emotet/exec_emotet_ps_800_new-item.evtx,Other,,
+Other/emotet/exec_emotet_ps_800_new-object.evtx,Other,,
+Other/emotet/exec_emotet_sysmon_1.evtx,Other,,
+Other/maldoc_mshta_via_shellbrowserwind_rundll32.evtx,Other,,
+Other/rdpcorets_148_mst120_bluekeep_rpdscan_full.evtx,Other,,
+Persistence/DACL_DCSync_Right_Powerview_ Add-DomainObjectAcl.evtx,Persistence,,
+Persistence/Network_Service_Guest_added_to_admins_4732.evtx,Persistence,T1078,191
+Persistence/Persistence_Shime_Microsoft-Windows-Application-Experience_Program-Telemetry_500.evtx,Persistence,,
+Persistence/Persistence_Winsock_Catalog Change EventId_1.evtx,Persistence,T1547,192
+Persistence/evasion_persis_hidden_run_keyvalue_sysmon_13.evtx,Persistence,T1547.001,193
+Persistence/persist_bitsadmin_Microsoft-Windows-Bits-Client-Operational.evtx,Persistence,T1197,46
+Persistence/persist_firefox_comhijack_sysmon_11_13_7_1.evtx,Persistence,T1122,48
+Persistence/persist_turla_outlook_backdoor_comhijack.evtx,Persistence,T1122,49
+Persistence/persist_valid_account_guest_rid_hijack.evtx,Persistence,T1078,197
+Persistence/persistence_SilentProcessExit_ImageHijack_sysmon_13_1.evtx,Persistence,T1183,52
+Persistence/persistence_accessibility_features_osk_sysmon1.evtx,Persistence,T1015,47
+Persistence/persistence_hidden_local_account_sysmon.evtx,Persistence,,
+Persistence/persistence_pendingGPO_sysmon_13.evtx,Persistence,T1037.001,194
+Persistence/persistence_security_dcshadow_4742.evtx,Persistence,T1138,45
+Persistence/persistence_startup_UserShellStartup_Folder_Changed_sysmon_13.evtx,Persistence,T1060,50
+Persistence/persistence_sysmon_11_13_1_shime_appfix.evtx,Persistence,,
+Persistence/sysmon_13_1_persistence_via_winlogon_shell.evtx,Persistence,T1037,51
+Persistence/sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx,Persistence,T1197,46
+Persistence/sysmon_1_smss_child_proc_bootexecute_setupexecute.evtx,Persistence,T1547,195
+Persistence/sysmon_20_21_1_CommandLineEventConsumer.evtx,Persistence,T1084,11
+Persistence/sysmon_local_account_creation_and_added_admingroup_12_13.evtx,Persistence,T1078,196
+Persistence/wmighost_sysmon_20_21_1.evtx,Persistence,T1047 T1084,9 44
+Privilege Escalation/4624 LT3 AnonymousLogon Localhost - JuicyPotato.evtx,Privilege Escalation,T1134,60
+Privilege Escalation/4765_sidhistory_add_t1178.evtx,Privilege Escalation,T1134.005,57
+Privilege Escalation/CVE-2020-0796_SMBV3Ghost_LocalPrivEsc_Sysmon_3_1_10.evtx,Privilege Escalation,T1068,94
+Privilege Escalation/EfsPotato_sysmon_17_18_privesc_seimpersonate_to_system.evtx,Privilege Escalation,,
+Privilege Escalation/Invoke_TokenDuplication_UAC_Bypass4624.evtx,Privilege Escalation,T1134,58
+Privilege Escalation/NTLM2SelfRelay-med0x2e-security_4624_4688.evtx,Privilege Escalation,,
+Privilege Escalation/PrivEsc_CVE-2020-1313_Sysmon_13_UScheduler_Cmdline.evtx,Privilege Escalation,T1068,95
+Privilege Escalation/PrivEsc_Imperson_NetSvc_to_Sys_Decoder_Sysmon_1_17_18.evtx,Privilege Escalation,T1134,97
+Privilege Escalation/PrivEsc_NetSvc_SessionToken_Retrival_via_localSMB_Auth_5145.evtx,Privilege Escalation,T1134,98
+Privilege Escalation/PrivEsc_SeImpersonatePriv_enabled_back_for_upnp_localsvc_4698.evtx,Privilege Escalation,T1053 T1134,56
+Privilege Escalation/RogueWinRM.evtx,Privilege Escalation,T1068,96
+Privilege Escalation/Runas_4624_4648_Webshell_CreateProcessAsUserA.evtx,Privilege Escalation,,
+Privilege Escalation/Sysmon_13_1_UACBypass_SDCLTBypass.evtx,Privilege Escalation,T1088,66
+Privilege Escalation/Sysmon_13_1_UAC_Bypass_EventVwrBypass.evtx,Privilege Escalation,T1088,65
+Privilege Escalation/Sysmon_UACME_22.evtx,Privilege Escalation,T1088,82
+Privilege Escalation/Sysmon_UACME_23.evtx,Privilege Escalation,T1088,83
+Privilege Escalation/Sysmon_UACME_30.evtx,Privilege Escalation,T1088,80
+Privilege Escalation/Sysmon_UACME_32.evtx,Privilege Escalation,T1088,81
+Privilege Escalation/Sysmon_UACME_33.evtx,Privilege Escalation,,
+Privilege Escalation/Sysmon_UACME_34.evtx,Privilege Escalation,T1088,79
+Privilege Escalation/Sysmon_UACME_36_FileCreate.evtx,Privilege Escalation,,
+Privilege Escalation/Sysmon_UACME_37_FileCreate.evtx,Privilege Escalation,,
+Privilege Escalation/Sysmon_UACME_38.evtx,Privilege Escalation,T1088,85
+Privilege Escalation/Sysmon_UACME_39.evtx,Privilege Escalation,T1088,86
+Privilege Escalation/Sysmon_UACME_41.evtx,Privilege Escalation,T1088,87
+Privilege Escalation/Sysmon_UACME_43.evtx,Privilege Escalation,T1088,88
+Privilege Escalation/Sysmon_UACME_45.evtx,Privilege Escalation,T1088,89
+Privilege Escalation/Sysmon_UACME_53.evtx,Privilege Escalation,T1088,90
+Privilege Escalation/Sysmon_UACME_54.evtx,Privilege Escalation,,
+Privilege Escalation/Sysmon_UACME_56.evtx,Privilege Escalation,T1088,91
+Privilege Escalation/Sysmon_UACME_63.evtx,Privilege Escalation,,
+Privilege Escalation/Sysmon_UACME_64.evtx,Privilege Escalation,,
+Privilege Escalation/Sysmon_uacme_58.evtx,Privilege Escalation,T1088,92
+Privilege Escalation/System_7045_namedpipe_privesc.evtx,Privilege Escalation,T1134,53
+Privilege Escalation/UACME_59_Sysmon.evtx,Privilege Escalation,,
+Privilege Escalation/UACME_61_Changepk.evtx,Privilege Escalation,T1088,93
+Privilege Escalation/eop_appcontainer_il_broker_filewrite.evtx,Privilege Escalation,,
+Privilege Escalation/privesc_KrbRelayUp_windows_4624.evtx,Privilege Escalation,,
+Privilege Escalation/privesc_registry_symlink_CVE-2020-1377.evtx,Privilege Escalation,T1068,102
+Privilege Escalation/privesc_roguepotato_sysmon_17_18.evtx,Privilege Escalation,T1134,99
+Privilege Escalation/privesc_rotten_potato_from_webshell_metasploit_sysmon_1_8_3.evtx,Privilege Escalation,T1134,61
+Privilege Escalation/privesc_seimpersonate_tosys_spoolsv_sysmon_17_18.evtx,Privilege Escalation,T1134,100
+Privilege Escalation/privesc_spoolfool_mahdihtm_sysmon_1_11_7_13.evtx,Privilege Escalation,,
+Privilege Escalation/privesc_spoolsv_spl_file_write_sysmon11.evtx,Privilege Escalation,,
+Privilege Escalation/privesc_sysmon_cve_20201030_spooler.evtx,Privilege Escalation,,
+Privilege Escalation/privesc_unquoted_svc_sysmon_1_11.evtx,Privilege Escalation,T1574,101
+Privilege Escalation/privexchange_dirkjan.evtx,Privilege Escalation,,
+Privilege Escalation/samaccount_spoofing_CVE-2021-42287_CVE-2021-42278_DC_securitylogs.evtx,Privilege Escalation,,
+Privilege Escalation/security_4624_4673_token_manip.evtx,Privilege Escalation,T1088,75
+Privilege Escalation/sysmon_11_1_15_WScriptBypassUAC.evtx,Privilege Escalation,T1088,67
+Privilege Escalation/sysmon_11_1_7_uacbypass_cliconfg.evtx,Privilege Escalation,T1088,71
+Privilege Escalation/sysmon_11_7_1_uacbypass_windirectory_mocking.evtx,Privilege Escalation,T1088,77
+Privilege Escalation/sysmon_13_1_12_11_perfmonUACBypass.evtx,Privilege Escalation,T1088,69
+Privilege Escalation/sysmon_13_1_compmgmtlauncherUACBypass.evtx,Privilege Escalation,T1088,70
+Privilege Escalation/sysmon_13_1_meterpreter_getsystem_NamedPipeImpersonation.evtx,Privilege Escalation,T1134,53
+Privilege Escalation/sysmon_1_11_exec_as_system_via_schedtask.evtx,Privilege Escalation,T1053,55
+Privilege Escalation/sysmon_1_13_11_cmstp_ini_uacbypass.evtx,Privilege Escalation,T1088,76
+Privilege Escalation/sysmon_1_13_UACBypass_AppPath_Control.evtx,Privilege Escalation,T1088,68
+Privilege Escalation/sysmon_1_7_11_mcx2prov_uacbypass.evtx,Privilege Escalation,T1088,72
+Privilege Escalation/sysmon_1_7_11_migwiz.evtx,Privilege Escalation,T1088,73
+Privilege Escalation/sysmon_1_7_11_sysprep_uacbypass.evtx,Privilege Escalation,T1088,74
+Privilege Escalation/sysmon_1_7_elevate_uacbypass_sysprep.evtx,Privilege Escalation,,
+Privilege Escalation/sysmon_privesc_from_admin_to_system_handle_inheritance.evtx,Privilege Escalation,T1134,54
+Privilege Escalation/sysmon_privesc_psexec_dwell.evtx,Privilege Escalation,,
+Privilege Escalation/sysmon_uacbypass_CDSSync_schtask_hijack_byeintegrity5.evtx,Privilege Escalation,,
+Privilege Escalation/win10_4703_SeDebugPrivilege_enabled.evtx,Privilege Escalation,T1134,59
+UACME_59_Sysmon.evtx,,,

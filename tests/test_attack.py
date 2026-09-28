@@ -43,6 +43,17 @@ def test_revoked_and_deprecated_techniques_are_excluded() -> None:
     assert "T9002" not in lookup
 
 
+def test_revoked_by_links_and_deprecations_are_recorded() -> None:
+    data = load_attack_data(MINI_STIX)
+    # T9001 is revoked and ATT&CK names T1059.001 as its replacement.
+    assert data.revoked_by == {"T9001": "T1059.001"}
+    assert data.deprecated == frozenset({"T9002"})
+    assert data.resolve_retired("t9001") == ("T1059.001", "revoked")
+    assert data.resolve_retired("T9002") == (None, "deprecated")
+    assert data.resolve_retired("T1110") == ("T1110", "live")
+    assert data.resolve_retired("T9999") == (None, "unknown")
+
+
 def test_bundle_version_is_read_from_collection_object() -> None:
     data = load_attack_data(MINI_STIX)
     assert data.version == "99.0"

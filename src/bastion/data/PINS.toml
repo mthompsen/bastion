@@ -1,0 +1,67 @@
+# Every external source Bastion reads, pinned. Shown in every bench result and report footer.
+# Dates are the day the pin was recorded or the snapshot taken (UTC).
+
+[sigma]
+name = "SigmaHQ/sigma"
+tag = "r2026-04-01"
+commit = "fb1f07c928a5f94d786d4ec37ae75c29ce1634ad"
+url = "https://github.com/SigmaHQ/sigma/archive/refs/tags/r2026-04-01.zip"
+license = "Detection Rule License 1.1 (rules); regression_data carries no separate statement"
+recorded = "2026-09-26"
+
+[attack]
+name = "mitre-attack/attack-stix-data enterprise"
+version = "19.1"
+url = "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack-19.1.json"
+license = "MITRE ATT&CK terms of use"
+recorded = "2026-09-26"
+
+[corpora.regression_data]
+name = "SigmaHQ regression_data"
+source = "same archive as [sigma]; regression_data/ and .github/workflows/known-FPs.csv"
+commit = "fb1f07c928a5f94d786d4ec37ae75c29ce1634ad"
+license = "not separately stated upstream (repository shows NOASSERTION); treated as DRL 1.1, unconfirmed"
+recorded = "2026-09-26"
+
+[corpora.evtx_attack_samples]
+name = "sbousseaden/EVTX-ATTACK-SAMPLES"
+commit = "4ceed2f4706daf601c212a8f91c113dd85349a2c"
+url = "https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/archive/4ceed2f4706daf601c212a8f91c113dd85349a2c.zip"
+license = "GPL-3.0"
+labels_source = "https://docs.google.com/spreadsheets/d/12V5T9j6Fi3JSmMpAsMwovnWqRFKzzI9l2iXS5dEsnrs/export?format=csv"
+labels_retrieved = "2026-09-26"
+labels_sha256 = "2d6c1f1b74736cb6661dcdff0a6002cb52a284b94d87ab52dcd3fa619d10a881"
+recorded = "2026-09-26"
+
+[corpora.evtx_baseline]
+name = "NextronSystems/evtx-baseline"
+release = "v0.8.5"
+license = "Apache-2.0"
+recorded = "2026-09-26"
+# Asset name = [url, size in bytes]. Sets used by default are listed in [corpora.evtx_baseline.default_sets].
+[corpora.evtx_baseline.assets]
+win7-x86 = ["https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.5/win7-x86.tgz", "11109250"]
+win2022-evtx = ["https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.5/win2022-evtx.tgz", "27433731"]
+win2022-ad = ["https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.5/win2022-ad.tgz", "65991035"]
+win10-client = ["https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.5/win10-client.tgz", "70844052"]
+win11-client = ["https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.5/win11-client.tgz", "133144670"]
+win2022-0-20348-azure = ["https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.5/win2022-0-20348-azure.tgz", "143223928"]
+win11-client-2023 = ["https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.5/win11-client-2023.tgz", "169460461"]
+[corpora.evtx_baseline.default_sets]
+sets = ["win2022-evtx"]
+
+[corpora.attack_data]
+name = "splunk/attack_data"
+commit = "b4573ed3b6bf05473b01048dd36380dbd52288c0"
+raw_base = "https://raw.githubusercontent.com/splunk/attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/"
+media_base = "https://media.githubusercontent.com/media/splunk/attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/"
+license = "Apache-2.0"
+datasets_list = "attack_data_auditd_datasets.txt"
+recorded = "2026-09-26"
+
+[corpora.citadel_captures]
+name = "Citadel Arena captures (own lab)"
+default_path = "C:/Users/Mason/Projects/citadel/arena/captures"
+captures = ["discovery-2026-09-18", "chain-2026-09-19", "network-2026-09-22", "proving-2026-09-22", "proving2-2026-09-22"]
+license = "Mason Thompsen, own lab telemetry; dev split only"
+recorded = "2026-09-26"

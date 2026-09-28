@@ -1,0 +1,7 @@
+# In-repo synthetic logs and the techniques they were written to exhibit (fixture-proven rung).
+# path is repository-relative. These never enter the dev or test split.
+path,source_kind,platform,technique_ids
+examples/logs/auth_sample.log,syslog,linux,T1110 T1003.008
+examples/logs/syslog_attack_sample.log,syslog,linux,T1059.004 T1070.003 T1003.008
+tests/fixtures/auth_sample.log,syslog,linux,T1110
+tests/fixtures/audit_sample.log,auditd,linux,T1003.008

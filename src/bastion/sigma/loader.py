@@ -85,6 +85,7 @@ def _load_rule_file(path: Path) -> SigmaRule | None:
             id=str(doc.get("id") or path.stem),
             title=str(doc.get("title") or path.stem),
             level=level,  # type: ignore[arg-type]  # validated against _VALID_LEVELS above
+            status=str(doc.get("status") or "").lower(),
             description=str(doc.get("description") or ""),
             logsource=_logsource(doc),
             detection=doc["detection"],

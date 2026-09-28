@@ -1,0 +1,662 @@
+"""Metric definitions (START_PROMPT section 4). Only these names appear in outputs.
+
+Every rate is a :class:`Rate`: numerator, denominator, basis name, corpus,
+split, pins, and a Wilson 95% interval. A percentage is never emitted on
+its own. Per-technique rates with fewer than :data:`MIN_CAPTURES` captures
+carry ``suppressed=True`` so renderers print counts, not a percentage.
+
+Inputs are :class:`CaptureOutcome` records produced by the runner: what a
+capture was labelled, what fired on it, and how much was scanned. Nothing
+here touches the matcher; these are pure aggregations over outcomes.
+"""
+
+from __future__ import annotations
+
+import math
+from collections import Counter, defaultdict
+from collections.abc import Iterable, Mapping, Sequence
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
+from typing import Any
+
+from bastion.attack import AttackData
+from bastion.coverage import host_relevant, telemetry_readable
+from bastion.models import SigmaRule, TechniqueRef
+
+MIN_CAPTURES = 5
+"""Below this many captures a per-technique percentage is suppressed."""
+
+HUNTING_STATUSES = frozenset({"experimental", "unsupported", "deprecated"})
+"""Rule statuses that place a rule in the hunting class (contract rule 6)."""
+
+Z95 = 1.959963984540054
+
+
+def wilson(successes: int, trials: int, z: float = Z95) -> tuple[float, float]:
+    """Wilson score interval for a binomial proportion; ``(0, 0)`` when trials is 0."""
+    if trials <= 0:
+        return (0.0, 0.0)
+    p = successes / trials
+    denominator = 1 + z * z / trials
+    centre = (p + z * z / (2 * trials)) / denominator
+    half = z * math.sqrt(p * (1 - p) / trials + z * z / (4 * trials * trials)) / denominator
+    return (max(0.0, centre - half), min(1.0, centre + half))
+
+
+@dataclass
+class Rate:
+    """A proportion that always carries its basis."""
+
+    name: str
+    numerator: int
+    denominator: int
+    basis: str
+    corpus: str = ""
+    split: str = ""
+    low: float = 0.0
+    high: float = 0.0
+    suppressed: bool = False
+    notes: list[str] = field(default_factory=list)
+
+    @classmethod
+    def of(
+        cls,
+        name: str,
+        numerator: int,
+        denominator: int,
+        basis: str,
+        corpus: str = "",
+        split: str = "",
+        min_n: int = 0,
+        notes: Sequence[str] = (),
+    ) -> Rate:
+        low, high = wilson(numerator, denominator)
+        return cls(
+            name,
+            numerator,
+            denominator,
+            basis,
+            corpus,
+            split,
+            low,
+            high,
+            suppressed=denominator < min_n,
+            notes=list(notes),
+        )
+
+    @property
+    def ratio(self) -> float | None:
+        return self.numerator / self.denominator if self.denominator else None
+
+    def as_dict(self) -> dict[str, Any]:
+        data = asdict(self)
+        data["ratio"] = self.ratio
+        return data
+
+    def text(self) -> str:
+        """``k of n (p%, 95% CI a to b) [basis]``, or counts only when suppressed."""
+        head = f"{self.numerator} of {self.denominator}"
+        if self.denominator == 0:
+            return f"{head} (no captures) [{self.basis}]"
+        if self.suppressed:
+            return (
+                f"{head} (percentage suppressed, fewer than {MIN_CAPTURES} captures) [{self.basis}]"
+            )
+        ratio = self.ratio or 0.0
+        return f"{head} ({ratio:.1%}, 95% CI {self.low:.1%} to {self.high:.1%}) [{self.basis}]"
+
+
+@dataclass
+class Fired:
+    """One rule that fired on a capture, with how many events it matched."""
+
+    rule_id: str
+    title: str
+    level: str
+    hunting: bool
+    techniques: list[str]
+    count: int
+
+
+@dataclass
+class CaptureOutcome:
+    """What the engine produced on one capture; the runner writes one per capture."""
+
+    capture_id: str
+    corpus: str
+    kind: str
+    split: str
+    platform: str
+    techniques: list[str]
+    raw_labels: list[str]
+    host: str
+    events_scanned: int
+    fired: list[Fired]
+    first_ts: str | None = None
+    last_ts: str | None = None
+    unsupported_rules: int = 0
+    rule_errors: int = 0
+    expected_matches: dict[str, int | None] = field(default_factory=dict)
+    notes: dict[str, str] = field(default_factory=dict)
+    skipped: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> CaptureOutcome:
+        data = dict(raw)
+        data["fired"] = [Fired(**f) for f in data.get("fired", [])]
+        return cls(**data)
+
+
+def is_hunting(rule: SigmaRule) -> bool:
+    """Contract rule 6: experimental, unsupported, deprecated, or the threat-hunting tree."""
+    return rule.status in HUNTING_STATUSES or "rules-threat-hunting" in rule.file_path.replace(
+        "\\", "/"
+    )
+
+
+# --- technique matching -------------------------------------------------------------------
+
+
+def _parent(technique_id: str) -> str:
+    return technique_id.split(".", 1)[0]
+
+
+def tagged_to(rule_techniques: Iterable[str], label: str) -> bool:
+    """Does a rule's tag set claim ``label``? Exact, or parent and sub-technique of each other.
+
+    A capture labelled with a parent technique is detected by a rule tagged
+    with one of its sub-techniques, and a capture labelled with a
+    sub-technique is detected by a rule tagged at the parent level. Both
+    directions are counted and the hierarchical hits are reported
+    separately by :func:`detection_rates`.
+    """
+    label = label.upper()
+    for tag in rule_techniques:
+        tag = tag.upper()
+        if tag == label or _parent(tag) == label or _parent(label) == tag:
+            return True
+    return False
+
+
+def _alerting(outcome: CaptureOutcome) -> list[Fired]:
+    return [f for f in outcome.fired if not f.hunting]
+
+
+def _hit(outcome: CaptureOutcome) -> tuple[bool, bool]:
+    """(detected, detected only through parent/sub hierarchy)."""
+    exact = False
+    hierarchical = False
+    for fired in _alerting(outcome):
+        tags = {t.upper() for t in fired.techniques}
+        for label in outcome.techniques:
+            if label.upper() in tags:
+                exact = True
+            elif tagged_to(tags, label):
+                hierarchical = True
+    return (exact or hierarchical, hierarchical and not exact)
+
+
+# --- section 4 metrics --------------------------------------------------------------------
+
+
+def labelled_positives(outcomes: Iterable[CaptureOutcome], split: str) -> list[CaptureOutcome]:
+    return [
+        o
+        for o in outcomes
+        if o.kind == "positive" and o.techniques and o.skipped is None and o.split == split
+    ]
+
+
+@dataclass
+class DetectionRates:
+    overall: Rate
+    any_alert: Rate
+    per_technique: dict[str, Rate]
+    per_tactic: dict[str, Rate]
+    hierarchical_hits: int
+    captures: int
+
+
+def detection_rates(
+    outcomes: Iterable[CaptureOutcome], attack: AttackData, split: str, pins_label: str
+) -> DetectionRates:
+    """Detection rate (technique recall) and any-alert rate over labelled positives."""
+    positives = labelled_positives(outcomes, split)
+    basis = f"labelled positive captures, {split} split, {pins_label}"
+    hits = 0
+    any_alert = 0
+    hierarchical = 0
+    per_technique_hits: Counter[str] = Counter()
+    per_technique_total: Counter[str] = Counter()
+    per_tactic_hits: Counter[str] = Counter()
+    per_tactic_total: Counter[str] = Counter()
+    for outcome in positives:
+        detected, via_hierarchy = _hit(outcome)
+        hits += int(detected)
+        hierarchical += int(via_hierarchy)
+        any_alert += int(bool(_alerting(outcome)))
+        tactics: set[str] = set()
+        for technique in outcome.techniques:
+            per_technique_total[technique] += 1
+            per_technique_hits[technique] += int(detected)
+            ref = attack.techniques.get(technique)
+            tactics.update(ref.tactics if ref else ["unknown"])
+        for tactic in tactics:
+            per_tactic_total[tactic] += 1
+            per_tactic_hits[tactic] += int(detected)
+    per_technique = {
+        t: Rate.of(
+            "detection_rate",
+            per_technique_hits[t],
+            n,
+            f"captures labelled {t}, {split} split",
+            split=split,
+            min_n=MIN_CAPTURES,
+        )
+        for t, n in sorted(per_technique_total.items())
+    }
+    per_tactic = {
+        t: Rate.of(
+            "detection_rate",
+            per_tactic_hits[t],
+            n,
+            f"captures whose technique is in {t}, {split} split",
+            split=split,
+            min_n=MIN_CAPTURES,
+        )
+        for t, n in sorted(per_tactic_total.items())
+    }
+    return DetectionRates(
+        overall=Rate.of("detection_rate", hits, len(positives), basis, split=split),
+        any_alert=Rate.of("any_alert_rate", any_alert, len(positives), basis, split=split),
+        per_technique=per_technique,
+        per_tactic=per_tactic,
+        hierarchical_hits=hierarchical,
+        captures=len(positives),
+    )
+
+
+def validated_coverage(
+    outcomes: Iterable[CaptureOutcome], attack: AttackData, split: str, pins_label: str
+) -> tuple[Rate, Rate, set[str]]:
+    """Techniques with a detected labelled capture, over techniques with any labelled capture.
+
+    Returns ``(over_labelled, over_full_matrix, validated_ids)``.
+    """
+    labelled: set[str] = set()
+    validated: set[str] = set()
+    for outcome in labelled_positives(outcomes, split):
+        detected, _ = _hit(outcome)
+        for technique in outcome.techniques:
+            labelled.add(technique)
+            if detected:
+                validated.add(technique)
+    over_labelled = Rate.of(
+        "validated_coverage",
+        len(validated),
+        len(labelled),
+        f"techniques with at least one labelled positive capture, {split} split, {pins_label}",
+        split=split,
+    )
+    over_matrix = Rate.of(
+        "validated_coverage",
+        len(validated),
+        len(attack.techniques),
+        f"full enterprise matrix, ATT&CK {attack.version}",
+        split=split,
+    )
+    return over_labelled, over_matrix, validated
+
+
+def claimed_coverage(
+    rules: Sequence[SigmaRule], attack: AttackData, evaluable: Mapping[str, bool]
+) -> dict[str, Rate]:
+    """Claimed and telemetry-feasible coverage per section 4 (full matrix, Windows, Linux)."""
+    alerting = [r for r in rules if evaluable.get(r.id + r.file_path, True) and not is_hunting(r)]
+    feasible = [r for r in alerting if _feasible(r)]
+    out: dict[str, Rate] = {}
+    for label, subset in (
+        ("claimed_coverage", alerting),
+        ("telemetry_feasible_coverage", feasible),
+    ):
+        out[f"{label}:enterprise"] = _coverage_rate(label, subset, attack, None)
+        out[f"{label}:windows"] = _coverage_rate(label, subset, attack, "windows")
+        out[f"{label}:linux"] = _coverage_rate(label, subset, attack, "linux")
+    hunting = [r for r in rules if is_hunting(r)]
+    out["hunting_class:enterprise"] = _coverage_rate("hunting_class", hunting, attack, None)
+    return out
+
+
+_LINUX_TEXT_SERVICES = frozenset(
+    {
+        "auth",
+        "sshd",
+        "sudo",
+        "syslog",
+        "cron",
+        "pam",
+        "su",
+        "vsftpd",
+        "guacamole",
+        "modsecurity",
+        "clamav",
+    }
+)
+_LINUX_AUDIT_CATEGORIES = frozenset(
+    {
+        "process_creation",
+        "network_connection",
+        "file_event",
+        "file_delete",
+        "file_rename",
+        "file_change",
+        "file_access",
+    }
+)
+
+
+def _feasible(rule: SigmaRule) -> bool:
+    """Can a source Bastion reads satisfy the rule's logsource? Logsource-level estimate."""
+    logsource = {k.lower(): str(v).lower() for k, v in rule.logsource.items()}
+    product = logsource.get("product", "")
+    category = logsource.get("category", "")
+    service = logsource.get("service", "")
+    if product == "windows":
+        return True
+    if product == "linux":
+        if category in _LINUX_AUDIT_CATEGORIES or service == "auditd":
+            return True  # auditd ingestion exists since 7f83020
+        return service in _LINUX_TEXT_SERVICES or (category == "" and service == "")
+    return False
+
+
+def _coverage_rate(
+    name: str, rules: Sequence[SigmaRule], attack: AttackData, platform: str | None
+) -> Rate:
+    techniques: dict[str, TechniqueRef] = {
+        tid: ref
+        for tid, ref in attack.techniques.items()
+        if platform is None or platform in {p.lower() for p in ref.platforms}
+    }
+    subset = (
+        rules
+        if platform is None
+        else [r for r in rules if r.logsource.get("product", "").lower() in {platform, ""}]
+    )
+    tagged = {t.upper() for r in subset for t in r.attack_techniques}
+    covered = len(tagged & set(techniques))
+    scope = "full enterprise matrix" if platform is None else f"techniques listing {platform}"
+    return Rate.of(
+        name,
+        covered,
+        len(techniques),
+        f"{scope}, ATT&CK {attack.version}, {len(subset)} rules",
+        notes=[f"{len(subset)} rules in scope"],
+    )
+
+
+def blind_spot_split(rules: Sequence[SigmaRule], attack: AttackData) -> dict[str, int]:
+    """The three-way uncovered split for the alerting class, reusing coverage.py's classifiers."""
+    tagged = {t.upper() for r in rules if not is_hunting(r) for t in r.attack_techniques}
+    uncovered = [ref for tid, ref in attack.techniques.items() if tid not in tagged]
+    on_host = [ref for ref in uncovered if host_relevant(ref)]
+    writable = [ref for ref in on_host if telemetry_readable(ref)]
+    return {
+        "uncovered": len(uncovered),
+        "beyond_host": len(uncovered) - len(on_host),
+        "beyond_telemetry": len(on_host) - len(writable),
+        "writable_gaps": len(writable),
+    }
+
+
+@dataclass
+class RegressionSummary:
+    passed: Rate
+    failed: int
+    skipped_by_reason: dict[str, int]
+    failures: list[dict[str, Any]]
+    by_logsource: dict[str, dict[str, int]]
+
+
+def regression_pass_rate(
+    outcomes: Iterable[CaptureOutcome],
+    skipped: Mapping[str, int],
+    rules_by_id: Mapping[str, SigmaRule],
+    pins_label: str,
+) -> RegressionSummary:
+    """Cases where Bastion's match count equals the expected count (``None`` = at least one)."""
+    passed = 0
+    failures: list[dict[str, Any]] = []
+    by_logsource: dict[str, dict[str, int]] = defaultdict(lambda: {"passed": 0, "failed": 0})
+    evaluable = [o for o in outcomes if o.kind == "regression" and o.skipped is None]
+    for outcome in evaluable:
+        for rule_id, expected in outcome.expected_matches.items():
+            actual = sum(f.count for f in outcome.fired if f.rule_id == rule_id)
+            ok = actual >= 1 if expected is None else actual == expected
+            rule = rules_by_id.get(rule_id)
+            key = (
+                "/".join(
+                    v
+                    for v in (
+                        rule.logsource.get("product", "") if rule else "",
+                        rule.logsource.get("category", "") if rule else "",
+                        rule.logsource.get("service", "") if rule else "",
+                    )
+                    if v
+                )
+                or "unknown"
+            )
+            by_logsource[key]["passed" if ok else "failed"] += 1
+            if ok:
+                passed += 1
+            else:
+                failures.append(
+                    {
+                        "capture": outcome.capture_id,
+                        "rule_id": rule_id,
+                        "rule_title": rule.title if rule else outcome.notes.get("rule_title", ""),
+                        "logsource": key,
+                        "expected": expected,
+                        "actual": actual,
+                        "events": outcome.events_scanned,
+                    }
+                )
+    total = len(evaluable)
+    skipped_total = sum(skipped.values())
+    return RegressionSummary(
+        passed=Rate.of(
+            "regression_pass_rate",
+            passed,
+            total,
+            f"evaluable SigmaHQ regression_data EVTX cases ({skipped_total} skipped), {pins_label}",
+            corpus="regression_data",
+        ),
+        failed=total - passed,
+        skipped_by_reason=dict(sorted(skipped.items())),
+        failures=failures,
+        by_logsource=dict(sorted(by_logsource.items())),
+    )
+
+
+@dataclass
+class BenignVolume:
+    host_days: float
+    hosts: int
+    events: int
+    alerts: int
+    alerts_medium_plus: int
+    per_host_day: float | None
+    per_host_day_medium_plus: float | None
+    per_rule: list[dict[str, Any]]
+    budget: float
+    within_budget: bool | None
+    notes: list[str]
+    evaluated_rule_ids: list[str]
+
+
+def benign_volume(
+    outcomes: Iterable[CaptureOutcome],
+    known_fps: Mapping[str, Sequence[str]],
+    budget: float,
+    evaluated_rule_ids: Iterable[str],
+    corpus: str | None = None,
+) -> BenignVolume:
+    """Alerts per host per day on goodware, overall and per rule, medium-and-above separated.
+
+    Host-days come from the min and max event timestamps actually scanned per
+    host. A host whose scanned span is under one hour is floored to one hour
+    and noted, since a rate over a few seconds would be meaningless.
+    """
+    benign = [
+        o
+        for o in outcomes
+        if o.kind == "benign" and o.skipped is None and (corpus is None or o.corpus == corpus)
+    ]
+    spans: dict[str, tuple[datetime, datetime]] = {}
+    for outcome in benign:
+        if outcome.first_ts and outcome.last_ts:
+            first, last = (
+                datetime.fromisoformat(outcome.first_ts),
+                datetime.fromisoformat(outcome.last_ts),
+            )
+            if outcome.host in spans:
+                lo, hi = spans[outcome.host]
+                spans[outcome.host] = (min(lo, first), max(hi, last))
+            else:
+                spans[outcome.host] = (first, last)
+    notes: list[str] = []
+    host_days = 0.0
+    for host, (lo, hi) in spans.items():
+        days = (hi - lo).total_seconds() / 86400
+        if days < 1 / 24:
+            notes.append(f"{host}: scanned span under one hour, floored to one hour")
+            days = 1 / 24
+        host_days += days
+    per_rule_counter: dict[str, dict[str, Any]] = {}
+    alerts = 0
+    medium_plus = 0
+    for outcome in benign:
+        for fired in outcome.fired:
+            if fired.hunting:
+                continue
+            alerts += fired.count
+            is_medium_plus = fired.level in {"medium", "high", "critical"}
+            medium_plus += fired.count if is_medium_plus else 0
+            entry = per_rule_counter.setdefault(
+                fired.rule_id,
+                {
+                    "rule_id": fired.rule_id,
+                    "title": fired.title,
+                    "level": fired.level,
+                    "alerts": 0,
+                    "hosts": set(),
+                    "known_fp": fired.rule_id in known_fps,
+                },
+            )
+            entry["alerts"] += fired.count
+            entry["hosts"].add(outcome.host)
+    per_rule = []
+    for entry in sorted(per_rule_counter.values(), key=lambda e: (-e["alerts"], e["rule_id"])):
+        entry["hosts"] = sorted(entry["hosts"])
+        entry["per_host_day"] = entry["alerts"] / host_days if host_days else None
+        per_rule.append(entry)
+    rate = alerts / host_days if host_days else None
+    rate_medium = medium_plus / host_days if host_days else None
+    return BenignVolume(
+        host_days=host_days,
+        hosts=len(spans),
+        events=sum(o.events_scanned for o in benign),
+        alerts=alerts,
+        alerts_medium_plus=medium_plus,
+        per_host_day=rate,
+        per_host_day_medium_plus=rate_medium,
+        per_rule=per_rule,
+        budget=budget,
+        within_budget=None if rate is None else rate <= budget,
+        notes=notes,
+        evaluated_rule_ids=sorted(set(evaluated_rule_ids)),
+    )
+
+
+def cross_firing(outcomes: Iterable[CaptureOutcome], split: str) -> dict[str, Any]:
+    """Rules that fired on labelled captures but are tagged to a different technique."""
+    offenders: Counter[str] = Counter()
+    titles: dict[str, str] = {}
+    captures_with_cross = 0
+    total_cross = 0
+    for outcome in labelled_positives(outcomes, split):
+        crossed = False
+        for fired in _alerting(outcome):
+            if fired.techniques and not any(
+                tagged_to(fired.techniques, t) for t in outcome.techniques
+            ):
+                offenders[fired.rule_id] += fired.count
+                titles[fired.rule_id] = fired.title
+                total_cross += fired.count
+                crossed = True
+        captures_with_cross += int(crossed)
+    return {
+        "captures_with_cross_firing": captures_with_cross,
+        "cross_fired_alerts": total_cross,
+        "top_offenders": [
+            {"rule_id": rid, "title": titles[rid], "alerts": n}
+            for rid, n in offenders.most_common(15)
+        ],
+    }
+
+
+LADDER = ("held-out-proven", "sample-proven", "fixture-proven", "rule-only", "none")
+
+
+def evidence_ladder(
+    outcomes: Iterable[CaptureOutcome], rules: Sequence[SigmaRule], attack: AttackData
+) -> dict[str, str]:
+    """Strongest evidence any alerting rule has per technique, for every enterprise technique."""
+    ladder: dict[str, str] = {}
+    rule_only = {t.upper() for r in rules if not is_hunting(r) for t in r.attack_techniques}
+    for technique in attack.techniques:
+        ladder[technique] = "rule-only" if technique in rule_only else "none"
+    strength = {name: index for index, name in enumerate(LADDER)}
+
+    def raise_to(technique: str, level: str) -> None:
+        if technique in ladder and strength[level] < strength[ladder[technique]]:
+            ladder[technique] = level
+
+    for outcome in outcomes:
+        if outcome.skipped is not None or not outcome.techniques:
+            continue
+        detected, _ = _hit(outcome)
+        if not detected:
+            continue
+        if outcome.kind == "fixture":
+            level = "fixture-proven"
+        elif outcome.kind == "positive" and outcome.split == "test":
+            level = "held-out-proven"
+        elif outcome.kind == "positive":
+            level = "sample-proven"
+        else:
+            continue
+        for technique in outcome.techniques:
+            raise_to(technique, level)
+    return ladder
+
+
+def ladder_distribution(ladder: Mapping[str, str]) -> dict[str, int]:
+    counts = Counter(ladder.values())
+    return {level: counts.get(level, 0) for level in LADDER}
+
+
+def robustness(rules: Sequence[SigmaRule], scores: Mapping[str, str]) -> dict[str, Any]:
+    """STP level distribution; every rule without a score is counted as unscored."""
+    distribution: Counter[str] = Counter()
+    for rule in rules:
+        distribution[scores.get(rule.id, "unscored")] += 1
+    return {
+        "levels": dict(sorted(distribution.items())),
+        "scored": len(scores),
+        "unscored": distribution.get("unscored", 0),
+        "rules": len(rules),
+    }

@@ -47,7 +47,7 @@ bastion = "bastion.cli:app"
 where = ["src"]
 
 [tool.setuptools.package-data]
-bastion = ["py.typed", "templates/*"]
+bastion = ["py.typed", "templates/*", "data/*"]
 
 [tool.ruff]
 line-length = 100
@@ -61,7 +61,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "C4", "RUF"]
 strict = true
 python_version = "3.11"
 files = ["src", "tests", "scripts"]
-mypy_path = "src"
+mypy_path = ["src", "tests"]
 explicit_package_bases = true
 
 [[tool.mypy.overrides]]
@@ -70,7 +70,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=bastion --cov-report=term-missing --cov-fail-under=80"
+addopts = "--cov=bastion --cov-report=term-missing --cov-fail-under=90"
 
 [tool.coverage.run]
 source = ["bastion"]

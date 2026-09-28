@@ -24,6 +24,30 @@ class AttackData:
 
     techniques: dict[str, TechniqueRef] = field(default_factory=dict)
     version: str | None = None
+    #: revoked technique id -> the id ATT&CK says replaced it (``revoked-by``)
+    revoked_by: dict[str, str] = field(default_factory=dict)
+    #: technique ids ATT&CK marks deprecated (no replacement is named)
+    deprecated: frozenset[str] = frozenset()
+
+    def resolve_retired(self, technique_id: str) -> tuple[str | None, str]:
+        """Follow ``revoked-by`` links to a live technique id.
+
+        Returns ``(live_id, status)`` where status is ``"live"``, ``"revoked"``
+        (remapped through one or more revoked-by links), ``"deprecated"`` (no
+        replacement; ``live_id`` is None) or ``"unknown"`` (not in this release).
+        """
+        current = technique_id.upper()
+        if current in self.techniques:
+            return current, "live"
+        if current in self.deprecated:
+            return None, "deprecated"
+        seen: set[str] = set()
+        while current in self.revoked_by and current not in seen:
+            seen.add(current)
+            current = self.revoked_by[current]
+            if current in self.techniques:
+                return current, "revoked"
+        return None, "deprecated" if current in self.deprecated else "unknown"
 
 
 def _attack_id(obj: dict[str, Any]) -> str | None:
@@ -54,9 +78,12 @@ def load_attack_data(stix_path: Path) -> AttackData:
     bundle: dict[str, Any] = json.loads(stix_path.read_text(encoding="utf-8"))
     data = AttackData()
     stix_to_attack: dict[str, str] = {}
+    retired_stix_to_attack: dict[str, str] = {}
+    deprecated: set[str] = set()
     analytic_log_sources: dict[str, list[str]] = {}
     strategy_analytics: dict[str, list[str]] = {}
     detects: list[tuple[str, str]] = []
+    revoked_by_refs: list[tuple[str, str]] = []
 
     for obj in bundle.get("objects", []):
         obj_type = obj.get("type")
@@ -74,11 +101,16 @@ def load_attack_data(stix_path: Path) -> AttackData:
             ]
         elif obj_type == "relationship" and obj.get("relationship_type") == "detects":
             detects.append((str(obj.get("source_ref")), str(obj.get("target_ref"))))
+        elif obj_type == "relationship" and obj.get("relationship_type") == "revoked-by":
+            revoked_by_refs.append((str(obj.get("source_ref")), str(obj.get("target_ref"))))
         elif obj_type == "attack-pattern":
-            if obj.get("revoked") or obj.get("x_mitre_deprecated"):
-                continue
             attack_id = _attack_id(obj)
             if attack_id is None:
+                continue
+            if obj.get("revoked") or obj.get("x_mitre_deprecated"):
+                retired_stix_to_attack[str(obj.get("id"))] = attack_id.upper()
+                if obj.get("x_mitre_deprecated") and not obj.get("revoked"):
+                    deprecated.add(attack_id.upper())
                 continue
             stix_to_attack[str(obj.get("id"))] = attack_id.upper()
             data.techniques[attack_id.upper()] = TechniqueRef(
@@ -98,6 +130,13 @@ def load_attack_data(stix_path: Path) -> AttackData:
         if names:
             technique = data.techniques[attack_id_for_ref]
             technique.log_sources = sorted(set(technique.log_sources) | names)
+
+    all_ids = {**retired_stix_to_attack, **stix_to_attack}
+    for old_ref, new_ref in revoked_by_refs:
+        old_id, new_id = retired_stix_to_attack.get(old_ref), all_ids.get(new_ref)
+        if old_id is not None and new_id is not None and old_id != new_id:
+            data.revoked_by[old_id] = new_id
+    data.deprecated = frozenset(deprecated)
     return data
 
 
