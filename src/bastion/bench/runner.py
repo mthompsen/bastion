@@ -457,8 +457,11 @@ def run_bench(
     from bastion.bench.report import render_report  # local import: report depends on summary shape
 
     (context.run_dir / "report.md").write_text(render_report(summary), encoding="utf-8")
-    latest = config.results_dir_root() / "LATEST"
-    latest.write_text(context.run_dir.name + "\n", encoding="utf-8")
+    if "benign" in config.suites:
+        # LATEST is what the CI budget gate reads, so only a run that replayed goodware may
+        # claim it; a positives-only run must not hide the last benign figures.
+        latest = config.results_dir_root() / "LATEST"
+        latest.write_text(context.run_dir.name + "\n", encoding="utf-8")
     return summary, context.run_dir
 
 
@@ -485,17 +488,18 @@ def summarize(
     rates: dict[str, Any] = {}
     for split in ("test", "dev"):
         detection = detection_rates(outcomes, attack, split, pins_label)
-        over_labelled, over_matrix, validated_ids = validated_coverage(
-            outcomes, attack, split, pins_label
-        )
+        validated = validated_coverage(outcomes, attack, split, pins_label)
         rates[split] = {
             "captures": detection.captures,
             "detection_rate": detection.overall.as_dict(),
+            "detection_rate_strict": detection.strict.as_dict(),
             "any_alert_rate": detection.any_alert.as_dict(),
             "hierarchical_hits": detection.hierarchical_hits,
-            "validated_coverage_over_labelled": over_labelled.as_dict(),
-            "validated_coverage_over_matrix": over_matrix.as_dict(),
-            "validated_techniques": sorted(validated_ids),
+            "validated_coverage_over_labelled": validated.over_labelled.as_dict(),
+            "validated_coverage_strict_over_labelled": validated.strict_over_labelled.as_dict(),
+            "validated_coverage_over_matrix": validated.over_matrix.as_dict(),
+            "validated_techniques": sorted(validated.validated),
+            "validated_techniques_strict": sorted(validated.validated_strict),
             "per_technique": {t: r.as_dict() for t, r in detection.per_technique.items()},
             "per_tactic": {t: r.as_dict() for t, r in detection.per_tactic.items()},
             "cross_firing": cross_firing(outcomes, split),
@@ -536,7 +540,7 @@ def summarize(
         }
         for o in outcomes
     ]
-    return {
+    summary_out: dict[str, Any] = {
         "bastion": {
             "version": __version__,
             "commit": bastion_commit(config.repo_root),
@@ -565,10 +569,13 @@ def summarize(
         "rates": rates,
         "regression": {
             "pass_rate": regression_summary.passed.as_dict(),
+            "pass_rate_strict": regression_summary.passed_strict.as_dict(),
+            "more_than_expected": regression_summary.more_than_expected,
             "failed": regression_summary.failed,
             "skipped_by_reason": regression_summary.skipped_by_reason,
             "by_logsource": regression_summary.by_logsource,
             "failures": regression_summary.failures,
+            "over_count": regression_summary.over_count,
         },
         "benign": {
             "evtx_baseline": _volume_dict(baseline_volume),
@@ -582,9 +589,15 @@ def summarize(
             "by_corpus": dict(Counter(o.corpus for o in outcomes)),
             "unlabelled_positive": len(unlabelled),
             "skipped": [{"id": o.capture_id, "reason": o.skipped} for o in skipped],
-            "detail": per_capture,
+            "detail_file": "captures.jsonl",
         },
     }
+    # Per-capture detail is a line per capture in its own file (gitignored like outcomes.jsonl)
+    # so the committed summary stays small; the counts above are what the summary carries.
+    with (context.run_dir / "captures.jsonl").open("w", encoding="utf-8") as sink:
+        for record in per_capture:
+            sink.write(json.dumps(record) + "\n")
+    return summary_out
 
 
 def _volume_dict(volume: Any) -> dict[str, Any]:

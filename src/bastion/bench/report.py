@@ -89,9 +89,16 @@ def render_report(summary: Mapping[str, Any]) -> str:
         add("")
         add("| Metric | Value | Basis |")
         add("|:-|:-|:-|")
-        add(_rate_row("Detection rate (technique recall)", block["detection_rate"]))
+        add(_rate_row("Detection rate (technique recall), headline", block["detection_rate"]))
+        add(_rate_row("Detection rate, strict (exact tag)", block["detection_rate_strict"]))
         add(_rate_row("Any-alert rate", block["any_alert_rate"]))
-        add(_rate_row("Validated coverage", block["validated_coverage_over_labelled"]))
+        add(_rate_row("Validated coverage, headline", block["validated_coverage_over_labelled"]))
+        add(
+            _rate_row(
+                "Validated coverage, strict (exact tag)",
+                block["validated_coverage_strict_over_labelled"],
+            )
+        )
         add(_rate_row("Validated coverage, full matrix", block["validated_coverage_over_matrix"]))
         add("")
         add(
@@ -127,11 +134,13 @@ def render_report(summary: Mapping[str, Any]) -> str:
     add("")
     add("| Metric | Value | Basis |")
     add("|:-|:-|:-|")
-    add(_rate_row("Rule regression pass rate", reg["pass_rate"]))
+    add(_rate_row("Rule regression pass rate, headline", reg["pass_rate"]))
+    add(_rate_row("Rule regression pass rate, strict", reg["pass_rate_strict"]))
     add("")
     add(
-        "Pass means Bastion's match count equals the expected count exactly (SigmaHQ's own runner "
-        "treats more matches as a warning, not a failure)."
+        "The headline follows SigmaHQ's own runner: a case passes with at least the expected "
+        f"number of matches, and {reg['more_than_expected']} case(s) passed with more than "
+        "expected (SigmaHQ warns on those). The strict rate requires exactly the expected count."
     )
     if reg["skipped_by_reason"]:
         add("")

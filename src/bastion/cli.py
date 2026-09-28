@@ -549,9 +549,15 @@ def _print_bench_summary(summary: dict[str, Any]) -> None:
         block = summary["rates"].get(split)
         if block:
             row(f"detection_rate ({split})", block["detection_rate"])
+            row(f"detection_rate_strict ({split})", block["detection_rate_strict"])
             row(f"any_alert_rate ({split})", block["any_alert_rate"])
             row(f"validated_coverage ({split})", block["validated_coverage_over_labelled"])
+            row(
+                f"validated_coverage_strict ({split})",
+                block["validated_coverage_strict_over_labelled"],
+            )
     row("regression_pass_rate", summary["regression"]["pass_rate"])
+    row("regression_pass_rate_strict", summary["regression"]["pass_rate_strict"])
     console.print(table)
     volume = summary["benign"]["evtx_baseline"]
     if volume["hosts"]:

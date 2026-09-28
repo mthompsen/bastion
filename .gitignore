@@ -23,3 +23,4 @@ htmlcov/
 out/
 # Bench outputs that are large or per-event live outside git; summaries are committed.
 bench/results/*/outcomes.jsonl
+bench/results/*/captures.jsonl

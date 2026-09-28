@@ -132,12 +132,17 @@ def test_run_bench_writes_summary_report_and_resumes(world: World) -> None:
 
 
 def test_run_bench_honours_split_and_suite_selection(world: World) -> None:
-    summary, _ = run_bench(
+    summary, run_dir = run_bench(
         _config(world, splits=("test",), suites=("positives",), run_name="only-test")
     )
     kinds = summary["captures"]["by_kind"]
     assert "regression" not in kinds and "fixture" not in kinds
-    detail = summary["captures"]["detail"]
+    # A run without the benign suite must not claim LATEST (the budget gate reads it).
+    assert not (world.repo_root / "bench" / "results" / "LATEST").exists()
+    detail = [
+        json.loads(line)
+        for line in (run_dir / summary["captures"]["detail_file"]).read_text().splitlines()
+    ]
     # The positives suite carries Citadel's own-lab background as its only benign captures.
     assert all(d["corpus"] == "citadel_captures" for d in detail if d["kind"] == "benign")
     assert all(d["split"] in {"test", "unlabelled"} for d in detail if d["kind"] == "positive")

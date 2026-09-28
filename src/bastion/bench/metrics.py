@@ -186,7 +186,12 @@ def _alerting(outcome: CaptureOutcome) -> list[Fired]:
 
 
 def _hit(outcome: CaptureOutcome) -> tuple[bool, bool]:
-    """(detected, detected only through parent/sub hierarchy)."""
+    """``(parent_aware, strict)``: detected under the headline definition, and under exact tags.
+
+    Parent-aware (the headline, Mason's decision B1-2) counts a rule tagged to the label or to
+    its parent or sub-technique in either direction; sibling sub-techniques do not count.
+    Strict counts exact tag matches only and is reported beside the headline everywhere.
+    """
     exact = False
     hierarchical = False
     for fired in _alerting(outcome):
@@ -196,7 +201,7 @@ def _hit(outcome: CaptureOutcome) -> tuple[bool, bool]:
                 exact = True
             elif tagged_to(tags, label):
                 hierarchical = True
-    return (exact or hierarchical, hierarchical and not exact)
+    return (exact or hierarchical, exact)
 
 
 # --- section 4 metrics --------------------------------------------------------------------
@@ -213,6 +218,7 @@ def labelled_positives(outcomes: Iterable[CaptureOutcome], split: str) -> list[C
 @dataclass
 class DetectionRates:
     overall: Rate
+    strict: Rate
     any_alert: Rate
     per_technique: dict[str, Rate]
     per_tactic: dict[str, Rate]
@@ -227,6 +233,7 @@ def detection_rates(
     positives = labelled_positives(outcomes, split)
     basis = f"labelled positive captures, {split} split, {pins_label}"
     hits = 0
+    strict_hits = 0
     any_alert = 0
     hierarchical = 0
     per_technique_hits: Counter[str] = Counter()
@@ -234,9 +241,10 @@ def detection_rates(
     per_tactic_hits: Counter[str] = Counter()
     per_tactic_total: Counter[str] = Counter()
     for outcome in positives:
-        detected, via_hierarchy = _hit(outcome)
+        detected, strict = _hit(outcome)
         hits += int(detected)
-        hierarchical += int(via_hierarchy)
+        strict_hits += int(strict)
+        hierarchical += int(detected and not strict)
         any_alert += int(bool(_alerting(outcome)))
         tactics: set[str] = set()
         for technique in outcome.techniques:
@@ -271,6 +279,13 @@ def detection_rates(
     }
     return DetectionRates(
         overall=Rate.of("detection_rate", hits, len(positives), basis, split=split),
+        strict=Rate.of(
+            "detection_rate_strict",
+            strict_hits,
+            len(positives),
+            basis + ", exact tag match only",
+            split=split,
+        ),
         any_alert=Rate.of("any_alert_rate", any_alert, len(positives), basis, split=split),
         per_technique=per_technique,
         per_tactic=per_tactic,
@@ -279,36 +294,55 @@ def detection_rates(
     )
 
 
+@dataclass
+class ValidatedCoverage:
+    over_labelled: Rate
+    over_matrix: Rate
+    strict_over_labelled: Rate
+    validated: set[str]
+    validated_strict: set[str]
+
+
 def validated_coverage(
     outcomes: Iterable[CaptureOutcome], attack: AttackData, split: str, pins_label: str
-) -> tuple[Rate, Rate, set[str]]:
+) -> ValidatedCoverage:
     """Techniques with a detected labelled capture, over techniques with any labelled capture.
 
-    Returns ``(over_labelled, over_full_matrix, validated_ids)``.
+    The headline uses parent-aware detection; the strict variant (exact tags) is beside it.
     """
     labelled: set[str] = set()
     validated: set[str] = set()
+    validated_strict: set[str] = set()
     for outcome in labelled_positives(outcomes, split):
-        detected, _ = _hit(outcome)
+        detected, strict = _hit(outcome)
         for technique in outcome.techniques:
             labelled.add(technique)
             if detected:
                 validated.add(technique)
-    over_labelled = Rate.of(
-        "validated_coverage",
-        len(validated),
-        len(labelled),
-        f"techniques with at least one labelled positive capture, {split} split, {pins_label}",
-        split=split,
+            if strict:
+                validated_strict.add(technique)
+    basis = f"techniques with at least one labelled positive capture, {split} split, {pins_label}"
+    return ValidatedCoverage(
+        over_labelled=Rate.of(
+            "validated_coverage", len(validated), len(labelled), basis, split=split
+        ),
+        over_matrix=Rate.of(
+            "validated_coverage",
+            len(validated),
+            len(attack.techniques),
+            f"full enterprise matrix, ATT&CK {attack.version}",
+            split=split,
+        ),
+        strict_over_labelled=Rate.of(
+            "validated_coverage_strict",
+            len(validated_strict),
+            len(labelled),
+            basis + ", exact tag match only",
+            split=split,
+        ),
+        validated=validated,
+        validated_strict=validated_strict,
     )
-    over_matrix = Rate.of(
-        "validated_coverage",
-        len(validated),
-        len(attack.techniques),
-        f"full enterprise matrix, ATT&CK {attack.version}",
-        split=split,
-    )
-    return over_labelled, over_matrix, validated
 
 
 def claimed_coverage(
@@ -414,10 +448,16 @@ def blind_spot_split(rules: Sequence[SigmaRule], attack: AttackData) -> dict[str
 
 @dataclass
 class RegressionSummary:
+    #: headline: SigmaHQ's own runner criterion, at least the expected number of matches
     passed: Rate
+    #: Bastion's strict criterion, exactly the expected number, reported beside the headline
+    passed_strict: Rate
+    #: cases that passed the headline with more matches than expected (SigmaHQ warns on these)
+    more_than_expected: int
     failed: int
     skipped_by_reason: dict[str, int]
     failures: list[dict[str, Any]]
+    over_count: list[dict[str, Any]]
     by_logsource: dict[str, dict[str, int]]
 
 
@@ -427,15 +467,24 @@ def regression_pass_rate(
     rules_by_id: Mapping[str, SigmaRule],
     pins_label: str,
 ) -> RegressionSummary:
-    """Cases where Bastion's match count equals the expected count (``None`` = at least one)."""
+    """Regression pass rates under SigmaHQ's criterion (headline) and Bastion's strict one.
+
+    SigmaHQ's runner passes a case when at least ``match_count`` matches are produced (at
+    least one when the count is omitted) and warns when there are more; that is the headline
+    (Mason's decision B1-1). The strict rate requires the exact count and is reported beside it.
+    """
     passed = 0
+    passed_strict = 0
     failures: list[dict[str, Any]] = []
+    over_count: list[dict[str, Any]] = []
     by_logsource: dict[str, dict[str, int]] = defaultdict(lambda: {"passed": 0, "failed": 0})
     evaluable = [o for o in outcomes if o.kind == "regression" and o.skipped is None]
     for outcome in evaluable:
         for rule_id, expected in outcome.expected_matches.items():
             actual = sum(f.count for f in outcome.fired if f.rule_id == rule_id)
-            ok = actual >= 1 if expected is None else actual == expected
+            ok = actual >= 1 if expected is None else actual >= expected
+            strict = actual >= 1 if expected is None else actual == expected
+            passed_strict += int(strict)
             rule = rules_by_id.get(rule_id)
             key = (
                 "/".join(
@@ -450,33 +499,44 @@ def regression_pass_rate(
                 or "unknown"
             )
             by_logsource[key]["passed" if ok else "failed"] += 1
+            record = {
+                "capture": outcome.capture_id,
+                "rule_id": rule_id,
+                "rule_title": rule.title if rule else outcome.notes.get("rule_title", ""),
+                "logsource": key,
+                "expected": expected,
+                "actual": actual,
+                "events": outcome.events_scanned,
+            }
             if ok:
                 passed += 1
+                if not strict:
+                    over_count.append(record)
             else:
-                failures.append(
-                    {
-                        "capture": outcome.capture_id,
-                        "rule_id": rule_id,
-                        "rule_title": rule.title if rule else outcome.notes.get("rule_title", ""),
-                        "logsource": key,
-                        "expected": expected,
-                        "actual": actual,
-                        "events": outcome.events_scanned,
-                    }
-                )
+                failures.append(record)
     total = len(evaluable)
     skipped_total = sum(skipped.values())
+    basis = f"evaluable SigmaHQ regression_data EVTX cases ({skipped_total} skipped), {pins_label}"
     return RegressionSummary(
         passed=Rate.of(
             "regression_pass_rate",
             passed,
             total,
-            f"evaluable SigmaHQ regression_data EVTX cases ({skipped_total} skipped), {pins_label}",
+            basis + ", SigmaHQ criterion: at least the expected matches",
             corpus="regression_data",
         ),
+        passed_strict=Rate.of(
+            "regression_pass_rate_strict",
+            passed_strict,
+            total,
+            basis + ", strict: exactly the expected matches",
+            corpus="regression_data",
+        ),
+        more_than_expected=len(over_count),
         failed=total - passed,
         skipped_by_reason=dict(sorted(skipped.items())),
         failures=failures,
+        over_count=over_count,
         by_logsource=dict(sorted(by_logsource.items())),
     )
 

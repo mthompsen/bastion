@@ -116,6 +116,8 @@ def test_detection_rates_strict_hierarchy_and_any_alert() -> None:
     rates = detection_rates(OUTCOMES, ATTACK, "test", "pins")
     assert rates.captures == 4
     assert (rates.overall.numerator, rates.overall.denominator) == (2, 4)
+    assert (rates.strict.numerator, rates.strict.denominator) == (1, 4)
+    assert "exact tag" in rates.strict.basis
     assert rates.hierarchical_hits == 1
     assert (rates.any_alert.numerator, rates.any_alert.denominator) == (3, 4)
     assert rates.per_technique["T1110"].numerator == 0
@@ -128,10 +130,15 @@ def test_detection_rates_strict_hierarchy_and_any_alert() -> None:
 
 
 def test_validated_coverage_denominators() -> None:
-    over_labelled, over_matrix, validated = validated_coverage(OUTCOMES, ATTACK, "test", "pins")
-    assert validated == {"T1059.001", "T1059"}
-    assert (over_labelled.numerator, over_labelled.denominator) == (2, 3)
-    assert over_matrix.denominator == len(ATTACK.techniques)
+    result = validated_coverage(OUTCOMES, ATTACK, "test", "pins")
+    assert result.validated == {"T1059.001", "T1059"}
+    assert result.validated_strict == {"T1059.001"}  # the T1059 hit was hierarchical only
+    assert (result.over_labelled.numerator, result.over_labelled.denominator) == (2, 3)
+    assert (result.strict_over_labelled.numerator, result.strict_over_labelled.denominator) == (
+        1,
+        3,
+    )
+    assert result.over_matrix.denominator == len(ATTACK.techniques)
 
 
 def test_claimed_and_feasible_coverage_and_blind_spots() -> None:
@@ -190,13 +197,18 @@ def test_regression_pass_rate_counts_exact_and_at_least_one() -> None:
         _outcome("r5", [], [], kind="regression", expected={win.id: 1}, skipped="broken"),
     ]
     summary = regression_pass_rate(outcomes, {"json": 2}, by_id, "pins")
-    assert (summary.passed.numerator, summary.passed.denominator) == (2, 4)
-    assert summary.failed == 2
+    # Headline follows SigmaHQ: r2 (3 matches, expected 1) passes with a warning; strict fails it.
+    assert (summary.passed.numerator, summary.passed.denominator) == (3, 4)
+    assert (summary.passed_strict.numerator, summary.passed_strict.denominator) == (2, 4)
+    assert summary.more_than_expected == 1
+    assert summary.over_count[0]["capture"] == "r2" and summary.over_count[0]["actual"] == 3
+    assert summary.failed == 1
     assert summary.skipped_by_reason == {"json": 2}
-    assert summary.by_logsource["windows/process_creation"] == {"passed": 2, "failed": 1}
+    assert summary.by_logsource["windows/process_creation"] == {"passed": 3, "failed": 0}
     assert summary.by_logsource["unknown"] == {"passed": 0, "failed": 1}
-    assert {f["rule_id"] for f in summary.failures} == {win.id, "unknown-rule"}
-    assert "2 skipped" in summary.passed.basis
+    assert [f["rule_id"] for f in summary.failures] == ["unknown-rule"]
+    assert "2 skipped" in summary.passed.basis and "at least" in summary.passed.basis
+    assert "exactly" in summary.passed_strict.basis
 
 
 def test_benign_volume_host_days_budget_and_known_fps() -> None:
