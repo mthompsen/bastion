@@ -544,3 +544,38 @@ class TestAuditdRecords:
         assert match(plain, SHUTDOWN).state == "no_match"
         other = _auditd_rule({"s": {"TargetFilename": "/x"}, "condition": "s"})
         assert match(other, SHUTDOWN).outside_source
+
+
+PADDING: dict[str, Any] = {
+    "selection_execve": {"type": "EXECVE"},
+    "keywords_dd": {"|all": ["dd", "if="]},
+    "keywords_filter": ["of="],
+    "condition": "selection_execve and keywords_dd and not keywords_filter",
+}
+
+
+class TestKeywordAll:
+    """B2 finding F2: ``'|all': [...]`` is a keyword list whose keywords must all appear
+    (Sigma specification 2.1.0, "Keywords search")."""
+
+    def test_all_keywords_must_appear(self) -> None:
+        rule = make_rule(PADDING)
+        hit = make_event(type="EXECVE", a0="dd", a1="if=/dev/zero")
+        assert match(rule, hit).matched
+        assert match(rule, hit).matched_fields["keyword"] == "dd, if="
+        assert not match(rule, make_event(type="EXECVE", a0="dd", a1="bs=1M")).matched
+        assert not match(rule, make_event(type="EXECVE", a0="dd", a1="if=/a of=/b")).matched
+
+    def test_keyword_all_is_never_outside_a_source_or_undecided(self) -> None:
+        rule = make_rule(PADDING)
+        result = match(rule, make_event(Image="dd", CommandLine="dd if=/dev/zero"))
+        # type is missing, so the selection is undecided; the keywords are decided
+        assert (result.state, result.missing_fields) == ("not_evaluable", ("type",))
+        keywords_only = make_rule({"k": {"|all": ["dd", "if="]}, "condition": "k"})
+        assert match(keywords_only, make_event(Other="x")).state == "no_match"
+
+    @pytest.mark.parametrize("key", ["|contains", "", "|all|cased", "|re"])
+    def test_other_keyword_modifiers_are_unsupported(self, key: str) -> None:
+        rule = make_rule({"k": {key: ["dd"]}, "condition": "k"})
+        with pytest.raises(UnsupportedRuleError, match="keyword lists take only"):
+            match(rule, make_event(a0="dd"))

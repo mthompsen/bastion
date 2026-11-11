@@ -33,6 +33,7 @@ def test_reasons_are_classified() -> None:
         "structure:unknown-identifier": {"s": {"a": 1}, "condition": "s and t"},
         "structure:null-values-cannot": {"s": {"a|windash|contains": [None]}, "condition": "s"},
         "structure:unsupported-identifier-shape": {"s": {"a": 1}, "t": None, "condition": "s"},
+        "structure:keyword-lists-take-only": {"s": {"|contains": ["x"]}, "condition": "s"},
     }
     for expected, detection in cases.items():
         found = check_rule(_rule(detection))
@@ -61,3 +62,9 @@ def test_report_evaluable_map() -> None:
     mapping = report.evaluable_map([good, bad])
     assert mapping[good.id + good.file_path] is True
     assert mapping[bad.id + bad.file_path] is False
+
+
+def test_keyword_all_is_evaluable() -> None:
+    # B2 finding F2: the Sigma 2.1.0 keyword form '|all': [...] is evaluated, not flagged
+    rule = _rule({"s": {"type": "EXECVE"}, "k": {"|all": ["dd", "if="]}, "condition": "s and k"})
+    assert check_rule(rule) is None

@@ -77,6 +77,7 @@ def classify(message: str) -> str:
         "identifier mixes",
         "unsupported identifier shape",
         "null values cannot",
+        "keyword lists take only",
         "regex does not compile",
         "unknown identifier",
         "unbalanced",

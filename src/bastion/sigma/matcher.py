@@ -13,6 +13,8 @@ Detection identifiers
     * a list of maps: any map may match (OR).
     * a list of scalars: keywords, matched case-insensitively (with
       wildcards) as substrings of the raw record and every field value.
+    * ``'|all': [...]`` inside a map: keywords that must all appear (Sigma
+      2.1.0, "Keywords search"); no other keyword modifier is defined.
 
 Value modifiers
     Match predicates: ``contains``, ``startswith``, ``endswith``, ``re``,
@@ -229,14 +231,23 @@ def _eval_map(spec: dict[object, object], event: Event) -> MatchResult:
             values = cast("list[RuleValue]", rule_value)
         else:
             values = [cast("RuleValue", rule_value)]
-        field_value = event.fields.get(field_spec.field)
-        combine = all if field_spec.match_all else any
         if not values:
             return MatchResult(matched=False)
+        if field_spec is _KEYWORD_ALL:
+            if not all(_eval_keywords([value], event).matched for value in values):
+                return MatchResult(matched=False)
+            evidence["keyword"] = ", ".join(str(value) for value in values)
+            continue
+        field_value = event.fields.get(field_spec.field)
+        combine = all if field_spec.match_all else any
         if not combine(_value_matches(field_spec, field_value, value) for value in values):
             return MatchResult(matched=False)
         evidence[field_spec.field] = "(absent)" if field_value is None else str(field_value)
     return MatchResult(matched=True, matched_fields=evidence)
+
+
+#: ``'|all': [...]`` in a detection map: a keyword list whose keywords must all appear.
+_KEYWORD_ALL = _FieldSpec("", match_all=True)
 
 
 @cache
@@ -275,6 +286,12 @@ def _parse_field_spec(raw: str) -> _FieldSpec:
         else:
             raise UnsupportedRuleError(f"unsupported modifier {modifier!r} in {raw!r}")
     spec = _FieldSpec(parts[0], predicate, match_all, cased, windash, encoding, b64)
+    if not spec.field:
+        # Sigma 2.1.0, "Keywords search": a keyword list takes the all modifier as
+        # ``'|all':``; no other modifier is defined for keywords.
+        if spec != _KEYWORD_ALL:
+            raise UnsupportedRuleError(f"{raw!r}: keyword lists take only the 'all' modifier")
+        return _KEYWORD_ALL
     if spec.encoding is not None and spec.b64 is None:
         raise UnsupportedRuleError(f"{raw!r}: utf16 encodings require a base64 transform")
     if spec.cased and spec.predicate not in _STRING_PREDICATES:
@@ -608,7 +625,12 @@ def _referenced_fields(detection: dict[str, Any]) -> tuple[frozenset[str], bool]
             if not isinstance(item, dict):
                 continue
             for raw, rule_value in item.items():
-                names.add(str(raw).split("|", 1)[0])
+                name = str(raw).split("|", 1)[0]
+                if not name:
+                    # a keyword list ('|all'): reads every source, names no field
+                    field_only = False
+                    continue
+                names.add(name)
                 values = rule_value if isinstance(rule_value, list) else [rule_value]
                 # A null check or exists reads absence as an answer, so such a rule is
                 # never "outside the source" just because the event lacks its fields.
@@ -638,7 +660,11 @@ def _eval_map3(spec: dict[object, object], event: Event, unknown: set[str]) -> T
         )
         if not values:
             return False
-        if field_spec.field in event.fields or _absence_is_data(field_spec, values):
+        if field_spec is _KEYWORD_ALL:
+            # Keywords read the whole record, so they are always decided.
+            if not all(_eval_keywords([value], event).matched for value in values):
+                return False
+        elif field_spec.field in event.fields or _absence_is_data(field_spec, values):
             combine = all if field_spec.match_all else any
             field_value = event.fields.get(field_spec.field)
             if not combine(_value_matches(field_spec, field_value, v) for v in values):
@@ -718,7 +744,11 @@ def _identifier_fields(detection: dict[str, Any]) -> dict[str, frozenset[str]]:
             continue
         maps = [value] if isinstance(value, dict) else value if isinstance(value, list) else []
         out[key] = frozenset(
-            str(raw).split("|", 1)[0] for item in maps if isinstance(item, dict) for raw in item
+            name
+            for item in maps
+            if isinstance(item, dict)
+            for raw in item
+            if (name := str(raw).split("|", 1)[0])
         )
     _IDENTIFIER_FIELDS[id(detection)] = (detection, out)
     return out
