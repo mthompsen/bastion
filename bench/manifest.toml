@@ -335,6 +335,38 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1014/medusa_rootkit/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1014/medusa_rootkit/sysmon_linux.log"]
+sha256 = "410480267727d913e1d48a389698c9178307ed5a35cb06f6927c4acd873c0953"
+techniques = ["T1014"]
+raw_labels = ["T1014"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1014/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1014/snapattack/snapattack_linux.log"]
+sha256 = "11d12790070b7d34eeaa1dbaa33a8bdcf34c0d29ceb02c556851185e8400c627"
+techniques = ["T1014"]
+raw_labels = ["T1014"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1016.001/snapattack/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -623,6 +655,38 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1021.004/atomic_red_team/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1021.004/atomic_red_team/linux-sysmon.log"]
+sha256 = "f4577ff1441312c55c8713b061942843e1c09b9058423c89b658de3d9f7fd23b"
+techniques = ["T1021.004"]
+raw_labels = ["T1021.004"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1021.004/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1021.004/snapattack/snapattack_linux.log"]
+sha256 = "ae249e71ef160f35b1baa179bd92f66d1ac0184d31d22bac4ddc8ea626ef61c9"
+techniques = ["T1021.004"]
+raw_labels = ["T1021.004"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1021.004/snapattack/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -815,6 +879,22 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1027/url_encoded_curl/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1027/url_encoded_curl/linux-sysmon.log"]
+sha256 = "b78ced767d7b25411faa731212d33d55e485f159b12dc8d486c9e3eee3652575"
+techniques = ["T1027"]
+raw_labels = ["T1027"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1027/url_encoded_curl/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -927,6 +1007,38 @@ label_notes = []
 cohort = "b1"
 
 [[capture]]
+id = "attack_data/T1033/linux_root_execution_of_id/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1033/linux_root_execution_of_id/snapattack_linux.log"]
+sha256 = "c9e49cb8b44b3e080a64fa6d84b0a56567e59df8f921c8b2f2ac597f7786b049"
+techniques = ["T1033"]
+raw_labels = ["T1033"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1033/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1033/snapattack/snapattack_linux.log"]
+sha256 = "30ab7dbc1903cc643557d0ce738396cca22133ff2c1d4e2ada616d9b56f23795"
+techniques = ["T1033"]
+raw_labels = ["T1033"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1033/snapattack/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -1023,6 +1135,22 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1036.004/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1036.004/snapattack/snapattack_linux.log"]
+sha256 = "f644f29916c255dfd73d5f9ec318e5b52c51d0e00e5d876086f80c6ecee65435"
+techniques = ["T1036.004"]
+raw_labels = ["T1036.004"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1036.005/snapattack/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -1055,6 +1183,38 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1036/linux_possible_system_binary_backdoor/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1036/linux_possible_system_binary_backdoor/snapattack_linux.log"]
+sha256 = "5410c00bb9c3d830152b57ea65bd73ff9783e5c4af36f5ea21a19654a8d22c7c"
+techniques = ["T1036"]
+raw_labels = ["T1036"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1036/linux_suspicious_staging_of_alternate_system_files/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1036/linux_suspicious_staging_of_alternate_system_files/snapattack_linux.log"]
+sha256 = "019eef9f82d87e1789df796cec16900575ccfdda8428be2d40a32a5f094f4549"
+techniques = ["T1036"]
+raw_labels = ["T1036"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1036/msdtc_process_param/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -1078,6 +1238,22 @@ platform = "windows"
 source_kind = "xmlevents"
 paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1036/netsupport_modules/net_support_module.log"]
 sha256 = "74f9a60d6fb553cdf9bbc71032b7953532cf65b621ab61db7f44b613d2b4293b"
+techniques = ["T1036"]
+raw_labels = ["T1036"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1036/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1036/snapattack/snapattack_linux.log"]
+sha256 = "51d91b4d3381f5abb37b1223b992405ac0fd6ca4636342fa603c4655783eb2ab"
 techniques = ["T1036"]
 raw_labels = ["T1036"]
 split = "test"
@@ -1128,6 +1304,38 @@ paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_t
 sha256 = "72eaefdb3e06f4fa1d98a5519cb91751ad5ae227ace87609a41caa2edb16768f"
 techniques = ["T1036"]
 raw_labels = ["T1036"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1037.005/linux_persistence_via_system_generator/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1037.005/linux_persistence_via_system_generator/snapattack_linux.log"]
+sha256 = "ba4c2eee88859afb04235b2e936c9d38be21a1b36cc6157aad4ad1824f79fa6e"
+techniques = ["T1037.005"]
+raw_labels = ["T1037.005"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1037.005/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1037.005/snapattack/snapattack_linux.log"]
+sha256 = "5267fc8c3ff246deccb76e32749ae98239d17055808e3dd6c81551e96fa15d24"
+techniques = ["T1037.005"]
+raw_labels = ["T1037.005"]
 split = "test"
 license = "Apache-2.0"
 host = "attack_range"
@@ -1341,6 +1549,22 @@ license = "Apache-2.0"
 host = "attack_range"
 label_notes = []
 cohort = "b1"
+
+[[capture]]
+id = "attack_data/T1053.003/crontab_list_parameter/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1053.003/crontab_list_parameter/sysmon_linux.log"]
+sha256 = "b5f733e3f955ace87edf46ee5439bdd8f1738578fe84567a71944f9ad5fe8bad"
+techniques = ["T1053.003"]
+raw_labels = ["T1053.003"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
 
 [[capture]]
 id = "attack_data/T1053.003/linux_auditd_cron_file_audited/auditd"
@@ -1903,6 +2127,54 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1059.004/linux_discovery_tools/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1059.004/linux_discovery_tools/sysmon_linux.log"]
+sha256 = "4d4110b91361ec67f3ce2cc1b199175a70772af3069b23aea54c535ab8264b63"
+techniques = ["T1059.004"]
+raw_labels = ["T1059.004"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1059.004/linux_netcat_outbound_connection/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1059.004/linux_netcat_outbound_connection/snapattack_linux.log"]
+sha256 = "f6624a914a8df52ea38c597dec5a2c78931c8f9afab487476b9be09cf7872d72"
+techniques = ["T1059.004"]
+raw_labels = ["T1059.004"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1059.004/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1059.004/snapattack/snapattack_linux.log"]
+sha256 = "3f4c0bd55fc5aa4d75fd9d2de8d42cc8a482880f8c537d065843807e16bc0889"
+techniques = ["T1059.004"]
+raw_labels = ["T1059.004"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1059.005/lotus_blossom_chrysalis/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -2015,6 +2287,38 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1059/linux_bash_reverse_shell/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1059/linux_bash_reverse_shell/snapattack_linux.log"]
+sha256 = "b268e30c072cc0b5100595743f6066365f48afd612b09d7156b3ccc1d7b192df"
+techniques = ["T1059"]
+raw_labels = ["T1059"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1059/linux_binary_executed_from_shared_memory_directory/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1059/linux_binary_executed_from_shared_memory_directory/snapattack_linux.log"]
+sha256 = "b821998d480236ddda829ab5f40cebf126500971b917afd26a92672ae650de2b"
+techniques = ["T1059"]
+raw_labels = ["T1059"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1059/metasploit/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -2041,6 +2345,22 @@ sha256 = "91f6548c7f18ef27e815331497a74dd4bb415ce599d0159894c245b961439a55"
 techniques = ["T1059"]
 raw_labels = ["T1059"]
 split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1059/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1059/snapattack/snapattack_linux.log"]
+sha256 = "8660aad78e2cb4bfada649a599facff48a87e6f29404adea66bb59e80294a3ee"
+techniques = ["T1059"]
+raw_labels = ["T1059"]
+split = "test"
 license = "Apache-2.0"
 host = "attack_range"
 label_notes = []
@@ -2159,6 +2479,86 @@ label_notes = []
 cohort = "b1"
 
 [[capture]]
+id = "attack_data/T1068/linux_dirtyfrag/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1068/linux_dirtyfrag/linux_sysmon.log"]
+sha256 = "69327fec83209320be50e7caaed13d12a3a234f5cd6cb4f5cb6580099c2cabdd"
+techniques = ["T1068"]
+raw_labels = ["T1068"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1068/linux_pedit/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1068/linux_pedit/sysmon_linux.log"]
+sha256 = "f3bb501a9c5acc7866f790a171af4fdc1d0e29be0a4f6998e81375fe535b6e66"
+techniques = ["T1068"]
+raw_labels = ["T1068"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1068/linux_possible_linux_gsm_privilege_escalation/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1068/linux_possible_linux_gsm_privilege_escalation/snapattack_linux.log"]
+sha256 = "9ea60feec22bf9c50ca22b7b391fcb921b9364fc6ae9d58314b20b399ab1422a"
+techniques = ["T1068"]
+raw_labels = ["T1068"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1068/linux_possible_nimbuspwn_directory_traversal/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1068/linux_possible_nimbuspwn_directory_traversal/snapattack_linux.log"]
+sha256 = "d83c52a43aecfde9eb4333c5abf359961347c4cd78a84c17d2c2970dec0bc62c"
+techniques = ["T1068"]
+raw_labels = ["T1068"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1068/linux_possible_privilege_escalation_via_pythonpath/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1068/linux_possible_privilege_escalation_via_pythonpath/snapattack_linux.log"]
+sha256 = "e3cd6e8001082f95375eaf5caa12ac8045c34a2b0f80acaf97b03842737f937c"
+techniques = ["T1068"]
+raw_labels = ["T1068"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1068/redsun/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -2169,6 +2569,22 @@ sha256 = "8d49179936fe6ed111f42ef7085f4adf891c8178385a5e8645e7e0777f1e8e6e"
 techniques = ["T1068"]
 raw_labels = ["T1068"]
 split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1068/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1068/snapattack/snapattack_linux.log"]
+sha256 = "e4efc648a37a33286d41506fbf42cdd0863461afaf2e63b32ae87126b40d8b4b"
+techniques = ["T1068"]
+raw_labels = ["T1068"]
+split = "dev"
 license = "Apache-2.0"
 host = "attack_range"
 label_notes = []
@@ -2623,6 +3039,22 @@ label_notes = []
 cohort = "b1"
 
 [[capture]]
+id = "attack_data/T1082/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1082/snapattack/snapattack_linux.log"]
+sha256 = "7249e819045894932bfc501acee528e6dbfc2bb04abf288d9b5ee890df0c1277"
+techniques = ["T1082"]
+raw_labels = ["T1082"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1082/snapattack/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -2895,6 +3327,22 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1098/linux_usermod_root_uid_set/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1098/linux_usermod_root_uid_set/snapattack_linux.log"]
+sha256 = "1108f2f430899b64e616e8d4c2190f8121a3720d863ac96507d6df77f5a8f13b"
+techniques = ["T1098"]
+raw_labels = ["T1098"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1098/service_principal_name_added/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -2921,6 +3369,22 @@ sha256 = "4eabd58b5d4c0a3b4d1abff6bea229315ce57829defafaa6c767c3315e91af92"
 techniques = ["T1098"]
 raw_labels = ["T1098"]
 split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1098/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1098/snapattack/snapattack_linux.log"]
+sha256 = "16ac878bee463213736e39856cdd5844c8d91347fb079a6b63a96f3819d5bce9"
+techniques = ["T1098"]
+raw_labels = ["T1098"]
+split = "test"
 license = "Apache-2.0"
 host = "attack_range"
 label_notes = []
@@ -2975,6 +3439,22 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1102/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1102/snapattack/snapattack_linux.log"]
+sha256 = "75df040c7ae67940d76c4813dece329ae9b60cc0059811fb4173180b090aa208"
+techniques = ["T1102"]
+raw_labels = ["T1102"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1105/atomic_red_team/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -2998,6 +3478,22 @@ platform = "windows"
 source_kind = "xmlevents"
 paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1105/dll_loaded_in_temp/module_loaded_in_temp.log"]
 sha256 = "ba3fe42d7bd3af6be7b0111b45983bcf734506272cb4180964a96a81dde613b1"
+techniques = ["T1105"]
+raw_labels = ["T1105"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1105/download_to_pipe_exec/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1105/download_to_pipe_exec/download_to_pipe_exec_linux.log"]
+sha256 = "7b27f4b98f771d9ad3d6ac9425d7a873234311a00e897b11b8cf88b80c622cb8"
 techniques = ["T1105"]
 raw_labels = ["T1105"]
 split = "test"
@@ -3388,6 +3884,38 @@ split = "test"
 license = "Apache-2.0"
 host = "attack_range"
 label_notes = ["T1128 revoked, remapped to T1546.007"]
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1129/linux_suspicious_gcc_invocation_building_init_shared_object/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1129/linux_suspicious_gcc_invocation_building_init_shared_object/snapattack_linux.log"]
+sha256 = "a2f20a65e1018f011ed535b6e342b67196c18ed14ebde80b882354c21e7c872d"
+techniques = ["T1129"]
+raw_labels = ["T1129"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1129/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1129/snapattack/snapattack_linux.log"]
+sha256 = "82d2a48a8ced98515f72c97d9aa13facb66fddbec357f6f3a2c404eef1ffaba2"
+techniques = ["T1129"]
+raw_labels = ["T1129"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
 cohort = "b3"
 
 [[capture]]
@@ -3791,6 +4319,38 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1190/linux_cve-2023-33246_rocketmq_exploitation/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1190/linux_cve-2023-33246_rocketmq_exploitation/snapattack_linux.log"]
+sha256 = "a5c69451e00caa3764ff3ad6d63990c48f79513250e4a61547885850c424b0f5"
+techniques = ["T1190"]
+raw_labels = ["T1190"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1190/linux_suspicious_child_of_postgresql/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1190/linux_suspicious_child_of_postgresql/snapattack_linux.log"]
+sha256 = "8a8e622416f4f42ccff980fd0c0e81f9dea8aa8efb81faa06811aea6e4041c76"
+techniques = ["T1190"]
+raw_labels = ["T1190"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1190/papercut/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -3855,6 +4415,22 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1190/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1190/snapattack/snapattack_linux.log"]
+sha256 = "5f7f2ec629aa2302d691203c5c7f26613f5fb96f52d79d12822129ee0ae24fe5"
+techniques = ["T1190"]
+raw_labels = ["T1190"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1190/snapattack/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -3865,6 +4441,22 @@ sha256 = "acf5f205c3813a0acfc75fb5f4dff90187a5d5c417cd8e38271b81f5b7ff52a5"
 techniques = ["T1190"]
 raw_labels = ["T1190"]
 split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1195.001/npm/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1195.001/npm/shai_hulud_workflow_sysmon.log", "attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1195.001/npm/workflow_yml_sysmon.log"]
+sha256 = "f9aad0cacd5a7234e09be099c71d5937ad9fedbe96bd1c2f9a93310c85f4a7ab"
+techniques = ["T1195.001"]
+raw_labels = ["T1195.001"]
+split = "test"
 license = "Apache-2.0"
 host = "attack_range"
 label_notes = []
@@ -4063,6 +4655,22 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1204.002/linux_ghostscript_exploitation/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1204.002/linux_ghostscript_exploitation/snapattack_linux.log"]
+sha256 = "37dee027ebcbf86fb07817d54aefb14556acf708c91031224feb587f3b9ee3a5"
+techniques = ["T1204.002"]
+raw_labels = ["T1204.002"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1204.002/single_letter_exe/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -4070,6 +4678,22 @@ platform = "windows"
 source_kind = "xmlevents"
 paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1204.002/single_letter_exe/windows-sysmon.log"]
 sha256 = "7dd9f1802e7b269e28cff12a1f27520398c13d87d413491f32902b908625d5a7"
+techniques = ["T1204.002"]
+raw_labels = ["T1204.002"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1204.002/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1204.002/snapattack/snapattack_linux.log"]
+sha256 = "cfff0fb8a6d98379ca96ea4f95b789c7b381e7d50788a4418f3426acad9e1648"
 techniques = ["T1204.002"]
 raw_labels = ["T1204.002"]
 split = "dev"
@@ -5007,6 +5631,38 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1485/rm_boot_dir/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1485/rm_boot_dir/sysmon_linux.log"]
+sha256 = "58c169bb7edf8371f63d331cf85fe9f7ae84409ae9dfa8ed42b25c1ad81ea694"
+techniques = ["T1485"]
+raw_labels = ["T1485"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1485/rm_shred_critical_dir/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1485/rm_shred_critical_dir/sysmon_linux.log"]
+sha256 = "5770b0c35a20420208fb41471b8d52573f082baf90146e4e67019ab34bb33767"
+techniques = ["T1485"]
+raw_labels = ["T1485"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1485/snapattack/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -5101,6 +5757,22 @@ license = "Apache-2.0"
 host = "attack_range"
 label_notes = []
 cohort = "b1"
+
+[[capture]]
+id = "attack_data/T1489/linux_service_stop_disable/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1489/linux_service_stop_disable/sysmon_linux.log"]
+sha256 = "e96da100a753073f804120a4f60ddffbcbcf271b45cd30c6eed2f6267eadfb39"
+techniques = ["T1489"]
+raw_labels = ["T1489"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
 
 [[capture]]
 id = "attack_data/T1490/atomic_red_team/windows"
@@ -5327,6 +5999,38 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1505/linux_suspicious_redis_activity/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1505/linux_suspicious_redis_activity/snapattack_linux.log"]
+sha256 = "b9e7988879edc4d6643d8c5213f52ac4ea55f347143ee6791d59dff559ac3404"
+techniques = ["T1505"]
+raw_labels = ["T1505"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1505/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1505/snapattack/snapattack_linux.log"]
+sha256 = "ce190c23e7382668001d83871af8141a25ae80abc883ede00d56cb4498cb1248"
+techniques = ["T1505"]
+raw_labels = ["T1505"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1505/snapattack/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -5465,6 +6169,70 @@ sha256 = "38bc7fc407e7b9ca0741641950c66e7ba1b88bffb5e92a924e78de8e47be38d7"
 techniques = ["T1542.003"]
 raw_labels = ["T1542.003"]
 split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1542/linux_efi_bootloader_file_deletion/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1542/linux_efi_bootloader_file_deletion/snapattack_linux.log"]
+sha256 = "de621b74a661f574f3d2b2f1d6223a140386b7e4d6bf76814eeed4e11924e4c0"
+techniques = ["T1542"]
+raw_labels = ["T1542"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1542/linux_possible_bootloader_modifications/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1542/linux_possible_bootloader_modifications/snapattack_linux.log"]
+sha256 = "19837c7970173b79fcac5dbd0cc39c9b337456bc8efa9896588d2b8a85292560"
+techniques = ["T1542"]
+raw_labels = ["T1542"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1542/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1542/snapattack/snapattack_linux.log"]
+sha256 = "e20c57fae2c748d15fed6ba2218dee383df516654b6ef5da0db53abe9472a07a"
+techniques = ["T1542"]
+raw_labels = ["T1542"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1543.002/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1543.002/snapattack/snapattack_linux.log"]
+sha256 = "35c02ebb7685c261b0128147d0186de55fd2c3b5e454d37fe5def884e11c3fbd"
+techniques = ["T1543.002"]
+raw_labels = ["T1543.002"]
+split = "test"
 license = "Apache-2.0"
 host = "attack_range"
 label_notes = []
@@ -5871,6 +6639,70 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1547/linux_motd_script_added/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1547/linux_motd_script_added/snapattack_linux.log"]
+sha256 = "17867628620cc41b5d32e03154886cce1c08b9ba972b13666113ed44db1a8c0f"
+techniques = ["T1547"]
+raw_labels = ["T1547"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1547/linux_suspicious_xdg_autostart/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1547/linux_suspicious_xdg_autostart/snapattack_linux.log"]
+sha256 = "92086080adc0e7d27346325b2ec5fe14a6040f4acd9838894c607917a3369580"
+techniques = ["T1547"]
+raw_labels = ["T1547"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1547/linux_udev_rule_created/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1547/linux_udev_rule_created/snapattack_linux.log"]
+sha256 = "eefb674a3182ef3fd327a8ec23b320318f10b1803eab44b139919346d2cc44d7"
+techniques = ["T1547"]
+raw_labels = ["T1547"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1547/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1547/snapattack/snapattack_linux.log"]
+sha256 = "62a92b5cc10079d40662df4f4263dceca696b3997587773ba7ba19a66975f356"
+techniques = ["T1547"]
+raw_labels = ["T1547"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1548.001/linux_auditd_setuid/auditd"
 corpus = "attack_data"
 kind = "positive"
@@ -6047,6 +6879,454 @@ label_notes = []
 cohort = "b1"
 
 [[capture]]
+id = "attack_data/T1548.003/linux_suspicious_sudo_parameter/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548.003/linux_suspicious_sudo_parameter/snapattack_linux.log"]
+sha256 = "a431dc69e273d9ea92e445aeba56a149c6dbf1ef24fa5d5d60e89ced0dbde259"
+techniques = ["T1548.003"]
+raw_labels = ["T1548.003"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548.003/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548.003/snapattack/snapattack_linux.log"]
+sha256 = "4809e144d793d6e55f7c1c622b81fbef53724805c1e5e3394184a57425f5fd0b"
+techniques = ["T1548.003"]
+raw_labels = ["T1548.003"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/apt/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/apt/sysmon_linux.log"]
+sha256 = "f1cc73fbeaae7e61804d4e88a42c3d77e45bc59fdc91d54230710900e6c6bf7a"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/apt_get/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/apt_get/sysmon_linux.log"]
+sha256 = "bb255b4844f0fdb0770f34609321fdf3a652a56add9d474221413c5c46c5ab32"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/awk/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/awk/sysmon_linux.log"]
+sha256 = "9d9a88a4e0f0764f8df4e8528f8ee2fea9b1da3808b098e2d4fb2eb948d56a96"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/busybox/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/busybox/sysmon_linux.log"]
+sha256 = "be1f97fa54bd91e07a678327e3a2e399b0512bb8f4c6b4f69f4b0c057aafe127"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/c89/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/c89/sysmon_linux.log"]
+sha256 = "2e0c4338773c5e5cb5e67c8a96335a6f3de0b466235e9f5589faeb70fdedf65f"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/c99/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/c99/sysmon_linux.log"]
+sha256 = "9e8910ef4278d86e5f53602c504b4df255b03ade5f0e4fd9b5780da4314b9805"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/composer/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/composer/sysmon_linux.log"]
+sha256 = "288e8a123360095bdab525667ed32373a28675c20286f2b727dd60ffe3442562"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/cpulimit/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/cpulimit/sysmon_linux.log"]
+sha256 = "87c7b2595792ae4bbd9df32856c3946b8c755715a0f4dfc697f048f616a76b34"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/csvtool/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/csvtool/sysmon_linux.log"]
+sha256 = "975a634f00b1981e19d0e0e11fd01720972a21cb14a6710fd4e4c309ceb077e2"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/docker/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/docker/sysmon_linux.log"]
+sha256 = "50fef4d5143fe8496b6d5ac320109d92388a33b954f44af5d2358fe5a6511d7e"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/emacs/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/emacs/sysmon_linux.log"]
+sha256 = "4ae347a97c2a3cdc35fde7370d48ffd845478f8d5f4610b74229f9c958ab4d7f"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/find/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/find/sysmon_linux.log"]
+sha256 = "57292b44a21d3676096ebc0d30969a7c57c589fdf43ac1565903c4cdd9d63015"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/gawk/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/gawk/sysmon_linux.log"]
+sha256 = "2afec2126af73a09a4f926404114c3f5119c234fd7a9411a9ab09b98aa4f0b85"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/gdb/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/gdb/sysmon_linux.log"]
+sha256 = "6a0cea540e89384f75a6d65679669daee3972b60924df811ba307bfe2408555e"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/gem/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/gem/sysmon_linux.log"]
+sha256 = "ca7ce10aef6442671e8be800b732be973d8a3d4bc9016349301857f8c6f33e50"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/make/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/make/sysmon_linux.log"]
+sha256 = "80a4015bd05ca7f22c8f3d6a6903eb05233e556132ae317b06af1daba2e43b0c"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/mysql/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/mysql/sysmon_linux.log"]
+sha256 = "3332848a2fde2febd14add45361192bcb96b2485c472d01fced19ced33681599"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/node/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/node/sysmon_linux.log"]
+sha256 = "d64a931ea17b7816081d0783c1733ce048e9e5c3087ac5a2af13811a042bdc4b"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/octave/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/octave/sysmon_linux.log"]
+sha256 = "c91ff3d4e75d914c151961459b2901750ba8aebab3436c3abcac45f16f8a038e"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/openvpn/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/openvpn/sysmon_linux.log"]
+sha256 = "fb8aba547d25526eb958ee695febafe29dbadf9808b0975b365f78937ad2714b"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/php/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/php/sysmon_linux.log"]
+sha256 = "8a62f8a89808c110cee5471fae6c642c99e32f6c2656371280c05cbc3de61f1f"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/puppet/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/puppet/sysmon_linux.log"]
+sha256 = "61c0a53da3ba9ead1f673df28be341d2a835f07f8c49a3e273a79881cffb2692"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/rpm/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/rpm/sysmon_linux.log"]
+sha256 = "76b8bcbbca8a44da0b0afd53bb34e14966189e81c71f4f8df7cb39703118b864"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/ruby/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/ruby/sysmon_linux.log"]
+sha256 = "57d491e90c33c6f33a7c125fd239c1bda29d77efd3ffb15d17e1dd0540c6f61a"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/sqlite3/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/sqlite3/sysmon_linux.log"]
+sha256 = "a731a60ddf12a17ca53d4e230cd330d50f3af336ea4eb9cb019ce351c3b7b5c5"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1548/telnet/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1548/telnet/sysmon_linux.log"]
+sha256 = "e49cb9fbb6c29f5ab130642982a0ddf4389200aa8c5d94a8d828e8f14914b19d"
+techniques = ["T1548"]
+raw_labels = ["T1548"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1550/kerberos_tgt_request_using_rc4_encryption/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -6072,6 +7352,38 @@ paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_t
 sha256 = "b792e790bd0c7d60af7481be96d13271b90da1d5054c65bc959401b2b35841e1"
 techniques = ["T1552.001"]
 raw_labels = ["T1552.001"]
+split = "dev"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1552.003/linux_bash_history_access/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1552.003/linux_bash_history_access/snapattack_linux.log"]
+sha256 = "c1f8b47c49c9efb85af17c2d884f5a783612878360b0624746dc8d82f2dd2054"
+techniques = ["T1552.003"]
+raw_labels = ["T1552.003"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1552.003/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1552.003/snapattack/snapattack_linux.log"]
+sha256 = "279363d633362bf6665d899287b0aec42e8f9a9d0f02db9fd2b4ad8b036a52ea"
+techniques = ["T1552.003"]
+raw_labels = ["T1552.003"]
 split = "dev"
 license = "Apache-2.0"
 host = "attack_range"
@@ -7071,6 +8383,22 @@ label_notes = []
 cohort = "b3"
 
 [[capture]]
+id = "attack_data/T1567/gdrive/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1567/gdrive/gdrive_linux.log"]
+sha256 = "91bac41f8541dabb9a743c55c938034e5bcb0574e45015d5d747a654d95221aa"
+techniques = ["T1567"]
+raw_labels = ["T1567"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
 id = "attack_data/T1567/gdrive/windows"
 corpus = "attack_data"
 kind = "positive"
@@ -7705,6 +9033,54 @@ sha256 = "08a8b01c76630dfdb6d53a02557418fed12e256b406902800270a076d5472c5a"
 techniques = ["T1608.001"]
 raw_labels = ["T1608.001"]
 split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1610/linux_suspicious_docker_build/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1610/linux_suspicious_docker_build/snapattack_linux.log"]
+sha256 = "3a0ddd7022702bff0c49d1806b362eb20ea625a532b13c2fd8e1b21d6af84392"
+techniques = ["T1610"]
+raw_labels = ["T1610"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1610/linux_suspicious_privileged_container/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1610/linux_suspicious_privileged_container/snapattack_linux.log"]
+sha256 = "2bf2ed305c77f8b301de7242d71eed2f1cd33986357c70a297d5430037ec80cf"
+techniques = ["T1610"]
+raw_labels = ["T1610"]
+split = "test"
+license = "Apache-2.0"
+host = "attack_range"
+label_notes = []
+cohort = "b3"
+
+[[capture]]
+id = "attack_data/T1610/snapattack/sysmon_linux"
+corpus = "attack_data"
+kind = "positive"
+platform = "linux"
+source_kind = "sysmon_linux"
+paths = ["attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/datasets/attack_techniques/T1610/snapattack/snapattack_linux.log"]
+sha256 = "207d267069018d7692f7e087bc62b5b92a784736284cbf2420a0c997e7613a51"
+techniques = ["T1610"]
+raw_labels = ["T1610"]
+split = "dev"
 license = "Apache-2.0"
 host = "attack_range"
 label_notes = []
