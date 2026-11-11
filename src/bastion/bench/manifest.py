@@ -29,6 +29,13 @@ from bastion.bench.captures import Capture
 
 Split = str  # "test" | "dev" | "unlabelled" | "" (suites without a split)
 
+#: The cohort of every capture the B1 manifest assigned. The B1 test split (130 labelled
+#: captures) is frozen: later captures never change an existing dev or test assignment, and
+#: the headline is reported on that frozen set beside the expanded test split.
+FROZEN_COHORT = "b1"
+#: The cohort recorded for captures first assigned by this version of the manifest.
+CURRENT_COHORT = "b3"
+
 
 @dataclass
 class ManifestEntry:
@@ -45,6 +52,8 @@ class ManifestEntry:
     license: str
     host: str = ""
     label_notes: list[str] = field(default_factory=list)
+    #: the milestone whose manifest first gave this capture its split (``b1`` is frozen)
+    cohort: str = FROZEN_COHORT
 
 
 def assign_splits(
@@ -72,8 +81,43 @@ def assign_splits(
     return splits
 
 
+def assign_splits_frozen(
+    captures: Sequence[Capture],
+    existing: Manifest,
+    forced: Mapping[str, Split] | None = None,
+    cohort: str = CURRENT_COHORT,
+) -> tuple[dict[str, Split], dict[str, str]]:
+    """Splits and cohorts for a regenerated manifest, keeping every existing assignment.
+
+    A capture the existing manifest put in ``dev`` or ``test`` keeps that split and its
+    cohort. Every other labelled positive capture (new, or unlabelled before and labelled
+    now) is assigned by :func:`assign_splits` among those captures only, with the existing
+    manifest's seed, and gets ``cohort``. Nothing here reads a rule outcome.
+    """
+    splits: dict[str, Split] = {}
+    cohorts: dict[str, str] = {}
+    fresh: list[Capture] = []
+    for capture in captures:
+        entry = existing.entries.get(capture.id)
+        if entry is not None and entry.split in {"test", "dev"}:
+            splits[capture.id] = entry.split
+            cohorts[capture.id] = entry.cohort
+        else:
+            fresh.append(capture)
+    for capture_id, split in assign_splits(fresh, existing.seed, forced).items():
+        splits[capture_id] = split
+        entry = existing.entries.get(capture_id)
+        cohorts[capture_id] = (
+            entry.cohort if entry is not None and split in {"", "unlabelled"} else cohort
+        )
+    return splits, cohorts
+
+
 def build_entries(
-    captures: Iterable[Capture], splits: Mapping[str, Split], cache_root: Path
+    captures: Iterable[Capture],
+    splits: Mapping[str, Split],
+    cache_root: Path,
+    cohorts: Mapping[str, str] | None = None,
 ) -> list[ManifestEntry]:
     entries: list[ManifestEntry] = []
     for capture in captures:
@@ -93,6 +137,7 @@ def build_entries(
                 license=capture.license,
                 host=capture.host,
                 label_notes=list(capture.label_notes),
+                cohort=(cohorts or {}).get(capture.id, FROZEN_COHORT),
             )
         )
     return sorted(entries, key=lambda e: e.id)
@@ -166,6 +211,12 @@ class Manifest:
         entry = self.entries.get(capture_id)
         return entry.split if entry else None
 
+    def frozen_test_ids(self) -> set[str]:
+        """The frozen held-out set: test captures of the frozen (B1) cohort."""
+        return {
+            e.id for e in self.entries.values() if e.split == "test" and e.cohort == FROZEN_COHORT
+        }
+
 
 def read_manifest(path: Path) -> Manifest:
     doc = tomllib.loads(path.read_text(encoding="utf-8"))
@@ -184,6 +235,7 @@ def read_manifest(path: Path) -> Manifest:
             license=str(raw.get("license", "")),
             host=str(raw.get("host", "")),
             label_notes=[str(n) for n in raw.get("label_notes", [])],
+            cohort=str(raw.get("cohort", FROZEN_COHORT)),
         )
         for raw in doc.get("capture", [])
     }

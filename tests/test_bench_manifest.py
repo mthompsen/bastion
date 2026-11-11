@@ -8,6 +8,7 @@ from bastion.bench.captures import Capture
 from bastion.bench.manifest import (
     Manifest,
     assign_splits,
+    assign_splits_frozen,
     build_entries,
     read_manifest,
     render_manifest,
@@ -85,3 +86,32 @@ def test_entries_and_toml_round_trip(tmp_path: Path) -> None:
 def test_manifest_dataclass_defaults() -> None:
     manifest = Manifest(seed=1, pins={}, entries={})
     assert manifest.split_of("x") is None
+
+
+def test_frozen_assignments_are_kept_and_new_captures_assigned() -> None:
+    old = [_cap(f"a{i}") for i in range(4)] + [_cap("was_unlabelled", techniques=())]
+    splits = assign_splits(old, seed=7)
+    existing = Manifest(7, {}, {e.id: e for e in build_entries(old, splits, Path("."))})
+    now = [_cap(f"a{i}") for i in range(4)]
+    now += [_cap("was_unlabelled", techniques=("T1110",)), _cap("new", techniques=("T1110",))]
+    now += [_cap("still_unlabelled", techniques=())]
+    frozen, cohorts = assign_splits_frozen(now, existing)
+    for i in range(4):
+        assert frozen[f"a{i}"] == splits[f"a{i}"] and cohorts[f"a{i}"] == "b1"
+    # The two newly labelled T1110 captures are stratified among themselves, seed 7.
+    assert sorted([frozen["was_unlabelled"], frozen["new"]]) == ["dev", "test"]
+    assert cohorts["was_unlabelled"] == cohorts["new"] == "b3"
+    assert frozen["still_unlabelled"] == "unlabelled"
+    assert frozen == assign_splits_frozen(now, existing)[0]  # deterministic
+    entries = build_entries(now, frozen, Path("."), cohorts)
+    manifest = Manifest(7, {}, {e.id: e for e in entries})
+    assert manifest.frozen_test_ids() == {f"a{i}" for i in range(4) if splits[f"a{i}"] == "test"}
+
+
+def test_cohort_round_trips_and_defaults_to_b1(tmp_path: Path) -> None:
+    entries = build_entries([_cap("x")], {"x": "test"}, tmp_path, {"x": "b3"})
+    path = tmp_path / "m.toml"
+    write_manifest(path, entries, 7, {})
+    assert read_manifest(path).entries["x"].cohort == "b3"
+    path.write_text(path.read_text(encoding="utf-8").replace('cohort = "b3"\n', ""), "utf-8")
+    assert read_manifest(path).entries["x"].cohort == "b1"

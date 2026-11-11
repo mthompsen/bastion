@@ -17,7 +17,7 @@ import httpx
 from bastion.attack import AttackData
 from bastion.bench.cache import download, extract_zip
 from bastion.bench.captures import Capture
-from bastion.bench.labels import LabelRow, resolve_labels
+from bastion.bench.labels import LabelRow, SupplementRow, resolve_labels
 from bastion.pins import load_pins
 
 CORPUS = "evtx_attack_samples"
@@ -58,14 +58,36 @@ def sample_paths(root: Path) -> list[str]:
 
 
 def evtx_sample_captures(
-    root: Path, labels: Mapping[str, LabelRow], attack: AttackData
+    root: Path,
+    labels: Mapping[str, LabelRow],
+    attack: AttackData,
+    supplement: Mapping[str, SupplementRow] | None = None,
 ) -> list[Capture]:
+    """One capture per EVTX file, labelled from the sheet table.
+
+    A file the sheet table leaves without a live label takes its label from the
+    supplement (``bench/labels/evtx-attack-samples-supplement.csv``) when that row is
+    ``exact`` or ``inferred_from_name``; the capture's notes record the source and the
+    confidence. Ambiguous supplement rows leave the file unlabelled.
+    """
     license_text = str(load_pins()["corpora"][CORPUS]["license"])
     captures: list[Capture] = []
     for relative in sample_paths(root):
         row = labels.get(relative)
         raw = row.technique_ids if row else ()
         live, notes = resolve_labels(raw, attack)
+        extra = (supplement or {}).get(relative)
+        capture_notes: dict[str, str] = (
+            {} if row else {"label": "file not named in the mapping sheet"}
+        )
+        if not live and extra is not None:
+            capture_notes["label_confidence"] = extra.confidence
+            capture_notes["label_source"] = extra.source
+            if extra.applied:
+                sheet_notes = notes
+                raw = extra.technique_ids
+                live, notes = resolve_labels(raw, attack)
+                notes = sheet_notes + notes
         folder = relative.split("/", 1)[0] if "/" in relative else ""
         captures.append(
             Capture(
@@ -80,7 +102,7 @@ def evtx_sample_captures(
                 label_notes=notes,
                 tactic=folder,
                 license=license_text,
-                notes={} if row else {"label": "file not named in the mapping sheet"},
+                notes=capture_notes,
             )
         )
     return captures

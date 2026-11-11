@@ -148,6 +148,48 @@ def read_label_table(text: str) -> dict[str, LabelRow]:
     return table
 
 
+#: Supplement confidences that are applied; ``ambiguous`` rows document a file and stay unlabelled.
+APPLIED_CONFIDENCES = frozenset({"exact", "inferred_from_name"})
+
+
+@dataclass(frozen=True)
+class SupplementRow:
+    """A label for a file the generated table leaves unlabelled, with where it came from."""
+
+    path: str
+    technique_ids: tuple[str, ...]
+    confidence: str
+    source: str
+    note: str
+
+    @property
+    def applied(self) -> bool:
+        return self.confidence in APPLIED_CONFIDENCES and bool(self.technique_ids)
+
+
+def read_supplement(text: str) -> dict[str, SupplementRow]:
+    """Parse the hand-curated supplement table (``path,technique_ids,confidence,source,note``).
+
+    Every confidence must be ``exact``, ``inferred_from_name`` or ``ambiguous``; an
+    applied row must name at least one technique and an ambiguous row none.
+    """
+    lines = [line for line in text.splitlines() if not line.startswith("#")]
+    table: dict[str, SupplementRow] = {}
+    for record in csv.DictReader(io.StringIO("\n".join(lines))):
+        ids = tuple(t for t in record["technique_ids"].split(";") if t)
+        row = SupplementRow(
+            record["path"], ids, record["confidence"], record["source"], record["note"]
+        )
+        if row.confidence not in APPLIED_CONFIDENCES | {"ambiguous"}:
+            raise ValueError(f"{row.path}: unknown confidence {row.confidence!r}")
+        if (row.confidence == "ambiguous") == bool(ids):
+            raise ValueError(f"{row.path}: ambiguous rows carry no ids, applied rows need one")
+        if row.path in table:
+            raise ValueError(f"{row.path}: listed twice")
+        table[row.path] = row
+    return table
+
+
 def resolve_labels(
     raw_ids: Iterable[str], attack: AttackData
 ) -> tuple[tuple[str, ...], tuple[str, ...]]:

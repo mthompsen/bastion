@@ -1,0 +1,137 @@
+# EVTX-ATTACK-SAMPLES labels for files the generated table leaves unlabelled (B3 addition 2, 2026-11-11).
+# Sources are the author's own materials only: the mapping sheet snapshot (bench/labels/sources/), the
+# tactic directory names and the file names. The repository README at the pinned commit carries no per-file
+# descriptions. No label was derived from, or checked against, what Bastion detects on a file.
+# confidence: exact = the sheet names this file (allowing the spelling variant given in source) and gives an id;
+#             inferred_from_name = the sheet's technique name for the file, or the file name itself, names one
+#             behaviour that maps to one ATT&CK technique; ambiguous = no single technique follows, left unlabelled.
+# Ids are written as the source implies them; the loader resolves retired ids through ATT&CK revoked-by links
+# exactly as it does for the sheet table. Only rows with confidence exact or inferred_from_name are applied.
+path,technique_ids,confidence,source,note
+AutomatedTestingTools/Malware/rundll32_cmd_schtask.evtx,T1218.011;T1053.005,inferred_from_name,file name,rundll32 and schtask named
+AutomatedTestingTools/Malware/rundll32_hollowing_wermgr_masquerading.evtx,T1218.011;T1055.012;T1036,inferred_from_name,file name,rundll32 and hollowing and masquerading named
+AutomatedTestingTools/Malware/sideloading_injection_persistence_run_key.evtx,T1574.002;T1055;T1547.001,inferred_from_name,file name,sideloading and injection and run key named
+AutomatedTestingTools/Malware/sideloading_uacbypass_rundll32_injection_c2.evtx,T1574.002;T1548.002;T1218.011;T1055,inferred_from_name,file name,c2 not labelled (no single technique)
+AutomatedTestingTools/PanacheSysmon_vs_AtomicRedTeam01.evtx,,ambiguous,file name,a whole Atomic Red Team run; no technique named
+AutomatedTestingTools/WinDefender_Events_1117_1116_AtomicRedTeam.evtx,,ambiguous,file name,Defender detections of an Atomic Red Team run; no technique named
+AutomatedTestingTools/panache_sysmon_vs_EDRTestingScript.evtx,,ambiguous,file name,a whole EDR testing script run; no technique named
+Command and Control/DE_RDP_Tunnel_5156.evtx,T1572,inferred_from_name,file name,RDP tunnel
+Command and Control/DE_RDP_Tunneling_4624.evtx,T1572,inferred_from_name,file name,RDP tunneling
+Command and Control/DE_RDP_Tunneling_TerminalServices-RemoteConnectionManagerOperational_1149.evtx,T1572,inferred_from_name,file name,RDP tunneling
+Command and Control/DE_sysmon-3-rdp-tun.evtx,T1572,inferred_from_name,file name,RDP tunnel
+Command and Control/bits_openvpn.evtx,T1197,inferred_from_name,file name,BITS job
+Credential Access/ACL_ForcePwd_SPNAdd_User_Computer_Accounts.evtx,T1098,exact,sheet row 120,
+Credential Access/CA_PetiPotam_etw_rpc_efsr_5_6.evtx,T1187,inferred_from_name,file name,PetitPotam forced authentication
+Credential Access/CA_sysmon_hashdump_cmd_meterpreter.evtx,T1003.002,inferred_from_name,file name,meterpreter hashdump reads the SAM
+Credential Access/LsassSilentProcessExit_process_exit_monitor_3001_lsass.evtx,T1003.001,inferred_from_name,file name,LSASS dump via silent process exit
+Credential Access/Sysmon13_MachineAccount_Password_Hash_Changed_via_LsarSetSecret.evtx,,ambiguous,file name,a password change; account manipulation or post-exploitation cleanup
+Credential Access/Sysmon_13_Local_Admin_Password_Changed.evtx,,ambiguous,file name,a password change; account manipulation or account access removal
+Credential Access/Zerologon_CVE-2020-1472_DFIR_System_NetLogon_Error_EventID_5805.evtx,,ambiguous,file name,a CVE; exploitation of remote services or privilege escalation
+Credential Access/Zerologon_VoidSec_CVE-2020-1472_4626_LT3_Anonym_follwedby_4742_DC_Anony_DC.evtx,,ambiguous,file name,a CVE; exploitation of remote services or privilege escalation
+Credential Access/discovery_sysmon_1_iis_pwd_and_config_discovery_appcmd.evtx,T1081,exact,sheet row 114 (as sysmon_1_iis_pwd_and_config_discovery_appcmd.evtx),
+Credential Access/etw_rpc_zerologon.evtx,,ambiguous,file name,a CVE; exploitation of remote services or privilege escalation
+Credential Access/ppl_bypass_ppldump_knowdll_hijack_sysmon_security.evtx,T1003.001,inferred_from_name,file name,PPLdump dumps LSASS
+Credential Access/remote_pwd_reset_rpc_mimikatz_postzerologon_target_DC.evtx,,ambiguous,file name,a password reset after Zerologon; no single technique
+Credential Access/remote_sam_registry_access_via_backup_operator_priv.evtx,T1003.002,inferred_from_name,file name,SAM registry access
+Credential Access/sysmon_10_11_lsass_memdump.evtx,T1003.001,inferred_from_name,file name,LSASS memory dump
+Credential Access/sysmon_10_lsass_mimikatz_sekurlsa_logonpasswords.evtx,T1003.001,inferred_from_name,file name,LSASS memory
+Credential Access/sysmon_13_keylogger_directx.evtx,T1056.001,inferred_from_name,file name,keylogger
+Credential Access/sysmon_rdrleakdiag_lsass_dump.evtx,T1003.001,inferred_from_name,file name,LSASS dump
+Credential Access/tutto_malseclogon.evtx,T1003.001,inferred_from_name,file name,MalSecLogon dumps LSASS through seclogon
+Defense Evasion/DE_104_system_log_cleared.evtx,T1070.001,inferred_from_name,file name,event log cleared
+Defense Evasion/DE_1102_security_log_cleared.evtx,T1070.001,inferred_from_name,file name,event log cleared
+Defense Evasion/DE_Fake_ComputerAccount_4720.evtx,T1136.002,inferred_from_name,file name,domain computer account created
+Defense Evasion/DE_ProcessHerpaderping_Sysmon_11_10_1_7.evtx,T1055,inferred_from_name,file name,process herpaderping is a process injection variant
+Defense Evasion/DE_WinEventLogSvc_Crash_System_7036.evtx,T1562.002,inferred_from_name,file name,event log service crashed
+Defense Evasion/DE_remote_eventlog_svc_crash_byt3bl33d3r_sysmon_17_1_3.evtx,T1562.002,inferred_from_name,file name,event log service crashed
+Defense Evasion/DE_renamed_psexec_service_sysmon_17_18.evtx,T1036,inferred_from_name,file name,renamed service binary
+Defense Evasion/DE_suspicious_remote_eventlog_svc_access_5145.evtx,T1562.002,inferred_from_name,file name,remote event log service access
+Defense Evasion/DE_xp_cmdshell_enabled_MSSQL_EID_15457.evtx,T1505.001,inferred_from_name,file name,xp_cmdshell enabled
+Defense Evasion/Sysmon 7  Update Session Orchestrator Dll Hijack.evtx,T1038,exact,sheet row 16 (single space in the sheet),
+Defense Evasion/Sysmon 7 dllhijack_cdpsshims_CDPSvc.evtx,T1038,exact,sheet row 15,
+Defense Evasion/de_hiding_files_via_attrib_cmdlet.evtx,T1564.001,inferred_from_name,file name,hidden files via attrib
+Defense Evasion/sideloading_wwlib_sysmon_7_1_11.evtx,T1574.002,inferred_from_name,file name,DLL side-loading
+Defense Evasion/sysmon_13_rdp_settings_tampering.evtx,,ambiguous,file name,registry tampering of RDP settings; modify registry or remote services
+Discovery/4799_remote_local_groups_enumeration.evtx,T1069.001,inferred_from_name,file name,local groups enumeration
+Discovery/Discovery_Remote_System_NamedPipes_Sysmon_18.evtx,T1018,inferred_from_name,file name,remote system discovery
+Discovery/dicovery_4661_net_group_domain_admins_target.evtx,T1069.002,inferred_from_name,file name,domain group enumeration
+Discovery/discovery_UEFI_Settings_rweverything_sysmon_6.evtx,T1542.001,inferred_from_name,sheet row 188 technique name (System Firmware),the sheet row gives no id
+Discovery/discovery_bloodhound.evtx,,ambiguous,file name,BloodHound performs several discovery techniques
+Discovery/discovery_enum_shares_target_sysmon_3_18.evtx,T1135,exact,sheet row 40 (as enum_shares_target_sysmon_3_18.evtx),
+Discovery/discovery_meterpreter_ps_cmd_process_listing_sysmon_10.evtx,T1057,exact,sheet row 37 (as meterpreter_ps_cmd_process_listing_sysmon_10.evtx),
+Discovery/discovery_psloggedon.evtx,T1033,inferred_from_name,file name,PsLoggedOn lists logged-on users
+Discovery/discovery_sysmon_3_Invoke_UserHunter_SourceMachine.evtx,T1087,exact,sheet row 38 (as Recon_Sysmon_3_Invoke_UserHunter_SourceMachine.evtx),
+Execution/Exec_via_cpl_Application_Experience_EventID_17_ControlPanelApplet.evtx,T1218.002,inferred_from_name,file name,control panel applet
+Execution/evasion_execution_imageload_wuauclt_lolbas.evtx,T1218,inferred_from_name,file name,signed binary proxy execution via wuauclt
+Execution/exec_sysmon_1_7_jscript9_defense_evasion.evtx,T1059.007,inferred_from_name,file name,the sheet id T1064 (row 23) is deprecated with no successor
+Execution/exec_sysmon_1_ftp.evtx,T1218,exact,sheet row 21 (as sysmon_1_ftp.evtx),
+Execution/execution_evasion_visual_studio_prebuild_event.evtx,T1127,inferred_from_name,file name,trusted developer utility
+Execution/susp_explorer_exec_root_cmdline_@rimpq_@CyberRaiju.evtx,T1218,exact,sheet row 3 (as susp_explorer_exec_root_cmdline_rimpq_CyberRaiju.evtx),
+Execution/sysmon_exec_from_vss_persistence.evtx,,ambiguous,sheet row 28 (technique NA),the sheet gives no technique
+Execution/sysmon_lolbas_rundll32_zipfldr_routethecall_shell.evtx,T1218.011,inferred_from_name,file name,rundll32 proxy execution
+Execution/sysmon_zipexec.evtx,,ambiguous,file name,no technique named
+Execution/temp_scheduled_task_4698_4699.evtx,T1053.005,inferred_from_name,file name,scheduled task
+Lateral Movement/ImpersonateUser-via local Pass The Hash Sysmon and Security.evtx,T1550.002,inferred_from_name,file name,pass the hash
+Lateral Movement/LM_4624_mimikatz_sekurlsa_pth_source_machine.evtx,T1550.002,inferred_from_name,file name,pass the hash
+Lateral Movement/LM_5145_Remote_FileCopy.evtx,T1570,inferred_from_name,file name,remote file copy
+Lateral Movement/LM_DCOM_MSHTA_LethalHTA_Sysmon_3_1.evtx,T1021.003,inferred_from_name,sheet row 157 technique name (Distributed Component Object Model),the sheet id T1175 is deprecated with no successor
+Lateral Movement/LM_ImageLoad_NFSH_Sysmon_7.evtx,,ambiguous,file name,no technique named
+Lateral Movement/LM_NewShare_Added_Sysmon_12_13.evtx,,ambiguous,file name,a share added; no single technique
+Lateral Movement/LM_REMCOM_5145_TargetHost.evtx,T1021.002,inferred_from_name,file name,RemCom over admin shares
+Lateral Movement/LM_Remote_Service01_5145_svcctl.evtx,T1569.002,inferred_from_name,file name,remote service via svcctl
+Lateral Movement/LM_Remote_Service02_7045.evtx,T1569.002,inferred_from_name,file name,remote service install
+Lateral Movement/LM_ScheduledTask_ATSVC_target_host.evtx,T1053,inferred_from_name,file name,scheduled task over ATSVC
+Lateral Movement/LM_WMIC_4648_rpcss.evtx,T1047,inferred_from_name,file name,WMIC
+Lateral Movement/LM_WMI_4624_4688_TargetHost.evtx,T1047,inferred_from_name,file name,WMI
+Lateral Movement/LM_dcom_shwnd_shbrwnd_mmc20_failed_traces_system_10016.evtx,T1021.003,inferred_from_name,sheet row 138 technique name (Distributed Component Object Model),the sheet id T1175 is deprecated with no successor
+Lateral Movement/LM_impacket_docmexec_mmc_sysmon_01.evtx,T1021.003,inferred_from_name,sheet row 153 technique name (Distributed Component Object Model),the sheet id T1175 is deprecated with no successor
+Lateral Movement/LM_regsvc_DirectoryServiceExtPt_Lsass_NTDS_AdamXpn.evtx,,ambiguous,file name,no technique named
+Lateral Movement/LM_renamed_psexecsvc_5145.evtx,T1569.002,inferred_from_name,file name,PsExec service
+Lateral Movement/LM_sysmon_3_DCOM_ShellBrowserWindow_ShellWindows.evtx,T1021.003,inferred_from_name,sheet row 156 technique name (Distributed Component Object Model),the sheet id T1175 is deprecated with no successor
+Lateral Movement/LM_sysmon_remote_task_src_powershell.evtx,T1053.005,inferred_from_name,file name,remote scheduled task
+Lateral Movement/LM_typical_IIS_webshell_sysmon_1_10_traces.evtx,T1505.003,inferred_from_name,file name,the sheet id T1051 (row 161) is deprecated with no successor
+Lateral Movement/LM_winrm_target_wrmlogs_91_wsmanShellStarted_poorLog.evtx,T1021.006,inferred_from_name,file name,WinRM
+Lateral Movement/LM_xp_cmdshell_MSSQL_Events.evtx,T1505.001,inferred_from_name,file name,xp_cmdshell
+Lateral Movement/MSSQL_15281_xp_cmdshell_exec_failed_attempt.evtx,T1505.001,inferred_from_name,sheet row 136 (technique xp_cmd) and file name,the sheet row gives no id
+Lateral Movement/RemotePowerShell_MS_Windows-Remote_Management_EventID_169.evtx,T1021.006,inferred_from_name,file name,remote PowerShell over WinRM
+Lateral Movement/dfir_rdpsharp_target_RdpCoreTs_168_68_131.evtx,T1021.001,inferred_from_name,file name,RDP
+Lateral Movement/lateral_movement_startup_3_11.evtx,T1547.001,inferred_from_name,file name,startup folder
+Lateral Movement/lm_remote_registry_sysmon_1_13_3.evtx,,ambiguous,file name,remote registry; modify registry or remote services
+Lateral Movement/lm_sysmon_18_remshell_over_namedpipe.evtx,,ambiguous,sheet row 152 (technique via named pipe),the sheet gives no technique
+Lateral Movement/net_share_drive_5142.evtx,,ambiguous,file name,a share added; no single technique
+Lateral Movement/smbmap_upload_exec_sysmon.evtx,T1021.002,inferred_from_name,file name,SMB admin share upload and execution
+Lateral Movement/sysmon_1_exec_via_sql_xpcmdshell.evtx,T1505.001,inferred_from_name,sheet row 135 (technique xp_cmd) and file name,the sheet row gives no id
+Lateral Movement/wmi_remote_registry_sysmon.evtx,T1047,inferred_from_name,file name,WMI
+Other/emotet/exec_emotet_ps_4104.evtx,T1059.001,inferred_from_name,file name,PowerShell
+Other/emotet/exec_emotet_ps_800_get-item.evtx,T1059.001,inferred_from_name,file name,PowerShell
+Other/emotet/exec_emotet_ps_800_invoke-item.evtx,T1059.001,inferred_from_name,file name,PowerShell
+Other/emotet/exec_emotet_ps_800_new-item.evtx,T1059.001,inferred_from_name,file name,PowerShell
+Other/emotet/exec_emotet_ps_800_new-object.evtx,T1059.001,inferred_from_name,file name,PowerShell
+Other/emotet/exec_emotet_sysmon_1.evtx,,ambiguous,file name,malware execution; no technique named
+Other/maldoc_mshta_via_shellbrowserwind_rundll32.evtx,T1218.005;T1218.011,inferred_from_name,file name,mshta and rundll32 named
+Other/rdpcorets_148_mst120_bluekeep_rpdscan_full.evtx,,ambiguous,file name,a BlueKeep scan; scanning or exploitation
+Persistence/DACL_DCSync_Right_Powerview_ Add-DomainObjectAcl.evtx,T1078,exact,sheet row 43,
+Persistence/Persistence_Shime_Microsoft-Windows-Application-Experience_Program-Telemetry_500.evtx,T1546.011,inferred_from_name,file name,application shimming
+Persistence/persistence_hidden_local_account_sysmon.evtx,T1136.001;T1564.002,inferred_from_name,file name,hidden local account
+Persistence/persistence_sysmon_11_13_1_shime_appfix.evtx,T1546.011,inferred_from_name,file name,application shimming
+Privilege Escalation/EfsPotato_sysmon_17_18_privesc_seimpersonate_to_system.evtx,T1134.001,inferred_from_name,file name,SeImpersonate token impersonation
+Privilege Escalation/NTLM2SelfRelay-med0x2e-security_4624_4688.evtx,,ambiguous,file name,NTLM relay to self; no single technique
+Privilege Escalation/Runas_4624_4648_Webshell_CreateProcessAsUserA.evtx,T1134.002,inferred_from_name,file name,CreateProcessAsUser
+Privilege Escalation/Sysmon_UACME_33.evtx,T1088,exact,sheet row 78 (as Stsmon_UACME_33.evtx),
+Privilege Escalation/Sysmon_UACME_36_FileCreate.evtx,T1548.002,inferred_from_name,file name,UACME UAC bypass
+Privilege Escalation/Sysmon_UACME_37_FileCreate.evtx,T1548.002,inferred_from_name,file name,UACME UAC bypass
+Privilege Escalation/Sysmon_UACME_54.evtx,T1548.002,inferred_from_name,file name,UACME UAC bypass
+Privilege Escalation/Sysmon_UACME_63.evtx,T1548.002,inferred_from_name,file name,UACME UAC bypass
+Privilege Escalation/Sysmon_UACME_64.evtx,T1548.002,inferred_from_name,file name,UACME UAC bypass
+Privilege Escalation/UACME_59_Sysmon.evtx,T1548.002,inferred_from_name,file name,UACME UAC bypass
+Privilege Escalation/eop_appcontainer_il_broker_filewrite.evtx,,ambiguous,file name,no technique named
+Privilege Escalation/privesc_KrbRelayUp_windows_4624.evtx,,ambiguous,file name,KrbRelayUp; relay or privilege escalation
+Privilege Escalation/privesc_spoolfool_mahdihtm_sysmon_1_11_7_13.evtx,T1068,inferred_from_name,file name,SpoolFool privilege escalation exploit
+Privilege Escalation/privesc_spoolsv_spl_file_write_sysmon11.evtx,T1068,inferred_from_name,file name,spooler privilege escalation exploit
+Privilege Escalation/privesc_sysmon_cve_20201030_spooler.evtx,T1068,inferred_from_name,file name,spooler privilege escalation CVE
+Privilege Escalation/privexchange_dirkjan.evtx,,ambiguous,sheet row 103 (technique NA),the sheet gives no technique
+Privilege Escalation/samaccount_spoofing_CVE-2021-42287_CVE-2021-42278_DC_securitylogs.evtx,T1068,inferred_from_name,file name,privilege escalation CVEs
+Privilege Escalation/sysmon_1_7_elevate_uacbypass_sysprep.evtx,T1548.002,inferred_from_name,file name,UAC bypass
+Privilege Escalation/sysmon_privesc_psexec_dwell.evtx,,ambiguous,file name,no technique named
+Privilege Escalation/sysmon_uacbypass_CDSSync_schtask_hijack_byeintegrity5.evtx,T1548.002,inferred_from_name,file name,UAC bypass
+UACME_59_Sysmon.evtx,T1548.002,inferred_from_name,file name,UACME UAC bypass

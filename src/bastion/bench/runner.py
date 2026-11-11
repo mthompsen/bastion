@@ -32,10 +32,11 @@ from bastion.bench.captures import Capture, aware
 from bastion.bench.corpora import attack_data, citadel, evtx_baseline, evtx_samples, regression
 from bastion.bench.corpora.fixtures import fixture_captures
 from bastion.bench.evaluability import EvaluabilityReport, check_rules
-from bastion.bench.labels import read_label_table
+from bastion.bench.labels import read_label_table, read_supplement
 from bastion.bench.manifest import (
     Manifest,
     assign_splits,
+    assign_splits_frozen,
     build_entries,
     read_manifest,
     write_manifest,
@@ -216,7 +217,13 @@ def collect_captures(config: BenchConfig, attack: AttackData, ruleset: RuleSet) 
         labels_file = config.repo_root / "bench" / "labels" / "evtx-attack-samples.csv"
         if samples_root.is_dir() and labels_file.is_file():
             labels = read_label_table(labels_file.read_text(encoding="utf-8"))
-            captures += evtx_samples.evtx_sample_captures(samples_root, labels, attack)
+            supplement_file = labels_file.with_name("evtx-attack-samples-supplement.csv")
+            supplement = (
+                read_supplement(supplement_file.read_text(encoding="utf-8"))
+                if supplement_file.is_file()
+                else {}
+            )
+            captures += evtx_samples.evtx_sample_captures(samples_root, labels, attack, supplement)
         else:
             notes.append(f"EVTX-ATTACK-SAMPLES not fetched at {samples_root} or labels missing")
         ad_root = attack_data.corpus_dir(config.cache)
@@ -280,12 +287,20 @@ def generate_manifest(config: BenchConfig) -> Path:
     ruleset = load_ruleset(config)
     ruleset.tag_resolution = resolve_rule_tags(ruleset.rules, attack)
     collected = collect_captures(config, attack, ruleset)
-    splits = assign_splits(
-        collected.captures, config.seed, dict.fromkeys(config.dev_only_corpora, "dev")
-    )
+    forced = dict.fromkeys(config.dev_only_corpora, "dev")
+    path = config.manifest()
+    if path.is_file():
+        # Split integrity (B3): existing dev and test assignments are frozen; only new or
+        # newly labelled captures are assigned, with the existing seed.
+        existing = read_manifest(path)
+        splits, cohorts = assign_splits_frozen(collected.captures, existing, forced)
+        entries = build_entries(collected.captures, splits, config.cache, cohorts)
+        write_manifest(path, entries, existing.seed, pin_summary())
+        return path
+    splits = assign_splits(collected.captures, config.seed, forced)
     entries = build_entries(collected.captures, splits, config.cache)
-    write_manifest(config.manifest(), entries, config.seed, pin_summary())
-    return config.manifest()
+    write_manifest(path, entries, config.seed, pin_summary())
+    return path
 
 
 # --- evaluation -----------------------------------------------------------------------------

@@ -4,11 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from bastion.attack import load_attack_data
 from bastion.bench.labels import (
     build_label_table,
     parse_sheet,
     read_label_table,
+    read_supplement,
     resolve_labels,
     unmatched_mentions,
     write_label_table,
@@ -94,3 +97,40 @@ def test_resolve_labels_follows_revoked_by_and_excludes_retired_ids() -> None:
         "T9002 deprecated in this ATT&CK release, excluded",
         "T9999 unknown in this ATT&CK release, excluded",
     )
+
+
+SUPPLEMENT = """# provenance comment
+path,technique_ids,confidence,source,note
+A/one.evtx,T1003.001,exact,sheet row 7,
+A/two.evtx,T1218.011;T1053.005,inferred_from_name,file name,two named
+A/three.evtx,,ambiguous,file name,no technique named
+"""
+
+
+def test_read_supplement() -> None:
+    table = read_supplement(SUPPLEMENT)
+    assert table["A/two.evtx"].technique_ids == ("T1218.011", "T1053.005")
+    assert [table[p].applied for p in ("A/one.evtx", "A/two.evtx", "A/three.evtx")] == [
+        True,
+        True,
+        False,
+    ]
+
+
+@pytest.mark.parametrize(
+    "row",
+    [
+        "A/x.evtx,T1003,guessed,file name,",
+        "A/x.evtx,,exact,sheet row 1,",
+        "A/x.evtx,T1003,ambiguous,file name,",
+    ],
+)
+def test_read_supplement_rejects_bad_rows(row: str) -> None:
+    with pytest.raises(ValueError):
+        read_supplement("path,technique_ids,confidence,source,note\n" + row + "\n")
+
+
+def test_read_supplement_rejects_duplicates() -> None:
+    text = "path,technique_ids,confidence,source,note\nA,T1,exact,s,\nA,T1,exact,s,\n"
+    with pytest.raises(ValueError, match="twice"):
+        read_supplement(text)

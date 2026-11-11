@@ -16,7 +16,7 @@ import pytest
 from bastion.attack import load_attack_data
 from bastion.bench.corpora import attack_data, citadel, evtx_baseline, evtx_samples, regression
 from bastion.bench.corpora.fixtures import fixture_captures
-from bastion.bench.labels import LabelRow
+from bastion.bench.labels import LabelRow, SupplementRow
 from bastion.pins import load_pins
 
 REPO = Path(__file__).resolve().parents[1]
@@ -143,6 +143,25 @@ def test_fetch_and_label_evtx_samples(tmp_path: Path) -> None:
     assert captures[0].tactic == "Execution" and captures[0].platform == "windows"
     assert captures[1].techniques == () and "not named" in captures[1].notes["label"]
     assert captures[0].license == "GPL-3.0"
+
+    supplement = {
+        "Persistence/two.EVTX": SupplementRow(
+            "Persistence/two.EVTX", ("T1110",), "inferred_from_name", "file name", "brute force"
+        )
+    }
+    labelled = evtx_samples.evtx_sample_captures(root, labels, ATTACK, supplement)
+    assert labelled[0].techniques == ("T1059.001", "T1110")  # the sheet label wins
+    assert labelled[1].techniques == ("T1110",)
+    assert labelled[1].notes["label_confidence"] == "inferred_from_name"
+    assert labelled[1].notes["label_source"] == "file name"
+    ambiguous = {
+        "Persistence/two.EVTX": SupplementRow(
+            "Persistence/two.EVTX", (), "ambiguous", "file name", ""
+        )
+    }
+    unlabelled = evtx_samples.evtx_sample_captures(root, labels, ATTACK, ambiguous)
+    assert unlabelled[1].techniques == ()
+    assert unlabelled[1].notes["label_confidence"] == "ambiguous"
 
 
 # --- evtx-baseline ---------------------------------------------------------------------------
