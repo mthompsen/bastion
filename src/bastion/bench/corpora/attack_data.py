@@ -31,8 +31,9 @@ import yaml
 
 from bastion.attack import AttackData
 from bastion.bench.cache import download
-from bastion.bench.captures import Capture
+from bastion.bench.captures import Capture, SourceKind
 from bastion.bench.labels import resolve_labels
+from bastion.models import Platform
 from bastion.pins import data_file_text, load_pins
 
 CORPUS = "attack_data"
@@ -52,11 +53,24 @@ def dataset_manifests(key: str = "datasets_list") -> list[str]:
     return [line.strip() for line in data_file_text(str(name)).splitlines() if line.strip()]
 
 
-def is_windows_file(entry: dict[str, object]) -> bool:
-    """A dataset file in Windows event XML (``XmlWinEventLog`` sourcetype or source)."""
-    return str(entry.get("sourcetype", "")).startswith("XmlWinEventLog") or str(
-        entry.get("source", "")
-    ).startswith("XmlWinEventLog")
+def file_family(entry: dict[str, object]) -> str | None:
+    """``windows`` for Windows event XML (``XmlWinEventLog`` sourcetype or source),
+    ``sysmon_linux`` for Sysmon for Linux (``sysmon:linux``), else None."""
+    sourcetype = str(entry.get("sourcetype", ""))
+    if sourcetype.lower() == "sysmon:linux":
+        return "sysmon_linux"
+    if sourcetype.startswith("XmlWinEventLog") or str(entry.get("source", "")).startswith(
+        "XmlWinEventLog"
+    ):
+        return "windows"
+    return None
+
+
+#: Event XML families: pinned dataset list key, capture platform, capture source kind.
+_FAMILIES: dict[str, tuple[str, Platform, SourceKind]] = {
+    "windows": ("windows_datasets_list", "windows", "xmlevents"),
+    "sysmon_linux": ("sysmon_linux_datasets_list", "linux", "sysmon_linux"),
+}
 
 
 def corpus_dir(cache: Path) -> Path:
@@ -131,10 +145,11 @@ def normalize_auditd(files: list[Path], dest: Path, force: bool = False) -> Coun
 def attack_data_captures(root: Path, attack: AttackData, force: bool = False) -> list[Capture]:
     license_text = str(load_pins()["corpora"][CORPUS]["license"])
     captures: list[Capture] = []
-    windows_lists = set(dataset_manifests("windows_datasets_list"))
+    family_lists = {name: set(dataset_manifests(key)) for name, (key, _, _) in _FAMILIES.items()}
     linux_lists = dataset_manifests()
-    for manifest in [*linux_lists, *sorted(windows_lists - set(linux_lists))]:
-        windows_only = manifest not in linux_lists
+    extra = set().union(*family_lists.values()) - set(linux_lists)
+    for manifest in [*linux_lists, *sorted(extra)]:
+        xml_only = manifest not in linux_lists
         yaml_path = root / manifest
         if not yaml_path.is_file():
             continue
@@ -143,19 +158,20 @@ def attack_data_captures(root: Path, attack: AttackData, force: bool = False) ->
         live, notes = resolve_labels(raw_ids, attack)
         dataset_id = manifest.rsplit("/", 1)[0].removeprefix("datasets/attack_techniques/")
         auditd_files: list[Path] = []
-        windows_files: list[Path] = []
+        family_files: dict[str, list[Path]] = {}
         skipped: list[str] = []
         for entry in doc.get("datasets") or []:
             relative = str(entry.get("path", "")).lstrip("/")
             sourcetype = str(entry.get("sourcetype", "")).lower()
             path = root / relative
-            if manifest in windows_lists and is_windows_file(entry):
+            family = file_family(entry)
+            if family is not None and manifest in family_lists[family]:
                 if path.is_file():
-                    windows_files.append(path)
+                    family_files.setdefault(family, []).append(path)
                 else:
                     skipped.append(f"{relative}: not downloaded")
                 continue
-            if windows_only:
+            if xml_only:
                 continue
             if not path.is_file():
                 skipped.append(f"{relative}: not downloaded")
@@ -180,23 +196,24 @@ def attack_data_captures(root: Path, attack: AttackData, force: bool = False) ->
                 )
             else:
                 skipped.append(f"{relative}: sourcetype {sourcetype!r} not readable yet")
-        if windows_files:
+        for family, files in sorted(family_files.items()):
+            _, platform, source_kind = _FAMILIES[family]
             captures.append(
                 Capture(
-                    id=f"{CORPUS}/{dataset_id}/windows",
+                    id=f"{CORPUS}/{dataset_id}/{family}",
                     corpus=CORPUS,
                     kind="positive",
-                    platform="windows",
-                    source_kind="xmlevents",
-                    paths=tuple(sorted(windows_files)),
+                    platform=platform,
+                    source_kind=source_kind,
+                    paths=tuple(sorted(files)),
                     techniques=live,
                     raw_labels=raw_ids,
                     label_notes=notes,
                     host="attack_range",
                     license=license_text,
                     notes={
-                        "sourcetype": "XmlWinEventLog",
-                        "files": str(len(windows_files)),
+                        "sourcetype": "XmlWinEventLog" if family == "windows" else "sysmon:linux",
+                        "files": str(len(files)),
                         **({"skipped": "; ".join(skipped)} if skipped else {}),
                     },
                 )

@@ -1,7 +1,9 @@
 """Declarative processing pipelines: log source routing and field mapping (B3).
 
-The Windows pipeline lives in ``bastion/data/pipelines/windows.yml`` (its header states the
-sources and the semantics). This module loads it once and offers two operations:
+The pipelines live in ``bastion/data/pipelines/`` (each file's header states its sources and
+semantics); this module loads each once. ``linux.yml`` routes ``product: linux`` rules by the
+kind of Linux event (auditd, Sysmon for Linux, text logs). The Windows pipeline offers two
+operations:
 
 - :meth:`WindowsPipeline.admits`: does a rule's ``logsource`` route to this event? A listed
   ``service`` requires the event's ``Channel``; a listed ``category`` requires one of its
@@ -167,12 +169,92 @@ def parse_windows_pipeline(doc: Mapping[str, Any]) -> WindowsPipeline:
     return WindowsPipeline(services, categories, mappings)
 
 
+@dataclass(frozen=True)
+class KindRoute:
+    """Linux events of one of ``kinds``, with an EventID in ``event_ids`` when given."""
+
+    kinds: frozenset[str]
+    event_ids: frozenset[int] | None = None
+
+    def admits(self, kind: str, event_id: object) -> bool:
+        if kind not in self.kinds:
+            return False
+        return self.event_ids is None or (isinstance(event_id, int) and event_id in self.event_ids)
+
+
+@dataclass(frozen=True)
+class LinuxPipeline:
+    """Routes for ``product: linux`` rules by the kind of Linux event (see linux.yml)."""
+
+    sysmon_channel: str
+    services: Mapping[str, frozenset[str]]
+    categories: Mapping[str, tuple[KindRoute, ...]]
+
+    def kind(self, event: Event) -> str:
+        if event.records:
+            return "auditd"
+        if event_channel(event) == self.sysmon_channel:
+            return "sysmon"
+        return "text"
+
+    def routes_for(
+        self, rule: SigmaRule
+    ) -> tuple[frozenset[str] | None, tuple[KindRoute, ...] | None]:
+        service = rule.logsource.get("service", "").lower()
+        category = rule.logsource.get("category", "").lower()
+        return self.services.get(service), self.categories.get(category)
+
+    @staticmethod
+    def admits_with(
+        kinds: frozenset[str] | None,
+        routes: tuple[KindRoute, ...] | None,
+        kind: str,
+        event_id: object,
+    ) -> bool:
+        if kinds is not None and kind not in kinds:
+            return False
+        return routes is None or any(route.admits(kind, event_id) for route in routes)
+
+    def admits(self, rule: SigmaRule, event: Event) -> bool:
+        if event.platform != "linux":
+            return True
+        kinds, routes = self.routes_for(rule)
+        return self.admits_with(kinds, routes, self.kind(event), event.fields.get("EventID"))
+
+
+def parse_linux_pipeline(doc: Mapping[str, Any]) -> LinuxPipeline:
+    def kind_route(raw: Mapping[str, Any]) -> KindRoute:
+        ids = raw.get("event_ids")
+        return KindRoute(
+            frozenset(str(k) for k in raw.get("kinds", [])),
+            frozenset(int(i) for i in ids) if ids is not None else None,
+        )
+
+    return LinuxPipeline(
+        sysmon_channel=str(doc.get("sysmon_channel", "")).lower(),
+        services={
+            str(name).lower(): frozenset(str(k) for k in kinds)
+            for name, kinds in dict(doc.get("services") or {}).items()
+        },
+        categories={
+            str(name).lower(): tuple(kind_route(r) for r in routes)
+            for name, routes in dict(doc.get("categories") or {}).items()
+        },
+    )
+
+
+def _packaged(name: str) -> dict[str, Any]:
+    text = resources.files("bastion.data").joinpath(f"pipelines/{name}").read_text(encoding="utf-8")
+    return dict(yaml.safe_load(text) or {})
+
+
+@cache
+def linux_pipeline() -> LinuxPipeline:
+    """The packaged Linux pipeline, parsed once per process."""
+    return parse_linux_pipeline(_packaged("linux.yml"))
+
+
 @cache
 def windows_pipeline() -> WindowsPipeline:
     """The packaged Windows pipeline, parsed once per process."""
-    text = (
-        resources.files("bastion.data")
-        .joinpath("pipelines/windows.yml")
-        .read_text(encoding="utf-8")
-    )
-    return parse_windows_pipeline(yaml.safe_load(text) or {})
+    return parse_windows_pipeline(_packaged("windows.yml"))

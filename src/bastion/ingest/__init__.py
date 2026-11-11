@@ -2,7 +2,7 @@
 
 from bastion.ingest.auditd import AuditdSource
 from bastion.ingest.base import LogSource, select_source
-from bastion.ingest.evtx import EvtxSource, XmlEventLogSource
+from bastion.ingest.evtx import EvtxSource, SysmonLinuxSource, XmlEventLogSource
 from bastion.ingest.journald import JournaldSource
 from bastion.ingest.linux import LinuxLogSource
 
@@ -12,6 +12,7 @@ __all__ = [
     "JournaldSource",
     "LinuxLogSource",
     "LogSource",
+    "SysmonLinuxSource",
     "XmlEventLogSource",
     "select_source",
 ]

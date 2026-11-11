@@ -29,7 +29,7 @@ from dataclasses import dataclass, field
 
 from bastion.attack import resolve_techniques
 from bastion.models import Detection, Event, SigmaRule, TechniqueRef
-from bastion.pipelines import event_channel, windows_pipeline
+from bastion.pipelines import event_channel, linux_pipeline, windows_pipeline
 from bastion.sigma.filters import SigmaFilter
 from bastion.sigma.matcher import UnsupportedRuleError, match
 
@@ -92,6 +92,8 @@ def rule_applies(rule: SigmaRule, event: Event) -> bool:
     product = rule.logsource.get("product", "").lower()
     if product and product != event.platform:
         return False
+    if event.platform == "linux":
+        return linux_pipeline().admits(rule, event)
     return windows_pipeline().admits(rule, event)
 
 
@@ -118,8 +120,14 @@ def scan(
             filters_by_rule.setdefault(rule_id, []).append((sigma_filter, pseudo))
     # The logsource pre-filter's inputs are per rule, so read them once rather than per event.
     pipeline = windows_pipeline()
+    linux = linux_pipeline()
     prepared = [
-        (rule, rule.logsource.get("product", "").lower(), *pipeline.routes_for(rule))
+        (
+            rule,
+            rule.logsource.get("product", "").lower(),
+            *pipeline.routes_for(rule),
+            *linux.routes_for(rule),
+        )
         for rule in rules
     ]
 
@@ -128,13 +136,17 @@ def scan(
         is_windows = event.platform == "windows"
         event_id = event.fields.get("EventID")
         channel = event_channel(event) if is_windows else None
-        for rule, product, channels, routes in prepared:
+        kind = linux.kind(event) if event.platform == "linux" else ""
+        for rule, product, channels, routes, kinds, kind_routes in prepared:
             if rule.id in retired or (product and product != event.platform):
                 continue
-            if (
-                is_windows
-                and (channels is not None or routes is not None)
-                and not pipeline.admits_with(channels, routes, channel, event_id)
+            if is_windows:
+                if (channels is not None or routes is not None) and not pipeline.admits_with(
+                    channels, routes, channel, event_id
+                ):
+                    continue
+            elif (kinds is not None or kind_routes is not None) and not linux.admits_with(
+                kinds, kind_routes, kind, event_id
             ):
                 continue
             try:

@@ -20,7 +20,7 @@ from xml.etree import ElementTree
 
 from Evtx.Evtx import Evtx
 
-from bastion.models import Event, FieldValue
+from bastion.models import Event, FieldValue, Platform
 from bastion.pipelines import windows_pipeline
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ def _parse_system_time(value: str) -> datetime | None:
         return None
 
 
-def xml_to_event(xml_str: str, source: str) -> Event | None:
+def xml_to_event(xml_str: str, source: str, platform: Platform = "windows") -> Event | None:
     """Normalize one Windows event-XML record into an Event.
 
     Returns None (after logging a warning) when the XML is malformed.
@@ -86,11 +86,12 @@ def xml_to_event(xml_str: str, source: str) -> Event | None:
         name = leaf.tag.rsplit("}", 1)[-1]
         if name and name not in fields:
             fields[name] = leaf.text if leaf.text is not None else ""
-    windows_pipeline().apply(fields)
+    if platform == "windows":
+        windows_pipeline().apply(fields)
 
     return Event(
         timestamp=timestamp,
-        platform="windows",
+        platform=platform,
         source=source,
         fields=fields,
         raw=xml_str,
@@ -132,17 +133,27 @@ def iter_xml_events(chunks: Iterable[str]) -> Iterator[str]:
 
 
 class XmlEventLogSource:
-    """Parse Windows event XML exports (Splunk ``XmlWinEventLog``) into normalized Events.
+    """Parse event XML exports (Splunk ``XmlWinEventLog``) into normalized Events.
 
-    The file holds rendered ``<Event>`` elements, one after another, as Windows Event
-    Forwarding and Splunk write them; each is normalized by :func:`xml_to_event` exactly
-    like a record read from an ``.evtx`` file.
+    The file holds rendered ``<Event>`` elements, one after another (optionally behind a
+    syslog prefix), as Windows Event Forwarding, Splunk and Sysmon for Linux write them;
+    each is normalized by :func:`xml_to_event` exactly like a record read from an ``.evtx``
+    file. ``platform`` is ``linux`` for Sysmon for Linux, whose events use the Sysmon
+    schema and field names.
     """
+
+    platform: Platform = "windows"
 
     def parse(self, path: Path) -> Iterator[Event]:
         with path.open(encoding="utf-8", errors="replace") as handle:
             chunks = iter(lambda: handle.read(1 << 20), "")
             for xml_str in iter_xml_events(chunks):
-                event = xml_to_event(xml_str, source=path.name)
+                event = xml_to_event(xml_str, source=path.name, platform=self.platform)
                 if event is not None:
                     yield event
+
+
+class SysmonLinuxSource(XmlEventLogSource):
+    """Sysmon for Linux (``Linux-Sysmon/Operational``) event XML, on the Linux platform."""
+
+    platform: Platform = "linux"

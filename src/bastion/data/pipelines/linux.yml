@@ -1,0 +1,34 @@
+# Bastion Linux processing pipeline (B3): log source routing for product: linux rules.
+#
+# Source: Sigma taxonomy appendix (SigmaHQ/sigma-specification,
+# specification/sigma-appendix-taxonomy.md at ba9251aa834b11a70dbf80836b453dba99c5159e,
+# read 2026-11-11), "Linux Folder" tables.
+#
+# A Linux event is one of three kinds, decided by its reader:
+#   auditd  - an audit event merged from records (bastion.ingest.auditd)
+#   sysmon  - Sysmon for Linux, Channel Linux-Sysmon/Operational
+#   text    - any other line-oriented log (syslog, auth.log, journald)
+# A listed service or category admits only the listed kinds (and EventIDs, where given). A
+# service or category not listed is not restricted.
+
+sysmon_channel: Linux-Sysmon/Operational
+
+services:
+  auditd: [auditd]
+  auth: [text]
+  clamav: [text]
+  cron: [text]
+  guacamole: [text]
+  sshd: [text]
+  sudo: [text]
+  syslog: [text]
+  vsftpd: [text]
+
+categories:
+  process_creation:
+    - {kinds: [sysmon], event_ids: [1]}
+    # Not in the taxonomy: Bastion has evaluated process_creation rules on merged auditd exec
+    # events since B1 (Image from SYSCALL exe, CommandLine from the EXECVE argv).
+    - {kinds: [auditd]}
+  network_connection: [{kinds: [sysmon], event_ids: [3]}]
+  file_event: [{kinds: [sysmon], event_ids: [11]}]

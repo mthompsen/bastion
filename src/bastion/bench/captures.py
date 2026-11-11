@@ -21,6 +21,7 @@ from bastion.ingest import (
     JournaldSource,
     LinuxLogSource,
     LogSource,
+    SysmonLinuxSource,
     XmlEventLogSource,
 )
 from bastion.models import Event, Platform
@@ -29,11 +30,12 @@ CaptureKind = Literal["positive", "benign", "regression", "fixture"]
 """What a capture is evidence of: a labelled technique, goodware, a per-rule
 regression case, or an in-repo synthetic fixture (the weakest ladder rung)."""
 
-SourceKind = Literal["evtx", "xmlevents", "auditd", "syslog", "journald"]
+SourceKind = Literal["evtx", "xmlevents", "sysmon_linux", "auditd", "syslog", "journald"]
 
 _SOURCES: dict[str, Callable[[], LogSource]] = {
     "evtx": EvtxSource,
     "xmlevents": XmlEventLogSource,
+    "sysmon_linux": SysmonLinuxSource,
     "auditd": AuditdSource,
     "syslog": LinuxLogSource,
     "journald": JournaldSource,

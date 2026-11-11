@@ -64,6 +64,8 @@ datasets_list = "attack_data_auditd_datasets.txt"
 # filters by scripts/fetch_attack_data_lfs.py; kept when a dataset's Windows files total at
 # most 5 MB (bench/labels/attack-data-excluded.csv lists the rest)
 windows_datasets_list = "attack_data_windows_datasets.txt"
+# B3: Sysmon for Linux datasets (sourcetype sysmon:linux), selected and pulled the same way
+sysmon_linux_datasets_list = "attack_data_sysmon_linux_datasets.txt"
 recorded = "2026-09-26"
 
 [corpora.citadel_captures]
