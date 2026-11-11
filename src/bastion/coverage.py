@@ -81,7 +81,7 @@ def compute_coverage(
 ) -> list[CoverageEntry]:
     """One entry per enterprise technique: how many loaded rules tag it."""
     counts = Counter(
-        technique_id.upper() for rule in rules for technique_id in rule.attack_techniques
+        technique_id.upper() for rule in rules for technique_id in rule.technique_ids()
     )
     return [
         CoverageEntry(
@@ -116,7 +116,7 @@ def summarize_coverage(
     }
 
     tagged = {
-        technique_id.upper() for rule in rules for technique_id in rule.attack_techniques
+        technique_id.upper() for rule in rules for technique_id in rule.technique_ids()
     }
     unknown = sorted(tagged - set(attack_lookup))
 

@@ -59,6 +59,24 @@ def render_report(summary: Mapping[str, Any]) -> str:
             + ", ".join(rules["not_evaluable_files"])
             + "."
         )
+    resolution = rules.get("tag_resolution")
+    if resolution:
+        remapped = resolution["remapped"]
+        pairs = ", ".join(f"{tag} to {entry['to']}" for tag, entry in remapped.items())
+        add("")
+        add(
+            f"Technique tags resolved through ATT&CK revoked-by: {len(remapped)} retired tags on "
+            f"{resolution['rules_remapped']} rules now count as their live successor"
+            + (f" ({pairs})." if pairs else ".")
+        )
+        excluded = {**resolution["deprecated_excluded"], **resolution["unknown_excluded"]}
+        if excluded:
+            add(
+                "Excluded from every count (deprecated with no successor, or unknown to this "
+                "ATT&CK release): "
+                + ", ".join(f"{tag} ({n} rules)" for tag, n in excluded.items())
+                + f". Rules left with no live tag: {resolution['rules_without_live_tag']}."
+            )
     if rules["local_rules_hunting"]:
         add("")
         add(

@@ -195,7 +195,7 @@ def scan(
             ):
                 continue
             if rule.id not in technique_cache:
-                resolved, unresolved = resolve_techniques(rule.attack_techniques, attack_lookup)
+                resolved, unresolved = resolve_techniques(rule.technique_ids(), attack_lookup)
                 technique_cache[rule.id] = resolved
                 for technique_id in unresolved:
                     if technique_id not in unresolved_seen:

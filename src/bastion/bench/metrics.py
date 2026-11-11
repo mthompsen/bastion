@@ -422,7 +422,7 @@ def _coverage_rate(
         if platform is None
         else [r for r in rules if r.logsource.get("product", "").lower() in {platform, ""}]
     )
-    tagged = {t.upper() for r in subset for t in r.attack_techniques}
+    tagged = {t.upper() for r in subset for t in r.technique_ids()}
     covered = len(tagged & set(techniques))
     scope = "full enterprise matrix" if platform is None else f"techniques listing {platform}"
     return Rate.of(
@@ -436,7 +436,7 @@ def _coverage_rate(
 
 def blind_spot_split(rules: Sequence[SigmaRule], attack: AttackData) -> dict[str, int]:
     """The three-way uncovered split for the alerting class, reusing coverage.py's classifiers."""
-    tagged = {t.upper() for r in rules if not is_hunting(r) for t in r.attack_techniques}
+    tagged = {t.upper() for r in rules if not is_hunting(r) for t in r.technique_ids()}
     uncovered = [ref for tid, ref in attack.techniques.items() if tid not in tagged]
     on_host = [ref for ref in uncovered if host_relevant(ref)]
     writable = [ref for ref in on_host if telemetry_readable(ref)]
@@ -678,7 +678,7 @@ def evidence_ladder(
 ) -> dict[str, str]:
     """Strongest evidence any alerting rule has per technique, for every enterprise technique."""
     ladder: dict[str, str] = {}
-    rule_only = {t.upper() for r in rules if not is_hunting(r) for t in r.attack_techniques}
+    rule_only = {t.upper() for r in rules if not is_hunting(r) for t in r.technique_ids()}
     for technique in attack.techniques:
         ladder[technique] = "rule-only" if technique in rule_only else "none"
     strength = {name: index for index, name in enumerate(LADDER)}

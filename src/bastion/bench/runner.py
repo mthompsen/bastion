@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Any
 
 from bastion import __version__, engine
-from bastion.attack import AttackData, load_attack_data
+from bastion.attack import AttackData, TagResolution, load_attack_data, resolve_rule_tags
 from bastion.bench.captures import Capture, aware
 from bastion.bench.corpora import attack_data, citadel, evtx_baseline, evtx_samples, regression
 from bastion.bench.corpora.fixtures import fixture_captures
@@ -153,6 +153,7 @@ class RuleSet:
     evaluability: EvaluabilityReport
     hunting_ids: set[str]
     filters: list[SigmaFilter] = field(default_factory=list)
+    tag_resolution: TagResolution = field(default_factory=TagResolution)
 
     def for_platform(self, platform: str) -> list[SigmaRule]:
         return [r for r in self.rules if r.logsource.get("product", "").lower() in {platform, ""}]
@@ -276,6 +277,7 @@ def generate_manifest(config: BenchConfig) -> Path:
     """Build and write ``bench/manifest.toml`` from the fetched corpora."""
     attack = load_attack(config)
     ruleset = load_ruleset(config)
+    ruleset.tag_resolution = resolve_rule_tags(ruleset.rules, attack)
     collected = collect_captures(config, attack, ruleset)
     splits = assign_splits(
         collected.captures, config.seed, dict.fromkeys(config.dev_only_corpora, "dev")
@@ -331,7 +333,7 @@ def evaluate_capture(
             title=by_rule[rule_id].title if rule_id in by_rule else "",
             level=by_rule[rule_id].level if rule_id in by_rule else "",
             hunting=rule_id in hunting_ids,
-            techniques=list(by_rule[rule_id].attack_techniques) if rule_id in by_rule else [],
+            techniques=list(by_rule[rule_id].technique_ids()) if rule_id in by_rule else [],
             count=count,
         )
         for rule_id, count in sorted(counts.items())
@@ -394,6 +396,7 @@ def run_bench(
     say = progress or (lambda _message: None)
     attack = load_attack(config)
     ruleset = load_ruleset(config)
+    ruleset.tag_resolution = resolve_rule_tags(ruleset.rules, attack)
     pins = pin_summary()
     rules_label = f"sigma {pins['sigma']} attack {pins['attack']} rules {len(ruleset.rules)}"
     collected = collect_captures(config, attack, ruleset)
@@ -568,6 +571,7 @@ def summarize(
             "not_evaluable_files": [
                 Path(u.file_path).name for u in ruleset.evaluability.unsupported
             ],
+            "tag_resolution": ruleset.tag_resolution.as_dict(),
             "local_rule_ids": sorted(r.id for r in local_rules),
             "local_rules_hunting": sorted(r.id for r in local_rules if r.id in ruleset.hunting_ids),
             "filters_loaded": sorted(f.id for f in ruleset.filters),

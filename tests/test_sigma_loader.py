@@ -100,3 +100,15 @@ def test_missing_status_is_empty_and_status_is_lowercased(tmp_path: Path) -> Non
     by_title = {rule.title: rule for rule in load_rules(tmp_path)}
     assert by_title["No Status"].status == ""
     assert by_title["Upper Status"].status == "experimental"
+
+
+def test_v19_tactic_tags_are_kept(tmp_path: Path) -> None:
+    (tmp_path / "r.yml").write_text(
+        "title: t\nid: 1\nlogsource: {product: windows}\n"
+        "detection: {s: {a: 1}, condition: s}\n"
+        "tags: [attack.stealth, attack.defense_impairment, attack.t1685]\n",
+        encoding="utf-8",
+    )
+    [rule] = load_rules(tmp_path)
+    assert rule.attack_tactics == ["stealth", "defense-impairment"]
+    assert rule.attack_techniques == ["T1685"]

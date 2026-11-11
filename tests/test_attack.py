@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from bastion.attack import load_attack, load_attack_data, resolve_techniques
+from bastion.attack import load_attack, load_attack_data, resolve_rule_tags, resolve_techniques
+from bastion.coverage import summarize_coverage
+from bastion.engine import scan
+from bastion.models import Event, SigmaRule
 
 MINI_STIX = Path(__file__).parent / "fixtures" / "mini_attack.json"
 
@@ -72,3 +75,57 @@ def test_resolve_techniques_empty_input() -> None:
     resolved, unresolved = resolve_techniques([], load_attack(MINI_STIX))
     assert resolved == []
     assert unresolved == []
+
+
+def _rule(rule_id: str, *tags: str) -> SigmaRule:
+    return SigmaRule(id=rule_id, title=rule_id, attack_techniques=list(tags))
+
+
+def test_rule_tags_resolve_through_revoked_by() -> None:
+    data = load_attack_data(MINI_STIX)
+    rules = [
+        _rule("a", "T9001", "T1110"),  # revoked tag plus a live tag
+        _rule("b", "t9001", "T1059.001"),  # revoked tag whose successor is already present
+        _rule("c", "T9002"),  # deprecated, no successor
+        _rule("d", "T9999", "T1059"),  # unknown tag beside a live one
+        _rule("e"),  # untagged
+    ]
+    report = resolve_rule_tags(rules, data)
+    assert [r.technique_ids() for r in rules] == [
+        ["T1059.001", "T1110"],
+        ["T1059.001"],
+        [],
+        ["T1059"],
+        [],
+    ]
+    # Upstream tags are never edited.
+    assert rules[0].attack_techniques == ["T9001", "T1110"]
+    assert report.remapped == {"T9001": ("T1059.001", 2)}
+    assert report.deprecated == {"T9002": 1}
+    assert report.unknown == {"T9999": 1}
+    assert report.rules_remapped == 2
+    assert report.rules_without_live_tag == 1  # rule c; the untagged rule does not count
+    assert report.as_dict()["remapped"] == {"T9001": {"to": "T1059.001", "rules": 2}}
+
+
+def test_unresolved_rule_uses_its_raw_tags() -> None:
+    assert _rule("x", "t1059").technique_ids() == ["T1059"]
+
+
+def test_resolved_tags_drive_detections_and_coverage() -> None:
+    data = load_attack_data(MINI_STIX)
+    rule = SigmaRule(
+        id="r",
+        title="r",
+        logsource={"product": "windows"},
+        detection={"s": {"Image|endswith": "/x.exe"}, "condition": "s"},
+        attack_techniques=["T9001", "T9002"],
+    )
+    resolve_rule_tags([rule], data)
+    event = Event(platform="windows", source="t", fields={"Image": "C:/x.exe"}, raw="")
+    outcome = scan([event], [rule], data.techniques)
+    assert [ref.id for ref in outcome.detections[0].techniques] == ["T1059.001"]
+    assert outcome.unresolved_techniques == []
+    entries = summarize_coverage([rule], data.techniques).entries
+    covered = {e.technique.id for e in entries if e.covered}
+    assert covered == {"T1059.001"}

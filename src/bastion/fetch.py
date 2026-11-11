@@ -21,7 +21,7 @@ from pathlib import Path
 import httpx
 
 #: Pinned ATT&CK release (verified against mitre-attack/attack-stix-data).
-ATTACK_VERSION = "19.1"
+ATTACK_VERSION = "20.1"
 ATTACK_URL = (
     "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/"
     f"master/enterprise-attack/enterprise-attack-{ATTACK_VERSION}.json"

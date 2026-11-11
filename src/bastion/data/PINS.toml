@@ -11,10 +11,13 @@ recorded = "2026-09-26"
 
 [attack]
 name = "mitre-attack/attack-stix-data enterprise"
-version = "19.1"
-url = "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack-19.1.json"
+version = "20.1"
+url = "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack-20.1.json"
+# attack-stix-data commit that published 20.1 ("chore(release): prepare ATT&CK 20.1"), and the bundle digest
+commit = "f59b03ecf828579d5f9e93683ce25b7e2e5fd9d7"
+sha256 = "539a843a7b53ed9749740b2123dddae3726b1a4831841c32aca740b011b910b5"
 license = "MITRE ATT&CK terms of use"
-recorded = "2026-09-26"
+recorded = "2026-11-10"
 
 [corpora.regression_data]
 name = "SigmaHQ regression_data"

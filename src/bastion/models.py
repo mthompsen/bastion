@@ -50,9 +50,19 @@ class SigmaRule(BaseModel):
     description: str = ""
     logsource: dict[str, str] = Field(default_factory=dict)
     detection: dict[str, Any] = Field(default_factory=dict)
+    #: technique tags exactly as the rule file writes them (upstream data, never edited)
     attack_techniques: list[str] = Field(default_factory=list)
     attack_tactics: list[str] = Field(default_factory=list)
     file_path: str = ""
+    #: live technique ids after ``attack.resolve_rule_tags`` followed revoked-by links and
+    #: dropped deprecated or unknown tags; None until resolution has run
+    resolved_techniques: list[str] | None = None
+
+    def technique_ids(self) -> list[str]:
+        """The technique ids every count uses: resolved if resolution ran, else as tagged."""
+        if self.resolved_techniques is not None:
+            return self.resolved_techniques
+        return [t.upper() for t in self.attack_techniques]
 
 
 class Detection(BaseModel):
@@ -85,3 +95,6 @@ class ScanResult(BaseModel):
     filtered_detections: dict[str, int] = Field(default_factory=dict)
     #: ids of the filter documents that were loaded for this scan
     filters_applied: list[str] = Field(default_factory=list)
+    #: how rule technique tags resolved against the ATT&CK release (revoked-by remaps,
+    #: deprecated and unknown tags excluded); see ``attack.resolve_rule_tags``
+    tag_resolution: dict[str, Any] = Field(default_factory=dict)

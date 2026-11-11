@@ -11,11 +11,13 @@ lookup, so a Sigma tag that points at one is surfaced as unresolved by
 from __future__ import annotations
 
 import json
+from collections import Counter
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from bastion.models import TechniqueRef
+from bastion.models import SigmaRule, TechniqueRef
 
 
 @dataclass
@@ -48,6 +50,76 @@ class AttackData:
             if current in self.techniques:
                 return current, "revoked"
         return None, "deprecated" if current in self.deprecated else "unknown"
+
+
+@dataclass
+class TagResolution:
+    """How the loaded rules' technique tags resolved against one ATT&CK release.
+
+    A tag that names a live technique is used as written. A tag ATT&CK revoked is followed
+    through ``revoked-by`` to the live technique that replaced it. A deprecated tag with no
+    successor, or a tag unknown to the release, is excluded from every count and listed here.
+    """
+
+    #: retired tag -> (live id it now counts as, number of rules carrying the tag)
+    remapped: dict[str, tuple[str, int]] = field(default_factory=dict)
+    #: deprecated tag with no successor -> number of rules carrying it
+    deprecated: dict[str, int] = field(default_factory=dict)
+    #: tag not in this release at all -> number of rules carrying it
+    unknown: dict[str, int] = field(default_factory=dict)
+    #: rules with at least one tag remapped
+    rules_remapped: int = 0
+    #: rules that carry technique tags of which none is live after resolution
+    rules_without_live_tag: int = 0
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "remapped": {
+                tag: {"to": live, "rules": count}
+                for tag, (live, count) in sorted(self.remapped.items())
+            },
+            "deprecated_excluded": dict(sorted(self.deprecated.items())),
+            "unknown_excluded": dict(sorted(self.unknown.items())),
+            "rules_remapped": self.rules_remapped,
+            "rules_without_live_tag": self.rules_without_live_tag,
+        }
+
+
+def resolve_rule_tags(rules: Sequence[SigmaRule], attack: AttackData) -> TagResolution:
+    """Set each rule's ``resolved_techniques`` and report what resolution did.
+
+    Every consumer of rule tags (engine, coverage, bench metrics) reads
+    ``SigmaRule.technique_ids()``, which returns the resolved list once this has run.
+    The upstream tags in ``attack_techniques`` are never changed.
+    """
+    report = TagResolution()
+    remap_counts: Counter[str] = Counter()
+    targets: dict[str, str] = {}
+    deprecated: Counter[str] = Counter()
+    unknown: Counter[str] = Counter()
+    for rule in rules:
+        live: list[str] = []
+        remapped = False
+        for tag in rule.attack_techniques:
+            resolved, status = attack.resolve_retired(tag)
+            if resolved is not None:
+                if status == "revoked":
+                    remap_counts[tag.upper()] += 1
+                    targets[tag.upper()] = resolved
+                    remapped = True
+                if resolved not in live:
+                    live.append(resolved)
+            elif status == "deprecated":
+                deprecated[tag.upper()] += 1
+            else:
+                unknown[tag.upper()] += 1
+        rule.resolved_techniques = live
+        report.rules_remapped += remapped
+        report.rules_without_live_tag += bool(rule.attack_techniques) and not live
+    report.remapped = {tag: (targets[tag], count) for tag, count in remap_counts.items()}
+    report.deprecated = dict(deprecated)
+    report.unknown = dict(unknown)
+    return report
 
 
 def _attack_id(obj: dict[str, Any]) -> str | None:

@@ -50,7 +50,7 @@ flowchart LR
     SR[SigmaHQ rules<br/>pinned r2026-04-01] --> LD[sigma/loader.py]
     LR[local rules/ pack] --> LD
     LD --> MT[sigma/matcher.py<br/>documented grammar subset]
-    AT[ATT&CK STIX bundle<br/>pinned v19.1] --> AK[attack.py<br/>technique lookup]
+    AT[ATT&CK STIX bundle<br/>pinned v20.1] --> AK[attack.py<br/>technique lookup]
     ING --> EN[engine.py<br/>rules x events -> detections]
     MT --> EN
     AK --> EN
@@ -153,7 +153,7 @@ bastion rules list           # loaded rules and their ATT&CK techniques
 
 `--platform windows|linux` overrides log-type auto-detection. Every command is
 `--help`-documented and exits non-zero on error. Datasets are pinned for reproducibility
-(Sigma release r2026-04-01, ATT&CK STIX v19.1) and cached under `data/`, which is gitignored.
+(Sigma release r2026-04-01, ATT&CK STIX v20.1) and cached under `data/`, which is gitignored.
 
 ## Measurement harness
 
@@ -194,7 +194,7 @@ malicious activity.
   [Detection Rule License](https://github.com/SigmaHQ/Detection-Rule-License). Cached locally,
   not redistributed in this repository.
 - MITRE ATT&CK: [attack-stix-data](https://github.com/mitre-attack/attack-stix-data)
-  enterprise bundle v19.1. ATT&CK is (c) The MITRE Corporation, used per its
+  enterprise bundle v20.1. ATT&CK is (c) The MITRE Corporation, used per its
   [terms of use](https://attack.mitre.org/resources/legal-and-branding/terms-of-use/). Cached
   locally, not redistributed.
 - Windows attack telemetry samples:

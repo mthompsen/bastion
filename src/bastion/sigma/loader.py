@@ -33,7 +33,11 @@ _TACTIC_NAMES = {
     "execution",
     "persistence",
     "privilege-escalation",
+    # Defense Evasion (TA0005) was split by ATT&CK v19 into Stealth (TA0005) and Defense
+    # Impairment (TA0112); older rules still carry the legacy name.
     "defense-evasion",
+    "stealth",
+    "defense-impairment",
     "credential-access",
     "discovery",
     "lateral-movement",

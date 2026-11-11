@@ -3,7 +3,7 @@
 Design specification: architecture, domain logic, and the reasoning behind the main choices.
 For usage and a worked example, start with [README.md](README.md).
 
-As-built data pins: Sigma release `r2026-04-01`, ATT&CK enterprise STIX `v19.1`. The supported
+As-built data pins: Sigma release `r2026-04-01`, ATT&CK enterprise STIX `v20.1`. The supported
 Sigma grammar subset is documented in
 [`src/bastion/sigma/matcher.py`](src/bastion/sigma/matcher.py).
 
@@ -69,7 +69,7 @@ rather than trusting hardcoded URLs.
 
 1. Sigma ruleset: a pinned release of SigmaHQ/sigma (the `rules/` tree), tag `r2026-04-01`.
    Cached under `data/sigma/`.
-2. ATT&CK STIX bundle: `enterprise-attack-19.1.json` from mitre-attack/attack-stix-data.
+2. ATT&CK STIX bundle: `enterprise-attack-20.1.json` from mitre-attack/attack-stix-data.
    Cached under `data/attack/`. Used to resolve technique ids to names and tactics.
 
 Sample logs for the worked example and tests are bundled under `examples/logs/` with

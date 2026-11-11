@@ -17,7 +17,7 @@ from rich.console import Console
 from rich.table import Table
 
 from bastion import __version__, engine
-from bastion.attack import load_attack_data
+from bastion.attack import TagResolution, load_attack_data, resolve_rule_tags
 from bastion.bench import runner as bench_runner
 from bastion.coverage import CoverageSummary, summarize_coverage
 from bastion.fetch import (
@@ -155,6 +155,21 @@ def _print_scan_caveats(outcome: engine.ScanOutcome) -> None:
         console.print(f"[yellow]Filter documents that could not be evaluated (kept open):[/] {ids}")
 
 
+def _print_tag_resolution(resolution: TagResolution) -> None:
+    if resolution.remapped:
+        console.print(
+            f"[yellow]{len(resolution.remapped)} retired technique tags on "
+            f"{resolution.rules_remapped} rules were resolved through ATT&CK revoked-by[/] "
+            "and count as their live successor."
+        )
+    excluded = sorted({**resolution.deprecated, **resolution.unknown})
+    if excluded:
+        console.print(
+            "[yellow]Technique tags excluded (deprecated with no successor, or unknown):[/] "
+            + ", ".join(excluded)
+        )
+
+
 @app.callback(invoke_without_command=True)
 def main(
     version: Annotated[
@@ -216,8 +231,10 @@ def coverage(
     override: Platform | None = platform.value if platform else None
     rules = _load_ruleset(rules_dir, override)
     attack_data = load_attack_data(bundle)
+    resolution = resolve_rule_tags(rules, attack_data)
     summary = summarize_coverage(rules, attack_data.techniques)
     _print_coverage(summary, attack_data.version, len(rules), full)
+    _print_tag_resolution(resolution)
 
 
 def _print_coverage(
@@ -618,6 +635,7 @@ def _run_scan(
     rules = _load_ruleset(rules_dir, log_platform)
     filters = _load_filters(filters_dir)
     attack_data = load_attack_data(bundle)
+    resolution = resolve_rule_tags(rules, attack_data)
     outcome = engine.scan(source.parse(logfile), rules, attack_data.techniques, filters)
     summary = summarize_coverage(rules, attack_data.techniques)
     result = ScanResult(
@@ -627,6 +645,7 @@ def _run_scan(
         coverage=summary.entries,
         filtered_detections=dict(outcome.filtered),
         filters_applied=[f.id for f in filters],
+        tag_resolution=resolution.as_dict(),
     )
     return result, outcome, summary, attack_data.version, log_platform
 
