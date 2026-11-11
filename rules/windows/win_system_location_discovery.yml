@@ -1,6 +1,6 @@
 title: System Language And Location Discovery
 id: 5c9f8a16-3e72-4b4d-a0c5-91d8e6b2f388
-status: experimental
+status: test
 description: |
     Detects queries of the system language and geographic region settings, used by malware
     to fingerprint the host's location before deciding whether to run.

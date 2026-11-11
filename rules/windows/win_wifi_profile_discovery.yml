@@ -1,6 +1,6 @@
 title: Wi-Fi Profile Enumeration Via Netsh
 id: 8e5b2d64-a937-4f0c-b1e8-72c6d9f4a077
-status: experimental
+status: test
 description: |
     Detects netsh.exe enumerating saved wireless network profiles. Listing Wi-Fi profiles
     (and exporting them with key=clear) reveals network names and stored pre-shared keys.
