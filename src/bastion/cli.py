@@ -144,6 +144,20 @@ def _print_scan_caveats(outcome: engine.ScanOutcome) -> None:
         console.print(
             f"[yellow]Technique tags not found in ATT&CK (deprecated or unknown):[/] {ids}"
         )
+    if outcome.not_evaluable:
+        pairs = sum(outcome.not_evaluable.values())
+        top = sorted(outcome.not_evaluable_fields.items(), key=lambda item: -item[1])[:5]
+        reasons = ", ".join(f"{name} ({count})" for name, count in top)
+        console.print(
+            f"[yellow]{len(outcome.not_evaluable)} rules were not evaluable on {pairs} "
+            f"rule-event pairs[/]: a field they need is absent from this source "
+            f"(missing: {reasons}). Counted as not evaluable, never as no match."
+        )
+    if outcome.outside_source:
+        console.print(
+            f"{len(outcome.outside_source)} rules read no field this log carries "
+            "(their logsource is not routed to it); not evaluated, not counted as no match."
+        )
     if outcome.filtered:
         suppressed = sum(outcome.filtered.values())
         console.print(
@@ -646,6 +660,9 @@ def _run_scan(
         filtered_detections=dict(outcome.filtered),
         filters_applied=[f.id for f in filters],
         tag_resolution=resolution.as_dict(),
+        not_evaluable=dict(outcome.not_evaluable),
+        not_evaluable_fields=dict(outcome.not_evaluable_fields),
+        outside_source=dict(outcome.outside_source),
     )
     return result, outcome, summary, attack_data.version, log_platform
 

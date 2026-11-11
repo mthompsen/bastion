@@ -40,7 +40,7 @@ import fnmatch
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import cache
-from typing import cast
+from typing import Any, cast
 
 from bastion.models import Event, FieldValue, SigmaRule
 from bastion.sigma import modifiers as mods
@@ -63,10 +63,26 @@ class UnsupportedRuleError(Exception):
 
 @dataclass
 class MatchResult:
-    """Outcome of evaluating one rule against one event."""
+    """Outcome of evaluating one rule against one event.
+
+    Tri-state (START_PROMPT section 3, rule 3): ``match``; ``not_evaluable`` when the
+    rule did not match and its answer depends on fields this event's source does not
+    carry (``missing_fields`` names them); otherwise ``no_match``.
+    """
 
     matched: bool
     matched_fields: dict[str, str] = field(default_factory=dict)
+    #: fields the rule needs that the event lacks, when they decide the outcome
+    missing_fields: tuple[str, ...] = ()
+    #: the event carries none of the fields the rule reads: the rule is about another
+    #: source (its logsource is not routed yet), so it could not be evaluated here at all
+    outside_source: bool = False
+
+    @property
+    def state(self) -> str:
+        if self.matched:
+            return "match"
+        return "not_evaluable" if self.missing_fields or self.outside_source else "no_match"
 
 
 def evaluate(rule: SigmaRule, event: Event) -> bool:
@@ -75,7 +91,32 @@ def evaluate(rule: SigmaRule, event: Event) -> bool:
 
 
 def match(rule: SigmaRule, event: Event) -> MatchResult:
-    """Evaluate ``rule`` against ``event``, capturing matched-field evidence."""
+    """Evaluate ``rule`` against ``event``, capturing matched-field evidence.
+
+    A match is decided exactly as it always was: a field the event lacks satisfies no
+    predicate except a null check or ``exists``. When the rule does not match and the
+    event lacks a field the rule names, the rule is evaluated again in three-valued
+    (Kleene) logic with those fields unknown. If the outcome then depends on them, the
+    result is ``not_evaluable`` rather than ``no_match``. Matches are never changed.
+    """
+    result, evaluated = _match_two_valued(rule, event)
+    if result.matched:
+        return result
+    detection = rule.detection
+    referenced, field_only = _referenced_fields(detection)
+    names = event.fields.keys()
+    if names >= referenced:
+        return result
+    if field_only and names.isdisjoint(referenced):
+        # The event shares no field with the rule: a different source entirely. Disclosed
+        # as such, never as a no_match, and without a per-field reason.
+        return MatchResult(matched=False, outside_source=True)
+    missing = _undecided_fields(detection, event, evaluated)
+    return MatchResult(matched=False, missing_fields=missing) if missing else result
+
+
+def _match_two_valued(rule: SigmaRule, event: Event) -> tuple[MatchResult, dict[str, MatchResult]]:
+    """The match as always decided, plus each identifier's two-valued result."""
     detection = rule.detection
     if "timeframe" in detection:
         raise UnsupportedRuleError("timeframe/aggregation rules are not supported")
@@ -98,13 +139,13 @@ def match(rule: SigmaRule, event: Event) -> MatchResult:
     names = tuple(identifiers)
     matched = any(_compile_condition(str(condition), names)(resolve) for condition in conditions)
     if not matched:
-        return MatchResult(matched=False)
+        return MatchResult(matched=False), cache
 
     evidence: dict[str, str] = {}
     for result in cache.values():
         if result.matched:
             evidence.update(result.matched_fields)
-    return MatchResult(matched=True, matched_fields=evidence)
+    return MatchResult(matched=True, matched_fields=evidence), cache
 
 
 # --- identifier evaluation -------------------------------------------------
@@ -306,7 +347,7 @@ def _compile_condition(condition: str, names: tuple[str, ...]) -> Node:
     if not tokens:
         raise UnsupportedRuleError("empty condition")
     parser = _ConditionParser(tokens, names)
-    node = parser.parse_or()
+    node = cast("Node", parser.parse_or())
     if parser.peek() is not None:
         raise UnsupportedRuleError(f"trailing tokens in condition: {condition!r}")
     return node
@@ -359,10 +400,11 @@ def _quantifier(selected: tuple[str, ...], count: int | None) -> Node:
 class _ConditionParser:
     """Recursive-descent parser for the supported condition grammar, producing Nodes."""
 
-    def __init__(self, tokens: list[str], names: tuple[str, ...]):
+    def __init__(self, tokens: list[str], names: tuple[str, ...], ops: _Ops | None = None):
         self._tokens = tokens
         self._pos = 0
         self._names = names
+        self._ops = ops or _BOOL_OPS
 
     def peek(self) -> str | None:
         return self._tokens[self._pos] if self._pos < len(self._tokens) else None
@@ -374,30 +416,30 @@ class _ConditionParser:
         self._pos += 1
         return token
 
-    def parse_or(self) -> Node:
+    def parse_or(self) -> Any:
         result = self.parse_and()
         while (token := self.peek()) is not None and token.lower() == "or":
             self._next()
             # No short-circuiting: every referenced identifier should land in
             # the evidence cache, and "near" semantics never apply here.
-            result = _or(result, self.parse_and())
+            result = self._ops.or_(result, self.parse_and())
         return result
 
-    def parse_and(self) -> Node:
+    def parse_and(self) -> Any:
         result = self.parse_not()
         while (token := self.peek()) is not None and token.lower() == "and":
             self._next()
-            result = _and(result, self.parse_not())
+            result = self._ops.and_(result, self.parse_not())
         return result
 
-    def parse_not(self) -> Node:
+    def parse_not(self) -> Any:
         token = self.peek()
         if token is not None and token.lower() == "not":
             self._next()
-            return _not(self.parse_not())
+            return self._ops.not_(self.parse_not())
         return self.parse_primary()
 
-    def parse_primary(self) -> Node:
+    def parse_primary(self) -> Any:
         token = self._next()
         lowered = token.lower()
         if token == "(":
@@ -411,7 +453,7 @@ class _ConditionParser:
             raise UnsupportedRuleError(f"unexpected token {token!r} in condition")
         return self._resolve_name(token)
 
-    def _parse_quantifier(self, count_token: str) -> Node:
+    def _parse_quantifier(self, count_token: str) -> Any:
         if self._next().lower() != "of":
             raise UnsupportedRuleError(f"expected 'of' after {count_token!r}")
         target = self._next()
@@ -424,9 +466,227 @@ class _ConditionParser:
         if not selected:
             raise UnsupportedRuleError(f"condition references unknown identifier(s): {target!r}")
         count = None if count_token.lower() == "all" else int(count_token)
-        return _quantifier(selected, count)
+        return self._ops.quantifier(selected, count)
 
-    def _resolve_name(self, name: str) -> Node:
+    def _resolve_name(self, name: str) -> Any:
         if name not in self._names:
             raise UnsupportedRuleError(f"condition references unknown identifier: {name!r}")
-        return _name(name)
+        return self._ops.name(name)
+
+
+@dataclass(frozen=True)
+class _Ops:
+    """Node constructors for one logic: two-valued for matching, Kleene for tri-state."""
+
+    or_: Callable[[Any, Any], Any]
+    and_: Callable[[Any, Any], Any]
+    not_: Callable[[Any], Any]
+    name: Callable[[str], Any]
+    quantifier: Callable[[tuple[str, ...], int | None], Any]
+
+
+_BOOL_OPS = _Ops(_or, _and, _not, _name, _quantifier)
+
+
+# --- tri-state: three-valued (Kleene) evaluation ---------------------------------------
+
+#: True, False, or None for unknown (the answer depends on a field the event lacks).
+Tri = bool | None
+TriResolve = Callable[[str], Tri]
+TriNode = Callable[[TriResolve], Tri]
+
+
+def _or3(left: TriNode, right: TriNode) -> TriNode:
+    def node(resolve: TriResolve) -> Tri:
+        first, second = left(resolve), right(resolve)
+        if first is True or second is True:
+            return True
+        return None if first is None or second is None else False
+
+    return node
+
+
+def _and3(left: TriNode, right: TriNode) -> TriNode:
+    def node(resolve: TriResolve) -> Tri:
+        first, second = left(resolve), right(resolve)
+        if first is False or second is False:
+            return False
+        return None if first is None or second is None else True
+
+    return node
+
+
+def _not3(child: TriNode) -> TriNode:
+    def node(resolve: TriResolve) -> Tri:
+        value = child(resolve)
+        return None if value is None else not value
+
+    return node
+
+
+def _name3(name: str) -> TriNode:
+    return lambda resolve: resolve(name)
+
+
+def _quantifier3(selected: tuple[str, ...], count: int | None) -> TriNode:
+    def node(resolve: TriResolve) -> Tri:
+        values = [resolve(name) for name in selected]
+        hits, unknown = values.count(True), values.count(None)
+        needed = len(selected) if count is None else count
+        if hits >= needed:
+            return True
+        return None if hits + unknown >= needed else False
+
+    return node
+
+
+_KLEENE_OPS = _Ops(_or3, _and3, _not3, _name3, _quantifier3)
+
+
+@cache
+def _compile_condition3(condition: str, names: tuple[str, ...]) -> TriNode:
+    """The Kleene counterpart of :func:`_compile_condition`. Only reached after the
+    two-valued compile succeeded, so the grammar is already known to be supported."""
+    tokens = condition.replace("(", " ( ").replace(")", " ) ").split()
+    parser = _ConditionParser(tokens, names, _KLEENE_OPS)
+    node = cast("TriNode", parser.parse_or())
+    return node
+
+
+#: detection block id -> (the block, its field names, whether it can be outside a source;
+#: see _referenced_fields). The block is kept so a recycled id is detected, not trusted.
+_FIELDS_CACHE: dict[int, tuple[dict[str, Any], frozenset[str], bool]] = {}
+
+
+def _referenced_fields(detection: dict[str, Any]) -> tuple[frozenset[str], bool]:
+    """The field names the rule's maps read, and whether a source sharing none of them is
+    outside the rule: true unless the rule has keywords, a null check or an ``exists``."""
+    cached = _FIELDS_CACHE.get(id(detection))
+    if cached is not None and cached[0] is detection:
+        return cached[1], cached[2]
+    names: set[str] = set()
+    field_only = True
+    for key, value in detection.items():
+        if key in _RESERVED_KEYS:
+            continue
+        maps = [value] if isinstance(value, dict) else value if isinstance(value, list) else []
+        if not maps or not all(isinstance(item, dict) for item in maps):
+            field_only = False
+        for item in maps:
+            if not isinstance(item, dict):
+                continue
+            for raw, rule_value in item.items():
+                names.add(str(raw).split("|", 1)[0])
+                values = rule_value if isinstance(rule_value, list) else [rule_value]
+                # A null check or exists reads absence as an answer, so such a rule is
+                # never "outside the source" just because the event lacks its fields.
+                if "|exists" in str(raw).lower() or any(v is None for v in values):
+                    field_only = False
+    fields = frozenset(names)
+    _FIELDS_CACHE[id(detection)] = (detection, fields, field_only)
+    return fields, field_only
+
+
+def _absence_is_data(spec: _FieldSpec, values: list[RuleValue]) -> bool:
+    """A null check or ``exists`` reads a missing field as an answer, not as unknown."""
+    if spec.predicate == "exists":
+        return True
+    return spec.predicate == "" and not spec.has_transforms and any(v is None for v in values)
+
+
+def _eval_map3(spec: dict[object, object], event: Event, unknown: set[str]) -> Tri:
+    result: Tri = True
+    undecided: set[str] = set()
+    for raw_spec, rule_value in spec.items():
+        field_spec = _parse_field_spec(str(raw_spec))
+        values = (
+            cast("list[RuleValue]", rule_value)
+            if isinstance(rule_value, list)
+            else [cast("RuleValue", rule_value)]
+        )
+        if not values:
+            return False
+        if field_spec.field in event.fields or _absence_is_data(field_spec, values):
+            combine = all if field_spec.match_all else any
+            field_value = event.fields.get(field_spec.field)
+            if not combine(_value_matches(field_spec, field_value, v) for v in values):
+                return False
+        else:
+            undecided.add(field_spec.field)
+            result = None
+    if result is None:
+        unknown.update(undecided)
+    return result
+
+
+def _eval_identifier3(value: object, event: Event, unknown: set[str]) -> Tri:
+    if isinstance(value, dict):
+        return _eval_map3(value, event, unknown)
+    if isinstance(value, list) and value and all(isinstance(item, dict) for item in value):
+        local: set[str] = set()
+        results = [_eval_map3(item, event, local) for item in value]
+        if True in results:
+            return True
+        if None in results:
+            unknown.update(local)
+            return None
+        return False
+    return _eval_identifier(value, event).matched
+
+
+def _undecided_fields(
+    detection: dict[str, Any], event: Event, evaluated: dict[str, MatchResult]
+) -> tuple[str, ...]:
+    """The missing fields that leave a non-matching rule's outcome undecided, if any.
+
+    ``evaluated`` holds each identifier's two-valued result. One that matched is true in
+    three-valued logic too, and one that failed with every field it reads present is
+    false; only an identifier that failed and reads a missing field is re-evaluated.
+    """
+    raw_condition = detection["condition"]
+    conditions = raw_condition if isinstance(raw_condition, list) else [raw_condition]
+    identifiers = {key: value for key, value in detection.items() if key not in _RESERVED_KEYS}
+    names = tuple(identifiers)
+    fields_of = _identifier_fields(detection)
+    present = event.fields.keys()
+    results: dict[str, Tri] = {}
+    unknown_by_name: dict[str, set[str]] = {}
+
+    def resolve(name: str) -> Tri:
+        if name not in results:
+            known = evaluated.get(name)
+            if known is not None and (known.matched or present >= fields_of[name]):
+                results[name] = known.matched
+            else:
+                unknown_by_name[name] = set()
+                results[name] = _eval_identifier3(identifiers[name], event, unknown_by_name[name])
+        return results[name]
+
+    outcomes = [_compile_condition3(str(condition), names)(resolve) for condition in conditions]
+    if True in outcomes or None not in outcomes:
+        return ()
+    missing: set[str] = set()
+    for name, value in results.items():
+        if value is None:
+            missing.update(unknown_by_name[name])
+    return tuple(sorted(missing))
+
+
+_IDENTIFIER_FIELDS: dict[int, tuple[dict[str, Any], dict[str, frozenset[str]]]] = {}
+
+
+def _identifier_fields(detection: dict[str, Any]) -> dict[str, frozenset[str]]:
+    """Identifier name -> the field names its maps read (empty for keywords)."""
+    cached = _IDENTIFIER_FIELDS.get(id(detection))
+    if cached is not None and cached[0] is detection:
+        return cached[1]
+    out: dict[str, frozenset[str]] = {}
+    for key, value in detection.items():
+        if key in _RESERVED_KEYS:
+            continue
+        maps = [value] if isinstance(value, dict) else value if isinstance(value, list) else []
+        out[key] = frozenset(
+            str(raw).split("|", 1)[0] for item in maps if isinstance(item, dict) for raw in item
+        )
+    _IDENTIFIER_FIELDS[id(detection)] = (detection, out)
+    return out

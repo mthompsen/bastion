@@ -21,6 +21,7 @@ from bastion.bench.metrics import (
     evidence_ladder,
     is_hunting,
     ladder_distribution,
+    not_evaluable_summary,
     regression_pass_rate,
     robustness,
     tagged_to,
@@ -309,3 +310,32 @@ def test_capture_outcome_round_trip() -> None:
     outcome = OUTCOMES[2]
     restored = CaptureOutcome.from_dict(outcome.as_dict())
     assert restored == outcome
+
+
+def test_not_evaluable_summary_by_reason_and_split() -> None:
+    silent = _outcome("silent", ["T1110"], [])
+    silent.not_evaluable = {"r-brute": 4, "r-other": 1}
+    silent.not_evaluable_fields = {"LogonType": 4, "Hashes": 1}
+    detected = _outcome("exact", ["T1059.001"], [_fired("a", ["T1059.001"])])
+    detected.not_evaluable = {"r-brute": 2}
+    detected.not_evaluable_fields = {"LogonType": 2}
+    benign = _outcome("goodware", [], [], kind="benign", split="")
+    benign.not_evaluable = {"r-hunt": 3}
+    benign.not_evaluable_fields = {"Hashes": 3}
+    rules = {
+        "r-brute": SigmaRule(id="r-brute", title="brute", attack_techniques=["T1110.001"]),
+        "r-other": SigmaRule(id="r-other", title="other", attack_techniques=["T1059"]),
+        "r-hunt": SigmaRule(id="r-hunt", title="hunt", status="experimental"),
+    }
+    summary = not_evaluable_summary([silent, detected, benign], rules)
+    assert summary["rule_event_pairs"] == 10
+    assert summary["rule_event_pairs_by_capture_kind"] == {"benign": 3, "positive": 7}
+    assert summary["by_missing_field"] == {"LogonType": 6, "Hashes": 4}
+    assert summary["rules_not_evaluable_at_least_once"] == 3
+    assert summary["alerting_rules_not_evaluable_at_least_once"] == 2
+    # Only the undetected capture counts, and only through a rule tagged to its label.
+    assert summary["labelled"]["test"] == {
+        "undetected_with_tagged_rule_not_evaluable": 1,
+        "examples": ["silent"],
+    }
+    assert summary["top_rules"][0] == {"rule_id": "r-brute", "title": "brute", "pairs": 6}

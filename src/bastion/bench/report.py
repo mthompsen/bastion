@@ -229,6 +229,47 @@ def render_report(summary: Mapping[str, Any]) -> str:
                 )
     ladder = summary["ladder"]["distribution"]
     add("")
+    tri = summary.get("not_evaluable")
+    if tri:
+        add("## Tri-state evaluation: not evaluable, never no match")
+        add("")
+        add(
+            "A rule that did not match, and whose answer depended on a field the event's source "
+            "does not carry, is counted here and never as a no match or as coverage "
+            "(START_PROMPT section 3, rule 3). Grammar-unsupported rules are listed under Rules."
+        )
+        add("")
+        kinds = ", ".join(f"{k} {v}" for k, v in tri["rule_event_pairs_by_capture_kind"].items())
+        add(
+            f"Rule-event pairs not evaluable: {tri['rule_event_pairs']} ({kinds}). Rules not "
+            f"evaluable at least once: {tri['rules_not_evaluable_at_least_once']}, of which "
+            f"{tri['alerting_rules_not_evaluable_at_least_once']} alerting class."
+        )
+        add("")
+        add(
+            f"Separately, {tri['outside_source_pairs']} rule-event pairs on "
+            f"{tri['outside_source_rules']} rules were outside the rule's source: the event "
+            "carries none of the fields the rule reads, because Bastion does not route that "
+            "logsource yet (B3). Those are not evaluable either, and never a no match. By "
+            "logsource (product/category/service): "
+            + ", ".join(f"{k} {v}" for k, v in tri["outside_source_by_logsource"].items())
+            + "."
+        )
+        add("")
+        add("| Missing field (reason) | Rule-event pairs |")
+        add("|:-|-:|")
+        for name, pairs in tri["by_missing_field"].items():
+            add(f"| {name} | {pairs} |")
+        add("")
+        for split, label in (("test", "held out"), ("dev", "development")):
+            entry = tri["labelled"].get(split)
+            if entry is not None:
+                add(
+                    f"Labelled captures, {label} split, not detected while an alerting rule tagged "
+                    f"to the label was not evaluable on some event: "
+                    f"{entry['undetected_with_tagged_rule_not_evaluable']}."
+                )
+        add("")
     add("## Evidence ladder (strongest evidence per enterprise technique)")
     add("")
     add("| Held-out-proven | Sample-proven | Fixture-proven | Rule-only | None |")

@@ -98,3 +98,10 @@ class ScanResult(BaseModel):
     #: how rule technique tags resolved against the ATT&CK release (revoked-by remaps,
     #: deprecated and unknown tags excluded); see ``attack.resolve_rule_tags``
     tag_resolution: dict[str, Any] = Field(default_factory=dict)
+    #: tri-state: rule id -> events on which the rule was not evaluable because a field
+    #: it needs is absent from the source; never counted as a no match
+    not_evaluable: dict[str, int] = Field(default_factory=dict)
+    #: missing field -> rule-event pairs it left undecided (the reason, by field)
+    not_evaluable_fields: dict[str, int] = Field(default_factory=dict)
+    #: rule id -> events carrying none of the fields the rule reads (logsource not routed)
+    outside_source: dict[str, int] = Field(default_factory=dict)

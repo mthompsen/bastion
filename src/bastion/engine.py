@@ -91,6 +91,14 @@ class ScanOutcome:
     filter_hits: dict[str, int] = field(default_factory=dict)
     #: filter id -> why it could not be evaluated (it then fails open: detections are kept)
     filter_errors: dict[str, str] = field(default_factory=dict)
+    #: rule id -> events on which the rule was not_evaluable: it did not match, and its
+    #: answer depended on fields the event's source does not carry (never a no_match)
+    not_evaluable: dict[str, int] = field(default_factory=dict)
+    #: missing field -> rule-event pairs it left undecided (the reason, by field)
+    not_evaluable_fields: dict[str, int] = field(default_factory=dict)
+    #: rule id -> events that carry none of the fields the rule reads: the rule is about
+    #: another source whose logsource Bastion does not route yet (also never a no_match)
+    outside_source: dict[str, int] = field(default_factory=dict)
 
 
 def _suppressed(
@@ -189,6 +197,13 @@ def scan(
                 retired.add(rule.id)
                 continue
             if not result.matched:
+                if result.outside_source:
+                    outcome.outside_source[rule.id] = outcome.outside_source.get(rule.id, 0) + 1
+                elif result.missing_fields:
+                    outcome.not_evaluable[rule.id] = outcome.not_evaluable.get(rule.id, 0) + 1
+                    for name in result.missing_fields:
+                        fields_seen = outcome.not_evaluable_fields
+                        fields_seen[name] = fields_seen.get(name, 0) + 1
                 continue
             if rule.id in filters_by_rule and _suppressed(
                 rule, event, filters_by_rule[rule.id], outcome

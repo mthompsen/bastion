@@ -209,3 +209,23 @@ class TestRuleApplies:
             ATTACK,
         )
         assert [d.event.fields["EventID"] for d in outcome.detections] == [9]
+
+
+def test_scan_counts_not_evaluable_pairs_by_rule_and_field() -> None:
+    rule = SigmaRule(
+        id="ofn",
+        title="ofn",
+        logsource={"product": "windows", "category": "process_creation"},
+        detection={
+            "img": {"Image|endswith": "rundll32.exe"},
+            "ofn": {"OriginalFileName": "RUNDLL32.EXE"},
+            "condition": "img or ofn",
+        },
+    )
+    sysmon = windows_event(EventID=1, Image="C:/x/cmd.exe", OriginalFileName="Cmd.Exe")
+    security = windows_event(EventID=4688, Image="C:/x/cmd.exe")
+    hit = windows_event(EventID=4688, Image="C:/x/rundll32.exe")
+    outcome = scan([sysmon, security, security, hit], [rule], ATTACK)
+    assert len(outcome.detections) == 1
+    assert outcome.not_evaluable == {"ofn": 2}
+    assert outcome.not_evaluable_fields == {"OriginalFileName": 2}

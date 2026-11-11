@@ -141,6 +141,12 @@ class CaptureOutcome:
     skipped: str | None = None
     #: rule id -> detections suppressed by filter documents on this capture
     filtered: dict[str, int] = field(default_factory=dict)
+    #: rule id -> events on which the rule was not_evaluable (tri-state, B2 lever d)
+    not_evaluable: dict[str, int] = field(default_factory=dict)
+    #: missing field -> rule-event pairs it left undecided on this capture
+    not_evaluable_fields: dict[str, int] = field(default_factory=dict)
+    #: rule id -> events carrying none of the rule's fields (logsource not routed)
+    outside_source: dict[str, int] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -668,6 +674,83 @@ def cross_firing(outcomes: Iterable[CaptureOutcome], split: str) -> dict[str, An
             for rid, n in offenders.most_common(15)
         ],
     }
+
+
+def not_evaluable_summary(
+    outcomes: Sequence[CaptureOutcome], rules_by_id: Mapping[str, SigmaRule]
+) -> dict[str, Any]:
+    """Tri-state disclosure: rule-event pairs that were not_evaluable, by reason and corpus.
+
+    Contract rule 3: a pair whose answer depends on a field the event's source lacks is
+    never counted as a no_match, and never as coverage. The per-split figure says how many
+    labelled captures the headline missed while an alerting rule tagged to the label could
+    not be evaluated on at least one of their events; those misses are not rule misses.
+    """
+    by_kind: Counter[str] = Counter()
+    by_field: Counter[str] = Counter()
+    by_rule: Counter[str] = Counter()
+    outside: Counter[str] = Counter()
+    for outcome in outcomes:
+        outside.update(outcome.outside_source)
+        pairs = sum(outcome.not_evaluable.values())
+        by_kind[outcome.kind] += pairs
+        by_field.update(outcome.not_evaluable_fields)
+        by_rule.update(outcome.not_evaluable)
+    alerting_rules = {
+        rid for rid in by_rule if rid in rules_by_id and not is_hunting(rules_by_id[rid])
+    }
+    per_split: dict[str, Any] = {}
+    for split in ("test", "dev"):
+        missed_undecided = 0
+        examples: list[str] = []
+        for outcome in labelled_positives(outcomes, split):
+            if _hit(outcome)[0]:
+                continue
+            undecided = [
+                rid
+                for rid in outcome.not_evaluable
+                if rid in alerting_rules
+                and any(tagged_to(rules_by_id[rid].technique_ids(), t) for t in outcome.techniques)
+            ]
+            if undecided:
+                missed_undecided += 1
+                if len(examples) < 10:
+                    examples.append(outcome.capture_id)
+        per_split[split] = {
+            "undetected_with_tagged_rule_not_evaluable": missed_undecided,
+            "examples": examples,
+        }
+    return {
+        "rule_event_pairs": sum(by_kind.values()),
+        "rule_event_pairs_by_capture_kind": dict(sorted(by_kind.items())),
+        "rules_not_evaluable_at_least_once": len(by_rule),
+        "alerting_rules_not_evaluable_at_least_once": len(alerting_rules),
+        "by_missing_field": dict(by_field.most_common(25)),
+        "top_rules": [
+            {
+                "rule_id": rid,
+                "title": rules_by_id[rid].title if rid in rules_by_id else "",
+                "pairs": n,
+            }
+            for rid, n in by_rule.most_common(15)
+        ],
+        "labelled": per_split,
+        "outside_source_pairs": sum(outside.values()),
+        "outside_source_rules": len(outside),
+        "outside_source_by_logsource": _by_logsource(outside, rules_by_id),
+    }
+
+
+def _by_logsource(
+    counts: Mapping[str, int], rules_by_id: Mapping[str, SigmaRule]
+) -> dict[str, int]:
+    grouped: Counter[str] = Counter()
+    for rule_id, pairs in counts.items():
+        rule = rules_by_id.get(rule_id)
+        source = rule.logsource if rule is not None else {}
+        key = "/".join(source.get(k, "") for k in ("product", "category", "service"))
+        grouped[key] += pairs
+    return dict(grouped.most_common(15))
 
 
 LADDER = ("held-out-proven", "sample-proven", "fixture-proven", "rule-only", "none")

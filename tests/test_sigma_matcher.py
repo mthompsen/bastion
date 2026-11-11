@@ -137,9 +137,7 @@ class TestConditions:
             "condition": "selection and not filter",
         }
         assert evaluate(make_rule(detection), PS_EVENT)
-        filtered = make_event(
-            Image=r"C:\x\powershell.exe", ParentImage=r"C:\x\msbuild.exe"
-        )
+        filtered = make_event(Image=r"C:\x\powershell.exe", ParentImage=r"C:\x\msbuild.exe")
         assert not evaluate(make_rule(detection), filtered)
 
     def test_or_and_parentheses(self) -> None:
@@ -184,9 +182,7 @@ class TestConditions:
         assert evaluate(rule, PS_EVENT)
 
     def test_one_of_them(self) -> None:
-        rule = make_rule(
-            {"a": {"EventID": 999}, "b": {"EventID": 1}, "condition": "1 of them"}
-        )
+        rule = make_rule({"a": {"EventID": 999}, "b": {"EventID": 1}, "condition": "1 of them"})
         assert evaluate(rule, PS_EVENT)
 
     def test_two_of_pattern(self) -> None:
@@ -201,9 +197,7 @@ class TestConditions:
         assert evaluate(rule, PS_EVENT)
 
     def test_condition_list_is_ored(self) -> None:
-        rule = make_rule(
-            {"a": {"EventID": 999}, "b": {"EventID": 1}, "condition": ["a", "b"]}
-        )
+        rule = make_rule({"a": {"EventID": 999}, "b": {"EventID": 1}, "condition": ["a", "b"]})
         assert evaluate(rule, PS_EVENT)
 
     def test_evidence_unions_contributing_identifiers(self) -> None:
@@ -376,3 +370,100 @@ class TestUnsupportedGrammar:
         rule = make_rule({"s": [{"EventID": 1}, "keyword"], "condition": "s"})
         with pytest.raises(UnsupportedRuleError, match="mixes"):
             evaluate(rule, PS_EVENT)
+
+
+class TestTriState:
+    """START_PROMPT section 3, rule 3: a missing field is not_evaluable, never no_match."""
+
+    def state(self, detection: dict[str, Any], **fields: FieldValue) -> tuple[str, tuple[str, ...]]:
+        result = match(make_rule(detection), make_event(**fields))
+        return result.state, result.missing_fields
+
+    def test_missing_field_that_decides_is_not_evaluable(self) -> None:
+        # A 4688-like event: Image present, OriginalFileName absent.
+        detection = {
+            "img": {"Image|endswith": "/rundll32.exe"},
+            "ofn": {"OriginalFileName": "RUNDLL32.EXE"},
+            "condition": "img or ofn",
+        }
+        assert self.state(detection, Image="/x/cmd.exe") == ("not_evaluable", ("OriginalFileName",))
+        assert self.state(detection, Image="/x/rundll32.exe") == ("match", ())
+
+    def test_known_false_conjunct_keeps_no_match(self) -> None:
+        detection = {"s": {"EventID": 4624, "LogonType": 3}, "condition": "s"}
+        assert self.state(detection, EventID=4688) == ("no_match", ())
+        assert self.state(detection, EventID=4624) == ("not_evaluable", ("LogonType",))
+
+    def test_all_fields_present_is_no_match(self) -> None:
+        detection = {"s": {"Image|endswith": "/a"}, "condition": "s"}
+        assert self.state(detection, Image="/b") == ("no_match", ())
+
+    def test_negated_unknown_filter_does_not_change_a_match(self) -> None:
+        detection = {
+            "sel": {"Image|endswith": "/a"},
+            "filter": {"ParentImage|endswith": "/b"},
+            "condition": "sel and not filter",
+        }
+        # Matching keeps its old meaning: an absent field fails the filter, so this matches.
+        assert self.state(detection, Image="/x/a") == ("match", ())
+        assert self.state(detection, Image="/x/c") == ("no_match", ())
+
+    def test_null_checks_and_exists_are_answers(self) -> None:
+        null_check = {"s": {"Image|endswith": "/a", "User": None}, "condition": "s"}
+        assert self.state(null_check, Image="/x/b") == ("no_match", ())
+        exists = {"s": {"Hashes|exists": True}, "condition": "s"}
+        assert self.state(exists, Image="/x/b") == ("no_match", ())
+
+    def test_quantifiers_and_lists_of_maps(self) -> None:
+        detection = {
+            "sel_a": {"Image|endswith": "/a"},
+            "sel_b": [{"CommandLine|contains": "-x"}, {"Hashes|contains": "ABC"}],
+            "condition": "all of sel_*",
+        }
+        assert self.state(detection, Image="/x/a", CommandLine="y") == (
+            "not_evaluable",
+            ("Hashes",),
+        )
+        assert self.state(detection, Image="/x/b", CommandLine="y") == ("no_match", ())
+        one_of = {
+            "sel_a": {"A": 1},
+            "sel_b": {"B": 2},
+            "sel_c": {"C": 3},
+            "condition": "2 of sel_*",
+        }
+        assert self.state(one_of, A=1, B=0) == ("not_evaluable", ("C",))
+        assert self.state(one_of, A=0, B=0) == ("no_match", ())
+        assert self.state(one_of, A=1, B=2) == ("match", ())
+
+    def test_list_condition_and_keywords(self) -> None:
+        detection = {
+            "kw": ["needle"],
+            "sel": {"Missing": "x"},
+            "condition": ["kw", "sel"],
+        }
+        assert self.state(detection, Image="hay") == ("not_evaluable", ("Missing",))
+        assert self.state(detection, Image="needle") == ("match", ())
+
+    def test_not_of_unknown_stays_unknown(self) -> None:
+        detection = {"s": {"Missing": "x"}, "condition": "not s"}
+        # Two-valued: the absent field fails s, so "not s" matches; the match is kept.
+        assert self.state(detection, Image="a") == ("match", ())
+        detection = {"s": {"Image": "a"}, "f": {"Missing": "x"}, "condition": "s and not f"}
+        assert self.state(detection, Image="b") == ("no_match", ())
+
+    def test_event_sharing_no_field_is_outside_the_source(self) -> None:
+        proxy = {"s": {"c-useragent|contains": "curl", "cs-host": "x"}, "condition": "s"}
+        result = match(make_rule(proxy), make_event(EventID=4703, SubjectUserName="a"))
+        assert (result.state, result.outside_source, result.missing_fields) == (
+            "not_evaluable",
+            True,
+            (),
+        )
+        # Sharing one field (EventID) means the rule reads this source: evaluated in full.
+        security = {"s": {"EventID": 4624, "LogonType": 3}, "condition": "s"}
+        result = match(make_rule(security), make_event(EventID=4703))
+        assert (result.state, result.outside_source) == ("no_match", False)
+        # Keywords read every source, so a keyword rule is never outside one.
+        keywords = {"kw": ["needle"], "s": {"Missing": "x"}, "condition": "kw and s"}
+        result = match(make_rule(keywords), make_event(Image="hay"))
+        assert result.outside_source is False

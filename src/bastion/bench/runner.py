@@ -51,6 +51,7 @@ from bastion.bench.metrics import (
     evidence_ladder,
     is_hunting,
     ladder_distribution,
+    not_evaluable_summary,
     regression_pass_rate,
     robustness,
     validated_coverage,
@@ -359,6 +360,9 @@ def evaluate_capture(
         expected_matches=dict(capture.expected_matches),
         notes=notes,
         filtered=dict(outcome.filtered),
+        not_evaluable=dict(outcome.not_evaluable),
+        not_evaluable_fields=dict(outcome.not_evaluable_fields),
+        outside_source=dict(outcome.outside_source),
     )
 
 
@@ -606,6 +610,7 @@ def summarize(
         },
         "ladder": {"distribution": ladder_distribution(ladder), "per_technique": ladder},
         "robustness": robustness(ruleset.rules, {}),
+        "not_evaluable": not_evaluable_summary(outcomes, ruleset.by_id),
         "captures": {
             "total": len(outcomes),
             "by_kind": dict(Counter(o.kind for o in outcomes)),
