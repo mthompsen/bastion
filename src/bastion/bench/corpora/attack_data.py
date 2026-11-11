@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import re
 from collections import Counter
+from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
@@ -31,7 +32,9 @@ from bastion.pins import data_file_text, load_pins
 CORPUS = "attack_data"
 NORMALIZED_AUDITD = "_bastion_auditd_sorted.log"
 SYSLOG_SOURCETYPES = {"linux_secure", "linux_messages_syslog", "syslog", "linux_audit"}
-_AUDIT_ID_RE = re.compile(r"msg=audit\((\d+)(?:\.(\d+))?:(\d+)\)")
+_AUDIT_ID_RE = re.compile(
+    r"msg=audit\((?:(\d+)(?:\.(\d+))?|(\d\d/\d\d/\d{4} \d\d:\d\d:\d\d)(?:\.(\d+))?):(\d+)\)"
+)
 _RECORD_TYPE_RE = re.compile(r"^type=([A-Z_]+)")
 
 
@@ -76,24 +79,33 @@ def _sort_key(line: str) -> tuple[int, int, int, int]:
     found = _AUDIT_ID_RE.search(line)
     if found is None:
         return (1, 0, 0, 0)  # unparseable lines sink to the end, in their original order
-    epoch, millis, serial = found.group(1), found.group(2) or "0", found.group(3)
+    epoch, millis, stamp, stamp_millis, serial = found.groups()
+    if stamp is not None:
+        # ausearch -i output: local time of an unnamed zone, read as UTC (see AuditdSource).
+        when = datetime.strptime(stamp, "%m/%d/%Y %H:%M:%S").replace(tzinfo=UTC)
+        epoch, millis = str(int(when.timestamp())), stamp_millis
     kind = _RECORD_TYPE_RE.match(line)
     rank = _RECORD_ORDER.index(kind.group(1)) if kind and kind.group(1) in _RECORD_ORDER else 9
-    return (0, int(epoch) * 1000 + int(millis.ljust(3, "0")[:3]), int(serial), rank)
+    return (0, int(epoch) * 1000 + int((millis or "0").ljust(3, "0")[:3]), int(serial), rank)
 
 
 def normalize_auditd(files: list[Path], dest: Path, force: bool = False) -> Counter[str]:
-    """Concatenate and stable-sort auditd files into ``dest``; returns record type counts."""
+    """Concatenate and stable-sort auditd files into ``dest``; returns record type counts.
+
+    Lines are split on ``\\n`` only: an enriched record carries a ``\\x1d`` before its
+    interpreted half, and ``str.splitlines`` treats that as a line break, which cut every
+    enriched record in two before B2. ``dest`` is rewritten whenever its content differs, so a
+    file normalized by an older Bastion is never reused.
+    """
     lines: list[str] = []
     for path in files:
-        lines.extend(
-            line.rstrip("\r\n")
-            for line in path.read_text(encoding="utf-8", errors="replace").splitlines()
-            if line.strip()
-        )
+        text = path.read_text(encoding="utf-8", errors="replace")
+        lines.extend(line.rstrip("\r") for line in text.split("\n") if line.strip())
     lines.sort(key=_sort_key)
-    if force or not dest.exists():
-        dest.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    content = "\n".join(lines) + "\n"
+    current = dest.read_text(encoding="utf-8", errors="replace") if dest.exists() else None
+    if force or current != content:
+        dest.write_bytes(content.encode("utf-8"))
     types: Counter[str] = Counter()
     for line in lines:
         found = _RECORD_TYPE_RE.match(line)

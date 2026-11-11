@@ -212,12 +212,41 @@ def test_normalize_auditd_sorts_by_epoch_and_serial(tmp_path: Path) -> None:
     assert not any(line.startswith("type=") for line in lines[len(audit_only) :])
     assert any(line.startswith("May  6") for line in lines[len(audit_only) :])
     assert types["SYSCALL"] >= 1 and types["non-audit"] == 2
-    # Existing normalized file is kept unless forced.
+    # A normalized file left by an older Bastion is never reused: it is rewritten when stale,
+    # and left alone (same bytes, same mtime) when current.
     dest.write_text("stale\n", encoding="utf-8")
     attack_data.normalize_auditd([a, b], dest)
-    assert dest.read_text(encoding="utf-8") == "stale\n"
-    attack_data.normalize_auditd([a, b], dest, force=True)
     assert dest.read_text(encoding="utf-8") != "stale\n"
+    before = dest.stat().st_mtime_ns
+    attack_data.normalize_auditd([a, b], dest)
+    assert dest.stat().st_mtime_ns == before
+    attack_data.normalize_auditd([a, b], dest, force=True)
+    assert dest.read_text(encoding="utf-8").startswith("type=SYSCALL")
+
+
+def test_normalize_auditd_keeps_enriched_records_whole(tmp_path: Path) -> None:
+    """str.splitlines() treats the \\x1d before an enriched half as a line break."""
+    enriched = (
+        'type=SYSCALL msg=audit(1724076881.293:4522): syscall=42 exe="/usr/sbin/route"'
+        '\x1dARCH=x86_64 SYSCALL=connect AUID="ubuntu"'
+    )
+    source = tmp_path / "a.log"
+    source.write_bytes((enriched + "\n").encode("utf-8"))
+    dest = tmp_path / "sorted.log"
+    types = attack_data.normalize_auditd([source], dest)
+    assert dest.read_bytes().decode("utf-8") == enriched + "\n"
+    assert types == {"SYSCALL": 1}
+
+
+def test_normalize_auditd_sorts_interpreted_records(tmp_path: Path) -> None:
+    newest = "type=PATH msg=audit(04/16/2025 09:14:42.784:96445) : item=0 name=/tmp"
+    oldest = "type=SYSCALL msg=audit(04/16/2025 09:14:42.784:96444) : syscall=execve"
+    raw_between = "type=SYSCALL msg=audit(1744794882.900:96446): syscall=59"
+    source = tmp_path / "a.log"
+    source.write_text("\n".join([raw_between, newest, oldest]) + "\n", encoding="utf-8")
+    dest = tmp_path / "sorted.log"
+    attack_data.normalize_auditd([source], dest)
+    assert dest.read_text(encoding="utf-8").splitlines() == [oldest, newest, raw_between]
 
 
 def _attack_data_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:

