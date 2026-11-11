@@ -3,11 +3,11 @@
 
 [sigma]
 name = "SigmaHQ/sigma"
-tag = "r2026-04-01"
-commit = "fb1f07c928a5f94d786d4ec37ae75c29ce1634ad"
-url = "https://github.com/SigmaHQ/sigma/archive/refs/tags/r2026-04-01.zip"
+tag = "r2026-07-01"
+commit = "552f3fee420ef232a8e5790c4fae591847e32347"
+url = "https://github.com/SigmaHQ/sigma/archive/refs/tags/r2026-07-01.zip"
 license = "Detection Rule License 1.1 (rules); regression_data carries no separate statement"
-recorded = "2026-09-26"
+recorded = "2026-11-10"
 
 [attack]
 name = "mitre-attack/attack-stix-data enterprise"
@@ -22,9 +22,9 @@ recorded = "2026-11-10"
 [corpora.regression_data]
 name = "SigmaHQ regression_data"
 source = "same archive as [sigma]; regression_data/ and .github/workflows/known-FPs.csv"
-commit = "fb1f07c928a5f94d786d4ec37ae75c29ce1634ad"
+commit = "552f3fee420ef232a8e5790c4fae591847e32347"
 license = "not separately stated upstream (repository shows NOASSERTION); treated as DRL 1.1, unconfirmed"
-recorded = "2026-09-26"
+recorded = "2026-11-10"
 
 [corpora.evtx_attack_samples]
 name = "sbousseaden/EVTX-ATTACK-SAMPLES"

@@ -28,7 +28,7 @@ ATTACK_URL = (
 )
 
 #: Pinned SigmaHQ/sigma release tag (verified against the live repo).
-SIGMA_VERSION = "r2026-04-01"
+SIGMA_VERSION = "r2026-07-01"
 SIGMA_URL = f"https://github.com/SigmaHQ/sigma/archive/refs/tags/{SIGMA_VERSION}.zip"
 
 DEFAULT_DATA_DIR = Path("data")
