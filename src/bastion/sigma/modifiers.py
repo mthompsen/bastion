@@ -8,9 +8,12 @@ value?" for one modifier. Per the Sigma specification:
   ``\\*`` / ``\\?`` escape a literal wildcard and ``\\\\`` a literal
   backslash, while any other backslash is plain, so Windows paths need no
   doubling);
-* ``contains`` / ``startswith`` / ``endswith`` are case-insensitive; rule
-  values used with these modifiers are treated literally (wildcards inside
-  them are not interpreted, a documented subset limitation);
+* ``contains`` / ``startswith`` / ``endswith`` are case-insensitive and mean
+  ``*value*``, ``value*`` and ``*value``: wildcards and escapes inside the
+  value apply exactly as for equality (before B2 they were read literally,
+  so ``'tasklist*|*find'`` and the UNC prefix ``'\\\\\\\\'`` could not match);
+* ``*`` matches across line breaks, since a field such as a command line can
+  hold one;
 * ``re`` is a case-sensitive regular-expression search;
 * ``cased`` switches the string predicates to case-sensitive matching;
 * ``cidr``, ``exists`` and ``gt``/``gte``/``lt``/``lte`` cover network
@@ -83,40 +86,67 @@ def wildcard_to_regex(pattern: str) -> str:
     return "".join(out)
 
 
+def is_pattern(rule_value: RuleValue) -> bool:
+    """True when Sigma's wildcard or escape rules give the value a non-literal meaning.
+
+    That is a ``*`` or ``?`` (wildcards, or escaped literals), or a doubled backslash (an
+    escaped backslash). Any other value means exactly its text, and the fast literal
+    comparisons below apply unchanged.
+    """
+    return isinstance(rule_value, str) and (
+        "*" in rule_value or "?" in rule_value or "\\\\" in rule_value
+    )
+
+
+def _pattern(rule_value: str, anchor: str, cased: bool) -> re.Pattern[str]:
+    """The compiled pattern for a string predicate. ``*`` crosses line breaks (DOTALL):
+    a command line can hold a newline, and the wildcard means any run of characters."""
+    flags = re.DOTALL if cased else re.IGNORECASE | re.DOTALL
+    regex = wildcard_to_regex(rule_value)
+    return compiled(regex + r"\Z" if anchor == "end" else regex, flags)
+
+
 def match_equals(field_value: FieldValue, rule_value: RuleValue, cased: bool = False) -> bool:
     """Sigma base equality: case-insensitive (unless ``cased``), wildcard- and null-aware."""
     if rule_value is None:
         return field_value is None
     if field_value is None:
         return False
-    if isinstance(rule_value, str) and ("*" in rule_value or "?" in rule_value):
-        regex = wildcard_to_regex(rule_value)
-        flags = 0 if cased else re.IGNORECASE
-        return compiled(regex, flags).fullmatch(_to_text(field_value)) is not None
+    if isinstance(rule_value, str) and is_pattern(rule_value):
+        return _pattern(rule_value, "full", cased).fullmatch(_to_text(field_value)) is not None
     if cased:
         return _to_text(field_value) == _to_text(rule_value)
     return _to_text(field_value).casefold() == _to_text(rule_value).casefold()
 
 
 def match_contains(field_value: FieldValue, rule_value: RuleValue, cased: bool = False) -> bool:
+    """Sigma ``contains``: the value as ``*value*``, so its wildcards and escapes apply."""
     if field_value is None or rule_value is None:
         return False
+    if isinstance(rule_value, str) and is_pattern(rule_value):
+        return _pattern(rule_value, "any", cased).search(_to_text(field_value)) is not None
     if cased:
         return _to_text(rule_value) in _to_text(field_value)
     return _to_text(rule_value).casefold() in _to_text(field_value).casefold()
 
 
 def match_startswith(field_value: FieldValue, rule_value: RuleValue, cased: bool = False) -> bool:
+    """Sigma ``startswith``: the value as ``value*``."""
     if field_value is None or rule_value is None:
         return False
+    if isinstance(rule_value, str) and is_pattern(rule_value):
+        return _pattern(rule_value, "start", cased).match(_to_text(field_value)) is not None
     if cased:
         return _to_text(field_value).startswith(_to_text(rule_value))
     return _to_text(field_value).casefold().startswith(_to_text(rule_value).casefold())
 
 
 def match_endswith(field_value: FieldValue, rule_value: RuleValue, cased: bool = False) -> bool:
+    """Sigma ``endswith``: the value as ``*value``."""
     if field_value is None or rule_value is None:
         return False
+    if isinstance(rule_value, str) and is_pattern(rule_value):
+        return _pattern(rule_value, "end", cased).search(_to_text(field_value)) is not None
     if cased:
         return _to_text(field_value).endswith(_to_text(rule_value))
     return _to_text(field_value).casefold().endswith(_to_text(rule_value).casefold())

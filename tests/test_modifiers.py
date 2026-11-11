@@ -88,10 +88,46 @@ class TestSubstringModifiers:
         assert match_startswith(4624, "46")
         assert match_endswith(4624, "24")
 
+    def test_wildcards_inside_contains(self) -> None:
+        # SigmaHQ regression case "Recon Command Output Piped To Findstr.EXE".
+        assert match_contains("cmd /c tasklist /v | findstr /i lsass", "tasklist*|*find")
+        assert not match_contains("cmd /c tasklist /v", "tasklist*|*find")
+        # "File And SubFolder Enumeration Via Dir Command": 'dir*-s'
+        assert match_contains("cmd.exe /c dir C:\\Users -s", "dir*-s")
+        assert match_contains("abc", "a?c") and not match_contains("ac", "a?c")
+
+    def test_wildcards_inside_startswith_and_endswith(self) -> None:
+        assert match_startswith("/home/bob/public_html/x.php", "/home/*/public_html/")
+        assert not match_startswith("/srv/home/bob/public_html/", "/home/*/public_html/")
+        assert match_endswith("0x13", "1?") and not match_endswith("0x131", "1?")
+
+    def test_escapes_inside_substring_modifiers(self) -> None:
+        # "Potential NTLM Coercion Via Certutil.EXE": ' \\\\' in YAML is four backslashes in
+        # the rule, which Sigma reads as two literal backslashes (a UNC prefix).
+        rule_value = " " + "\\" * 4
+        assert match_contains("certutil -syncwithWU \\\\192.0.2.1\\share", rule_value)
+        assert not match_contains("certutil -syncwithWU \\192.0.2.1", rule_value)
+        assert match_startswith("\\\\127.0.0.1\\ADMIN$\\x", "\\\\\\\\127.0.0.1\\\\ADMIN$\\")
+        # An escaped wildcard is literal.
+        assert match_contains("a*b", "a\\*b") and not match_contains("axb", "a\\*b")
+
+    def test_plain_values_keep_their_literal_meaning(self) -> None:
+        # A single backslash before an ordinary character is plain: Windows paths need no doubling.
+        assert match_contains(r"C:\Windows\System32\x.exe", r"\system32\x.exe")
+        assert match_endswith(r"C:\Tools\PsExec.exe", r"\psexec.exe")
+
+    def test_wildcard_crosses_line_breaks_and_respects_cased(self) -> None:
+        assert match_contains("tasklist\n| findstr", "tasklist*find")
+        assert match_contains("TaskList | Find", "tasklist*find")
+        assert not match_contains("TaskList | Find", "tasklist*find", cased=True)
+        assert match_equals("a\nb", "a*b")
+
+    def test_lone_star_in_contains_matches_any_present_value(self) -> None:
+        assert match_contains("", "*") and match_contains("x", "*")
+        assert not match_contains(None, "*")
+
     @pytest.mark.parametrize("predicate", [match_contains, match_startswith, match_endswith])
-    def test_none_never_matches(
-        self, predicate: Callable[[str | None, str | None], bool]
-    ) -> None:
+    def test_none_never_matches(self, predicate: Callable[[str | None, str | None], bool]) -> None:
         assert not predicate(None, "x")
         assert not predicate("x", None)
 
