@@ -88,9 +88,7 @@ class Capture:
             # An event with no timestamp cannot be placed in a window.
             return self.window is None
         when = aware(when)
-        if self.window is not None and not (
-            aware(self.window[0]) <= when <= aware(self.window[1])
-        ):
+        if self.window is not None and not (aware(self.window[0]) <= when <= aware(self.window[1])):
             return False
         return not any(aware(start) <= when <= aware(end) for start, end in self.exclude_windows)
 
