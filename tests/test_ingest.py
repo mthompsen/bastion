@@ -166,6 +166,36 @@ class TestXmlEventLogSource:
         chunks = [text[i : i + 7] for i in range(0, len(text), 7)]
         assert len(list(iter_xml_events(chunks))) == 2
 
+    def test_truncated_event_does_not_swallow_the_next(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        truncated = self.EVENT[: len(self.EVENT) // 2]
+        text = truncated + "\n" + self.EVENT + "\n" + truncated + "\n" + self.EVENT
+        with caplog.at_level(logging.WARNING):
+            found = list(iter_xml_events([text]))
+        assert found == [self.EVENT, self.EVENT]
+        assert any("truncated" in record.message for record in caplog.records)
+
+    def test_stray_ampersand_and_less_than_repaired_only_on_request(self) -> None:
+        broken = self.EVENT.replace("Get-Process", "a && b < c & d &amp; e &#38; f")
+        assert xml_to_event(broken, source="x.log") is None
+        event = xml_to_event(broken, source="x.log", repair=True)
+        assert event is not None
+        assert event.fields["ScriptBlockText"] == "a && b < c & d & e & f"
+
+    def test_repair_never_alters_well_formed_xml(self) -> None:
+        good = self.EVENT.replace("Get-Process", "a &amp;&amp; b &lt;(c)")
+        plain = xml_to_event(good, source="x.log")
+        assert plain is not None
+        assert plain == xml_to_event(good, source="x.log", repair=True)
+        assert plain.fields["ScriptBlockText"] == "a && b <(c)"
+
+    def test_unrepairable_markup_is_still_skipped(self, caplog: pytest.LogCaptureFixture) -> None:
+        broken = self.EVENT.replace("Get-Process", "a </f b")
+        with caplog.at_level(logging.WARNING):
+            assert xml_to_event(broken, source="x.log", repair=True) is None
+        assert any("malformed" in record.message for record in caplog.records)
+
     def test_parse_file(self, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
         path = tmp_path / "ps.log"
         path.write_text(self.EVENT + self.EVENT + "<Event><System>", encoding="utf-8")

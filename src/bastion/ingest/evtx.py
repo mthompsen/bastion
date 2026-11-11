@@ -37,16 +37,42 @@ def _parse_system_time(value: str) -> datetime | None:
         return None
 
 
-def xml_to_event(xml_str: str, source: str, platform: Platform = "windows") -> Event | None:
+#: An ``&`` that does not begin a character or entity reference, and a ``<`` that cannot begin
+#: markup (a tag, end tag, comment, CDATA or processing instruction). Well-formed XML has
+#: neither, so escaping them changes only text the exporter failed to escape.
+_STRAY_AMP_RE = re.compile(r"&(?!(?:[A-Za-z_][\w.-]*|#[0-9]+|#x[0-9A-Fa-f]+);)")
+_STRAY_LT_RE = re.compile(r"<(?![A-Za-z_/!?])")
+
+
+def _parse_repaired(xml_str: str) -> ElementTree.Element | None:
+    repaired = _STRAY_LT_RE.sub("&lt;", _STRAY_AMP_RE.sub("&amp;", xml_str))
+    if repaired == xml_str:
+        return None
+    try:
+        return ElementTree.fromstring(repaired)
+    except ElementTree.ParseError:
+        return None
+
+
+def xml_to_event(
+    xml_str: str, source: str, platform: Platform = "windows", *, repair: bool = False
+) -> Event | None:
     """Normalize one Windows event-XML record into an Event.
 
-    Returns None (after logging a warning) when the XML is malformed.
+    Returns None (after logging a warning) when the XML is malformed. With ``repair``, a
+    record that fails to parse is tried once more with stray ``&`` and ``<`` escaped (some
+    exports write field text such as a command line unescaped); a record that parses as
+    given is never altered.
     """
     try:
         root = ElementTree.fromstring(xml_str)
     except ElementTree.ParseError as exc:
-        logger.warning("%s: skipping malformed event XML: %s", source, exc)
-        return None
+        repaired = _parse_repaired(xml_str) if repair else None
+        if repaired is None:
+            logger.warning("%s: skipping malformed event XML: %s", source, exc)
+            return None
+        logger.info("%s: parsed event XML after escaping stray '&' or '<'", source)
+        root = repaired
 
     fields: dict[str, FieldValue] = {}
     timestamp: datetime | None = None
@@ -116,16 +142,27 @@ class EvtxSource:
 
 #: One ``<Event ...>...</Event>`` element in an XML export (namespace and attributes vary).
 _XML_EVENT_RE = re.compile(r"<Event[\s>].*?</Event>", re.DOTALL)
+_XML_EVENT_START_RE = re.compile(r"<Event[\s>]")
 
 
 def iter_xml_events(chunks: Iterable[str]) -> Iterator[str]:
-    """Split a stream of text into whole ``<Event>`` elements, across chunk boundaries."""
+    """Split a stream of text into whole ``<Event>`` elements, across chunk boundaries.
+
+    An event the exporter truncated never closes, so the match that starts at it runs on to
+    the next event's ``</Event>``; only the text from the last ``<Event`` start is that
+    element, and the truncated events before it are skipped with a warning.
+    """
     buffer = ""
     for chunk in chunks:
         buffer += chunk
         end = 0
         for found in _XML_EVENT_RE.finditer(buffer):
-            yield found.group(0)
+            text = found.group(0)
+            starts = [m.start() for m in _XML_EVENT_START_RE.finditer(text)]
+            if len(starts) > 1:
+                logger.warning("skipped %d truncated <Event> element(s)", len(starts) - 1)
+                text = text[starts[-1] :]
+            yield text
             end = found.end()
         buffer = buffer[end:]
     if buffer.strip():
@@ -148,7 +185,7 @@ class XmlEventLogSource:
         with path.open(encoding="utf-8", errors="replace") as handle:
             chunks = iter(lambda: handle.read(1 << 20), "")
             for xml_str in iter_xml_events(chunks):
-                event = xml_to_event(xml_str, source=path.name, platform=self.platform)
+                event = xml_to_event(xml_str, source=path.name, platform=self.platform, repair=True)
                 if event is not None:
                     yield event
 
