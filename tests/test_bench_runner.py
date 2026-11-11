@@ -129,6 +129,13 @@ def test_run_bench_writes_summary_report_and_resumes(world: World) -> None:
     ):
         assert heading in report
     assert "Wilson 95% interval" in report
+    # Split integrity: the frozen B1 set and the expanded test split side by side, per corpus.
+    frozen = summary["rates"]["test_frozen_b1"]
+    assert frozen["captures"] == summary["rates"]["test"]["captures"]  # no later cohort here
+    assert len(frozen["capture_ids_sha256"]) == 64
+    assert set(summary["rates_by_corpus"]) == {"test", "dev"}
+    assert "## Headline sets side by side (held out)" in report
+    assert "### Per corpus, test split" in report
 
 
 def test_run_bench_honours_split_and_suite_selection(world: World) -> None:

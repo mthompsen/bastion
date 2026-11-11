@@ -613,6 +613,10 @@ def _print_bench_summary(summary: dict[str, Any]) -> None:
                 f"validated_coverage_strict ({split})",
                 block["validated_coverage_strict_over_labelled"],
             )
+    frozen = summary["rates"].get("test_frozen_b1")
+    if frozen:
+        row("detection_rate (frozen B1 test set)", frozen["detection_rate"])
+        row("detection_rate_strict (frozen B1 test set)", frozen["detection_rate_strict"])
     row("regression_pass_rate", summary["regression"]["pass_rate"])
     row("regression_pass_rate_strict", summary["regression"]["pass_rate_strict"])
     console.print(table)

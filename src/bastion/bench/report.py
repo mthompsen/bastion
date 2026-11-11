@@ -153,6 +153,45 @@ def render_report(summary: Mapping[str, Any]) -> str:
                 + "; ".join(f"{o['title']} ({o['alerts']})" for o in offenders[:8])
                 + "."
             )
+    frozen = summary["rates"].get("test_frozen_b1")
+    if frozen is not None:
+        add("")
+        add("## Headline sets side by side (held out)")
+        add("")
+        add(
+            "The frozen set is the B1 test split, unchanged since B1 so B1 and B2 comparisons "
+            "stay valid (sha256 of its sorted id list `"
+            + frozen["capture_ids_sha256"][:12]
+            + "`). The expanded test split adds captures assigned later with the same seed, "
+            "before any rule ran on them."
+        )
+        add("")
+        add("| Set | Captures | Detection, headline | Detection, strict | Any alert |")
+        add("|:-|-:|:-|:-|:-|")
+        for label, block in (
+            ("Frozen B1 test set", frozen),
+            ("Expanded test split", summary["rates"]["test"]),
+        ):
+            add(
+                f"| {label} | {block['captures']} | {_rate_line(block['detection_rate'])} | "
+                f"{_rate_line(block['detection_rate_strict'])} | "
+                f"{_rate_line(block['any_alert_rate'])} |"
+            )
+    by_corpus = summary.get("rates_by_corpus") or {}
+    for split, corpora in by_corpus.items():
+        if not corpora:
+            continue
+        add("")
+        add(f"### Per corpus, {split} split")
+        add("")
+        add("| Corpus | Captures | Detection, headline | Detection, strict | Any alert |")
+        add("|:-|-:|:-|:-|:-|")
+        for corpus, block in corpora.items():
+            add(
+                f"| {corpus} | {block['captures']} | {_rate_line(block['detection_rate'])} | "
+                f"{_rate_line(block['detection_rate_strict'])} | "
+                f"{_rate_line(block['any_alert_rate'])} |"
+            )
     reg = summary["regression"]
     add("")
     add("## SigmaHQ regression suite")

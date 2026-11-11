@@ -16,6 +16,7 @@ exactly as the CLI does, with the rules narrowed to the capture's platform.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import tomllib
@@ -51,6 +52,7 @@ from bastion.bench.metrics import (
     detection_rates,
     evidence_ladder,
     is_hunting,
+    labelled_positives,
     ladder_distribution,
     not_evaluable_summary,
     regression_pass_rate,
@@ -64,6 +66,8 @@ from bastion.sigma import load_rules
 from bastion.sigma.filters import SigmaFilter, load_filters
 
 DEFAULT_SEED = 20260926
+#: summary.json key of the frozen B1 held-out headline set (B3 split integrity)
+FROZEN_RATES_KEY = "test_frozen_b1"
 DEFAULT_BUDGET = 20.0
 SUITES = ("positives", "regression", "benign", "fixtures")
 
@@ -514,11 +518,11 @@ def summarize(
             str(config.repo_root / "rules").replace("\\", "/")
         )
     ]
-    rates: dict[str, Any] = {}
-    for split in ("test", "dev"):
-        detection = detection_rates(outcomes, attack, split, pins_label)
-        validated = validated_coverage(outcomes, attack, split, pins_label)
-        rates[split] = {
+
+    def rate_block(subset: Sequence[CaptureOutcome], split: str) -> dict[str, Any]:
+        detection = detection_rates(subset, attack, split, pins_label)
+        validated = validated_coverage(subset, attack, split, pins_label)
+        return {
             "captures": detection.captures,
             "detection_rate": detection.overall.as_dict(),
             "detection_rate_strict": detection.strict.as_dict(),
@@ -531,8 +535,34 @@ def summarize(
             "validated_techniques_strict": sorted(validated.validated_strict),
             "per_technique": {t: r.as_dict() for t, r in detection.per_technique.items()},
             "per_tactic": {t: r.as_dict() for t, r in detection.per_tactic.items()},
-            "cross_firing": cross_firing(outcomes, split),
+            "cross_firing": cross_firing(subset, split),
         }
+
+    rates: dict[str, Any] = {split: rate_block(outcomes, split) for split in ("test", "dev")}
+    # Split integrity (B3): the B1 held-out captures stay a frozen headline set, reported
+    # beside the expanded test split, so B1 and B2 comparisons stay valid.
+    frozen_ids = manifest.frozen_test_ids()
+    rates[FROZEN_RATES_KEY] = {
+        **rate_block([o for o in outcomes if o.capture_id in frozen_ids], "test"),
+        # sha256 of the JSON list of sorted ids, as B2 reported it (163ebf88eaba...)
+        "capture_ids_sha256": hashlib.sha256(
+            json.dumps(sorted(frozen_ids)).encode("utf-8")
+        ).hexdigest(),
+    }
+    # Per corpus, so a lift that comes from one source's quirks is visible.
+    by_corpus: dict[str, dict[str, Any]] = {}
+    for split in ("test", "dev"):
+        corpora = sorted({o.corpus for o in labelled_positives(outcomes, split)})
+        by_corpus[split] = {}
+        for corpus in corpora:
+            subset = [o for o in outcomes if o.corpus == corpus]
+            detection = detection_rates(subset, attack, split, f"{corpus}, {pins_label}")
+            by_corpus[split][corpus] = {
+                "captures": detection.captures,
+                "detection_rate": detection.overall.as_dict(),
+                "detection_rate_strict": detection.strict.as_dict(),
+                "any_alert_rate": detection.any_alert.as_dict(),
+            }
     coverage = claimed_coverage(ruleset.rules, attack, evaluable)
     regression_summary = regression_pass_rate(
         outcomes, collected.regression_skipped, ruleset.by_id, pins_label
@@ -609,6 +639,7 @@ def summarize(
         "coverage": {name: rate.as_dict() for name, rate in coverage.items()},
         "blind_spots_alerting_class": blind_spot_split(ruleset.rules, attack),
         "rates": rates,
+        "rates_by_corpus": by_corpus,
         "regression": {
             "pass_rate": regression_summary.passed.as_dict(),
             "pass_rate_strict": regression_summary.passed_strict.as_dict(),
