@@ -98,7 +98,39 @@ def match(rule: SigmaRule, event: Event) -> MatchResult:
     event lacks a field the rule names, the rule is evaluated again in three-valued
     (Kleene) logic with those fields unknown. If the outcome then depends on them, the
     result is ``not_evaluable`` rather than ``no_match``. Matches are never changed.
+
+    A rule for the ``auditd`` service is written against single audit records (``type:
+    EXECVE`` with ``a0``, ``type: SYSCALL`` with ``a0`` as a syscall argument, ``type: PATH``
+    with ``name``), so on an event merged from several records it is evaluated on each
+    record in turn: it matches when any record matches. See :func:`_match_records`.
     """
+    if event.records and rule.logsource.get("service", "").lower() == "auditd":
+        return _match_records(rule, event.records)
+    return _match_event(rule, event)
+
+
+def _match_records(rule: SigmaRule, records: list[Event]) -> MatchResult:
+    """Per-record evaluation: the first matching record wins.
+
+    Without a match, the event is ``outside_source`` only when every record is, and
+    ``not_evaluable`` when any record's answer depended on fields it lacks (their union
+    is reported); otherwise it is a ``no_match``.
+    """
+    missing: dict[str, None] = {}
+    outside = True
+    for record in records:
+        result = _match_event(rule, record)
+        if result.matched:
+            return result
+        if not result.outside_source:
+            outside = False
+            missing.update(dict.fromkeys(result.missing_fields))
+    if outside:
+        return MatchResult(matched=False, outside_source=True)
+    return MatchResult(matched=False, missing_fields=tuple(missing))
+
+
+def _match_event(rule: SigmaRule, event: Event) -> MatchResult:
     result, evaluated = _match_two_valued(rule, event)
     if result.matched:
         return result

@@ -25,6 +25,11 @@ class Event(BaseModel):
     source: str
     fields: dict[str, FieldValue] = Field(default_factory=dict)
     raw: str
+    #: The source records merged into this event, each as its own Event with only that
+    #: record's fields and line. Set by sources that merge several records into one event
+    #: (auditd: SYSCALL, EXECVE, PATH, ... sharing an audit id), so rules written against
+    #: single records can be evaluated per record. Not serialized.
+    records: list[Event] = Field(default_factory=list, exclude=True, repr=False)
 
 
 class TechniqueRef(BaseModel):

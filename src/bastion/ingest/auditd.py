@@ -147,13 +147,19 @@ class _Partial:
     fields: dict[str, FieldValue] = field(default_factory=dict)
     argv: dict[int, str] = field(default_factory=dict)
     raw_lines: list[str] = field(default_factory=list)
+    #: each record's own fields, in arrival order, for per-record rule evaluation
+    records: list[tuple[dict[str, FieldValue], str]] = field(default_factory=list)
     last_seen: int = 0
 
     def absorb(self, match: re.Match[str], raw: str, seen: int) -> None:
         self.raw_lines.append(raw)
         self.last_seen = seen
         record_type = match.group("type")
+        # The merged event's ``type`` is its first record's; each record keeps its own in
+        # ``records`` (finding F1 of B2: a merged event typed SYSCALL hid its EXECVE record).
         self.fields.setdefault("type", record_type)
+        own: dict[str, FieldValue] = {"type": record_type}
+        self.records.append((own, raw))
         body = match.group("body")
         interpreted = "/" in match.group("stamp")
         pairs = (
@@ -161,21 +167,27 @@ class _Partial:
         )
         is_execve = record_type == "EXECVE"
         for key, decoded, undecoded in pairs:
+            if key not in own:
+                own[key] = decoded
             argument = _ARG_RE.match(key)
             if is_execve and argument:
                 # The argv comes from EXECVE, never from SYSCALL (Citadel 496c484).
                 self.argv[int(argument.group(1))] = decoded
                 self.fields[key] = decoded
                 continue
-            # PATH records repeat keys (item=0, item=1); keep the first.
+            # PATH records repeat keys (item=0, item=1); the merged view keeps the first,
+            # each record's own view keeps its own.
             if key not in self.fields:
                 self.fields[key] = decoded
             # A brace group or a quoted msg='...' is kept whole under its own key and its
             # inner pairs are lifted to fields as well.
             if len(undecoded) >= 2 and (undecoded[0], undecoded[-1]) in {("{", "}"), ("'", "'")}:
                 for inner_key, inner_value in _PAIR_RE.findall(undecoded[1:-1]):
+                    inner = _decode_raw(inner_key, inner_value)
                     if inner_key not in self.fields:
-                        self.fields[inner_key] = _decode_raw(inner_key, inner_value)
+                        self.fields[inner_key] = inner
+                    if inner_key not in own:
+                        own[inner_key] = inner
 
     def build(self, source: str) -> Event:
         if self.argv:
@@ -183,12 +195,17 @@ class _Partial:
         exe = self.fields.get("exe")
         if isinstance(exe, str):
             self.fields["Image"] = exe
+        records = [
+            Event(timestamp=self.timestamp, platform="linux", source=source, fields=own, raw=line)
+            for own, line in self.records
+        ]
         return Event(
             timestamp=self.timestamp,
             platform="linux",
             source=source,
             fields=self.fields,
             raw="\n".join(self.raw_lines),
+            records=records,
         )
 
 

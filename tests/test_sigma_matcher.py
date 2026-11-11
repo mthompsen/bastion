@@ -467,3 +467,80 @@ class TestTriState:
         keywords = {"kw": ["needle"], "s": {"Missing": "x"}, "condition": "kw and s"}
         result = match(make_rule(keywords), make_event(Image="hay"))
         assert result.outside_source is False
+
+
+def _audit_event(*records: dict[str, FieldValue]) -> Event:
+    """A merged auditd event: merged fields as the parser builds them, plus each record."""
+    merged: dict[str, FieldValue] = {}
+    for record in records:
+        for key, value in record.items():
+            merged.setdefault(key, value)
+    views = [
+        Event(platform="linux", source="audit.log", fields=dict(r), raw=str(r)) for r in records
+    ]
+    return Event(platform="linux", source="audit.log", fields=merged, raw="", records=views)
+
+
+def _auditd_rule(detection: dict[str, Any]) -> SigmaRule:
+    return SigmaRule(
+        id="auditd-rule",
+        title="auditd rule",
+        logsource={"product": "linux", "service": "auditd"},
+        detection=detection,
+    )
+
+
+SHUTDOWN = _audit_event(
+    {"type": "SYSCALL", "syscall": "59", "a0": "26", "exe": "/usr/sbin/shutdown"},
+    {"type": "EXECVE", "argc": "2", "a0": "shutdown", "a1": "now"},
+    {"type": "CWD", "cwd": "/root"},
+    {"type": "PATH", "name": "/usr/sbin/shutdown"},
+    {"type": "PATH", "name": "/proc/sysrq-trigger"},
+)
+
+
+class TestAuditdRecords:
+    """B2 finding F1: auditd service rules read single records, not the merged event."""
+
+    def test_execve_rule_matches_a_merged_event_typed_syscall(self) -> None:
+        rule = _auditd_rule({"s": {"type": "EXECVE", "a0": "shutdown"}, "condition": "s"})
+        assert SHUTDOWN.fields["type"] == "SYSCALL"
+        assert match(rule, SHUTDOWN).matched
+
+    def test_second_path_record_is_read(self) -> None:
+        rule = _auditd_rule(
+            {"s": {"type": "PATH", "name|endswith": "/sysrq-trigger"}, "condition": "s"}
+        )
+        assert match(rule, SHUTDOWN).matched
+
+    def test_fields_are_never_combined_across_records(self) -> None:
+        # SYSCALL a0 is a syscall argument; the merged event's a0 is EXECVE's argv[0].
+        rule = _auditd_rule({"s": {"type": "SYSCALL", "a0": "shutdown"}, "condition": "s"})
+        assert not match(rule, SHUTDOWN).matched
+        rule = _auditd_rule({"s": {"type": "CWD", "exe": "/usr/sbin/shutdown"}, "condition": "s"})
+        assert not match(rule, SHUTDOWN).matched
+
+    def test_category_rules_keep_the_merged_view(self) -> None:
+        rule = SigmaRule(
+            id="pc",
+            title="process creation",
+            logsource={"product": "linux", "category": "process_creation"},
+            detection={
+                "s": {"Image|endswith": "/shutdown", "CommandLine|contains": "now"},
+                "condition": "s",
+            },
+        )
+        merged = _audit_event(
+            {"type": "SYSCALL", "exe": "/usr/sbin/shutdown", "Image": "/usr/sbin/shutdown"},
+            {"type": "EXECVE", "a0": "shutdown", "CommandLine": "shutdown now"},
+        )
+        assert match(rule, merged).matched
+
+    def test_tri_state_over_records(self) -> None:
+        missing = _auditd_rule({"s": {"type": "SYSCALL", "SYSCALL": "sysinfo"}, "condition": "s"})
+        result = match(missing, SHUTDOWN)
+        assert (result.state, result.missing_fields) == ("not_evaluable", ("SYSCALL",))
+        plain = _auditd_rule({"s": {"type": "EXECVE", "a0": "reboot"}, "condition": "s"})
+        assert match(plain, SHUTDOWN).state == "no_match"
+        other = _auditd_rule({"s": {"TargetFilename": "/x"}, "condition": "s"})
+        assert match(other, SHUTDOWN).outside_source

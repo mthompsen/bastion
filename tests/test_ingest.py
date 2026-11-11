@@ -313,6 +313,46 @@ class TestAuditdFormats:
         assert any("reappeared" in record.message for record in caplog.records)
 
 
+class TestAuditdRecords:
+    """B2 finding F1: a merged event keeps every record's own type and fields."""
+
+    def test_each_record_keeps_its_type_and_fields(self, tmp_path: Path) -> None:
+        events, _ = _parse(
+            tmp_path,
+            'type=SYSCALL msg=audit(1780000000.100:1): syscall=59 a0=26 exe="/usr/sbin/shutdown"',
+            'type=EXECVE msg=audit(1780000000.100:1): argc=3 a0="shutdown" a1="-P" a2="now"',
+            'type=CWD msg=audit(1780000000.100:1): cwd="/root"',
+            'type=PATH msg=audit(1780000000.100:1): item=0 name="/usr/sbin/shutdown"',
+            'type=PATH msg=audit(1780000000.100:1): item=1 name="/lib64/ld-linux-x86-64.so.2"',
+        )
+        (event,) = events
+        assert event.fields["type"] == "SYSCALL"  # the merged view is unchanged
+        assert (event.fields["Image"], event.fields["CommandLine"]) == (
+            "/usr/sbin/shutdown",
+            "shutdown -P now",
+        )
+        assert [r.fields["type"] for r in event.records] == [
+            "SYSCALL",
+            "EXECVE",
+            "CWD",
+            "PATH",
+            "PATH",
+        ]
+        syscall, execve, _, first_path, second_path = event.records
+        assert syscall.fields["a0"] == "26"  # the syscall argument, not the argv
+        assert execve.fields["a0"] == "shutdown"
+        assert (first_path.fields["name"], second_path.fields["name"]) == (
+            "/usr/sbin/shutdown",
+            "/lib64/ld-linux-x86-64.so.2",
+        )
+        assert second_path.raw.endswith('name="/lib64/ld-linux-x86-64.so.2"')
+
+    def test_records_are_not_serialized(self, tmp_path: Path) -> None:
+        events, _ = _parse(tmp_path, 'type=CWD msg=audit(1780000000.100:1): cwd="/root"')
+        assert len(events[0].records) == 1
+        assert "records" not in events[0].model_dump()
+
+
 class TestJournaldSource:
     def test_parses_json_lines_and_skips_garbage(self, caplog: pytest.LogCaptureFixture) -> None:
         with caplog.at_level(logging.WARNING):
