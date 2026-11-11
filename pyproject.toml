@@ -47,7 +47,7 @@ bastion = "bastion.cli:app"
 where = ["src"]
 
 [tool.setuptools.package-data]
-bastion = ["py.typed", "templates/*", "data/*"]
+bastion = ["py.typed", "templates/*", "data/*", "data/pipelines/*"]
 
 [tool.ruff]
 line-length = 100

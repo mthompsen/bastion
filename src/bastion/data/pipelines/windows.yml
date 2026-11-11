@@ -1,0 +1,161 @@
+# Bastion Windows processing pipeline (B3): log source routing and field mapping, declared
+# here and applied by bastion.pipelines. Modelled on pySigma processing pipelines.
+#
+# Sources:
+# - services and categories: Sigma taxonomy appendix (SigmaHQ/sigma-specification,
+#   specification/sigma-appendix-taxonomy.md at ba9251aa834b11a70dbf80836b453dba99c5159e,
+#   read 2026-11-11), "Windows Folder" tables, copied exactly.
+# - mappings: the generic process_creation field names of the same appendix ("Fields",
+#   "Process Creation Events", Sysmon names) mapped from the Security event fields Microsoft
+#   documents for 4688 and 5156. START_PROMPT section 6, lever 2.
+#
+# Semantics:
+# - A rule whose logsource names a service listed here is evaluated only on events whose
+#   Channel is one of that service's channels. A category listed here restricts the rule to
+#   the listed (channel, EventID) routes. An event without a Channel (a test fixture) is
+#   routed by EventID alone. A service or category not listed is not restricted.
+# - A mapping adds Sigma field names to matching events as aliases. It never overwrites a
+#   field the event already carries. A rule needing a field the event still lacks is
+#   not_evaluable on it (tri-state), never a silent no_match.
+
+services:
+  application: [Application]
+  application-experience:
+    - Microsoft-Windows-Application-Experience/Program-Telemetry
+    - Microsoft-Windows-Application-Experience/Program-Compatibility-Assistant
+  applocker:
+    - Microsoft-Windows-AppLocker/MSI and Script
+    - Microsoft-Windows-AppLocker/EXE and DLL
+    - Microsoft-Windows-AppLocker/Packaged app-Deployment
+    - Microsoft-Windows-AppLocker/Packaged app-Execution
+  appmodel-runtime: [Microsoft-Windows-AppModel-Runtime/Admin]
+  appxdeployment-server: [Microsoft-Windows-AppXDeploymentServer/Operational]
+  appxpackaging-om: [Microsoft-Windows-AppxPackaging/Operational]
+  bitlocker: [Microsoft-Windows-BitLocker/BitLocker Management]
+  bits-client: [Microsoft-Windows-Bits-Client/Operational]
+  capi2: [Microsoft-Windows-CAPI2/Operational]
+  certificateservicesclient-lifecycle-system:
+    - Microsoft-Windows-CertificateServicesClient-Lifecycle-System/Operational
+  codeintegrity-operational: [Microsoft-Windows-CodeIntegrity/Operational]
+  dhcp: [Microsoft-Windows-DHCP-Server/Operational]
+  diagnosis-scripted: [Microsoft-Windows-Diagnosis-Scripted/Operational]
+  dns-client: [Microsoft-Windows-DNS Client Events/Operational]
+  dns-server: [DNS Server]
+  dns-server-analytic: [Microsoft-Windows-DNS-Server/Analytical]
+  dns-server-audit: [Microsoft-Windows-DNS-Server/Audit]
+  driver-framework: [Microsoft-Windows-DriverFrameworks-UserMode/Operational]
+  firewall-as: [Microsoft-Windows-Windows Firewall With Advanced Security/Firewall]
+  hyper-v-worker: [Microsoft-Windows-Hyper-V-Worker]
+  iis-configuration: [Microsoft-IIS-Configuration/Operational]
+  kernel-event-tracing: [Microsoft-Windows-Kernel-EventTracing]
+  kernel-shimengine:
+    - Microsoft-Windows-Kernel-ShimEngine/Operational
+    - WinEventLog:Microsoft-Windows-Kernel-ShimEngine/Diagnostic
+  ldap: [Microsoft-Windows-LDAP-Client/Debug]
+  lsa-server: [Microsoft-Windows-LSA/Operational]
+  msexchange-management: [MSExchange Management]
+  ntfs: [Microsoft-Windows-Ntfs/Operational]
+  ntlm: [Microsoft-Windows-NTLM/Operational]
+  openssh: [OpenSSH/Operational]
+  powershell: [Microsoft-Windows-PowerShell/Operational]
+  powershell-classic: [Windows PowerShell]
+  printservice-admin: [Microsoft-Windows-PrintService/Admin]
+  printservice-operational: [Microsoft-Windows-PrintService/Operational]
+  security: [Security]
+  security-mitigations:
+    - Microsoft-Windows-Security-Mitigations/Kernel Mode
+    - Microsoft-Windows-Security-Mitigations/User Mode
+  sense: [Microsoft-Windows-SENSE/Operational]
+  servicebus-client:
+    - Microsoft-ServiceBus-Client/Operational
+    - Microsoft-ServiceBus-Client/Admin
+  shell-core: [Microsoft-Windows-Shell-Core/Operational]
+  smbclient-security: [Microsoft-Windows-SmbClient/Security]
+  sysmon: [Microsoft-Windows-Sysmon/Operational]
+  system: [System]
+  taskscheduler: [Microsoft-Windows-TaskScheduler/Operational]
+  terminalservices-localsessionmanager:
+    - Microsoft-Windows-TerminalServices-LocalSessionManager/Operational
+  vhdmp: [Microsoft-Windows-VHDMP/Operational]
+  windefend: [Microsoft-Windows-Windows Defender/Operational]
+  wmi: [Microsoft-Windows-WMI-Activity/Operational]
+
+# category: list of routes, each a channel list and the EventIDs on it. file_access and
+# file_rename are ETW (Microsoft-Windows-Kernel-File) with no event log route: not listed.
+categories:
+  process_creation:
+    - {channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [1]}
+    - {channels: [Security], event_ids: [4688]}  # mapping security-4688-process-creation
+  file_change: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [2]}]
+  network_connection:
+    - {channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [3]}
+    - {channels: [Security], event_ids: [5156]}  # mapping security-5156-network-connection
+  sysmon_status: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [4, 16]}]
+  process_termination: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [5]}]
+  driver_load: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [6]}]
+  image_load: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [7]}]
+  create_remote_thread: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [8]}]
+  raw_access_thread: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [9]}]
+  process_access: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [10]}]
+  file_event: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [11]}]
+  registry_event: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [12, 13, 14]}]
+  registry_add: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [12]}]
+  registry_delete: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [12]}]
+  registry_set: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [13]}]
+  registry_rename: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [14]}]
+  create_stream_hash: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [15]}]
+  pipe_created: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [17, 18]}]
+  wmi_event: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [19, 20, 21]}]
+  dns_query: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [22]}]
+  # The taxonomy routes file_delete to 23 only; Sysmon 26 (FileDeleteDetected) carries the same
+  # fields and Bastion routed it here since B1, so it is kept (also under file_delete_detected).
+  file_delete: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [23, 26]}]
+  clipboard_capture: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [24]}]
+  process_tampering: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [25]}]
+  file_delete_detected: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [26]}]
+  file_block_executable: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [27]}]
+  file_block_shredding: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [28]}]
+  file_executable_detected: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [29]}]
+  sysmon_error: [{channels: [Microsoft-Windows-Sysmon/Operational], event_ids: [255]}]
+  ps_classic_start: [{channels: [Windows PowerShell], event_ids: [400]}]
+  ps_classic_provider_start: [{channels: [Windows PowerShell], event_ids: [600]}]
+  ps_classic_script: [{channels: [Windows PowerShell], event_ids: [800]}]
+  ps_module:
+    - {channels: [Microsoft-Windows-PowerShell/Operational, PowerShellCore/Operational], event_ids: [4103]}
+  ps_script:
+    - {channels: [Microsoft-Windows-PowerShell/Operational, PowerShellCore/Operational], event_ids: [4104]}
+
+# Each field: a source field name, a list of templates (the first whose fields are all
+# present and not "-" wins), or {from: field, values: {...}} for a value mapping (values
+# not in the table are left unmapped, so the rule is not_evaluable on that field).
+mappings:
+  - name: security-4688-process-creation
+    channels: [Security]
+    event_ids: [4688]
+    fields:
+      Image: NewProcessName
+      ParentImage: ParentProcessName
+      User:
+        - "{TargetDomainName}\\{TargetUserName}"
+        - "{SubjectDomainName}\\{SubjectUserName}"
+      IntegrityLevel:
+        from: MandatoryLabel
+        values:
+          S-1-16-0: Untrusted
+          S-1-16-4096: Low
+          S-1-16-8192: Medium
+          S-1-16-8448: Medium
+          S-1-16-12288: High
+          S-1-16-16384: System
+          S-1-16-20480: Protected
+  - name: security-5156-network-connection
+    channels: [Security]
+    event_ids: [5156]
+    fields:
+      Image: Application
+      SourceIp: SourceAddress
+      DestinationIp: DestAddress
+      DestinationPort: DestPort
+      Initiated:
+        from: Direction
+        values: {"%%14593": "true", "%%14592": "false"}

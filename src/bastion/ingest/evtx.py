@@ -21,6 +21,7 @@ from xml.etree import ElementTree
 from Evtx.Evtx import Evtx
 
 from bastion.models import Event, FieldValue
+from bastion.pipelines import windows_pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -66,10 +67,26 @@ def xml_to_event(xml_str: str, source: str) -> Event | None:
         if time_created is not None and (system_time := time_created.get("SystemTime")):
             timestamp = _parse_system_time(system_time)
 
+    unnamed: list[str] = []
     for data in root.iterfind("{*}EventData/{*}Data"):
         name = data.get("Name")
         if name:
             fields[name] = data.text if data.text is not None else ""
+        elif data.text:
+            unnamed.append(data.text)
+    # Classic event logs ("Windows PowerShell" 400, 600, 800 and others) carry unnamed <Data>
+    # elements; Sigma reads them as one field, Data (taxonomy ps_classic_* rules).
+    if unnamed and "Data" not in fields:
+        fields["Data"] = "\n".join(unnamed)
+    # UserData events (WMI-Activity 5858, many Operational channels) put their values under
+    # one provider-defined element; each leaf becomes a field under its own name (B2 F3).
+    for leaf in root.iterfind("{*}UserData//*"):
+        if len(leaf):
+            continue
+        name = leaf.tag.rsplit("}", 1)[-1]
+        if name and name not in fields:
+            fields[name] = leaf.text if leaf.text is not None else ""
+    windows_pipeline().apply(fields)
 
     return Event(
         timestamp=timestamp,
