@@ -183,12 +183,34 @@ class KindRoute:
 
 
 @dataclass(frozen=True)
+class AuditdMapping:
+    """Sigma field names derived from auditd records (see the ``auditd`` section of linux.yml)."""
+
+    #: arch (as auditd writes it, lowercase hex) -> syscall number -> name
+    syscall_names: Mapping[str, Mapping[str, str]] = field(default_factory=dict)
+    command_line_from_proctitle: bool = False
+    target_filename_from_created_path: bool = False
+
+    def syscall_name(self, fields: Mapping[str, FieldValue]) -> str | None:
+        """The enriched ``SYSCALL`` name for a record, or None when it cannot be named."""
+        raw = fields.get("syscall")
+        if raw is None:
+            return None
+        text = str(raw)
+        if not text.isdigit():
+            return text  # interpreted (ausearch -i) records already carry the name
+        arch = str(fields.get("arch", "")).lower()
+        return self.syscall_names.get(arch, {}).get(text)
+
+
+@dataclass(frozen=True)
 class LinuxPipeline:
     """Routes for ``product: linux`` rules by the kind of Linux event (see linux.yml)."""
 
     sysmon_channel: str
     services: Mapping[str, frozenset[str]]
     categories: Mapping[str, tuple[KindRoute, ...]]
+    auditd: AuditdMapping = field(default_factory=AuditdMapping)
 
     def kind(self, event: Event) -> str:
         if event.records:
@@ -230,7 +252,19 @@ def parse_linux_pipeline(doc: Mapping[str, Any]) -> LinuxPipeline:
             frozenset(int(i) for i in ids) if ids is not None else None,
         )
 
+    auditd = dict(doc.get("auditd") or {})
+    mapping = AuditdMapping(
+        syscall_names={
+            str(arch).lower(): {str(n): str(name) for n, name in dict(table).items()}
+            for arch, table in dict(auditd.get("syscall_names") or {}).items()
+        },
+        command_line_from_proctitle=bool(auditd.get("command_line_from_proctitle", False)),
+        target_filename_from_created_path=bool(
+            auditd.get("target_filename_from_created_path", False)
+        ),
+    )
     return LinuxPipeline(
+        auditd=mapping,
         sysmon_channel=str(doc.get("sysmon_channel", "")).lower(),
         services={
             str(name).lower(): frozenset(str(k) for k in kinds)

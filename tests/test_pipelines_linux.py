@@ -75,12 +75,14 @@ class TestLinuxRouting:
         assert not rule_applies(_rule(service="sshd"), _sysmon(1))
 
     @pytest.mark.parametrize(
-        ("category", "event_id"), [("network_connection", 3), ("file_event", 11)]
+        ("category", "event_id", "auditd"),
+        [("network_connection", 3, False), ("file_event", 11, True)],
     )
-    def test_sysmon_categories(self, category: str, event_id: int) -> None:
+    def test_sysmon_categories(self, category: str, event_id: int, auditd: bool) -> None:
         assert rule_applies(_rule(category=category), _sysmon(event_id))
         assert not rule_applies(_rule(category=category), _sysmon(1))
-        assert not rule_applies(_rule(category=category), _auditd())
+        # file_event also reads auditd file creations (TargetFilename from a CREATE PATH)
+        assert rule_applies(_rule(category=category), _auditd()) is auditd
 
     def test_unlisted_logsource_is_not_restricted(self) -> None:
         assert rule_applies(_rule(), TEXT)

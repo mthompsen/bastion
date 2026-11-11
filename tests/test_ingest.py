@@ -335,6 +335,52 @@ class TestAuditdFormats:
         assert any("reappeared" in record.message for record in caplog.records)
 
 
+class TestAuditdFieldMapping:
+    """B3 lever: Sigma names derived from audit records by the Linux pipeline."""
+
+    def test_syscall_number_is_named_per_arch(self, tmp_path: Path) -> None:
+        events, _ = _parse(
+            tmp_path,
+            'type=SYSCALL msg=audit(1780000000.100:1): arch=c000003e syscall=99 exe="/x"',
+            'type=SYSCALL msg=audit(1780000000.100:2): arch=40000003 syscall=116 exe="/x"',
+            'type=SYSCALL msg=audit(1780000000.100:3): arch=c000003e syscall=4242 exe="/x"',
+            "type=SYSCALL msg=audit(02/20/2025 10:00:00.000:4) : arch=x86_64 syscall=sysinfo",
+        )
+        assert [e.fields.get("SYSCALL") for e in events] == ["sysinfo", "sysinfo", None, "sysinfo"]
+        assert events[0].records[0].fields["SYSCALL"] == "sysinfo"
+
+    def test_enriched_name_is_kept(self, tmp_path: Path) -> None:
+        events, _ = _parse(
+            tmp_path,
+            'type=SYSCALL msg=audit(1780000000.100:1): arch=c000003e syscall=99 exe="/x"'
+            "\x1dARCH=x86_64 SYSCALL=uname",
+        )
+        assert events[0].fields["SYSCALL"] == "uname"
+
+    def test_command_line_from_proctitle_only_without_execve(self, tmp_path: Path) -> None:
+        argv = b"chattr\x00-i\x00/etc/passwd".hex().upper()
+        events, _ = _parse(
+            tmp_path,
+            f"type=PROCTITLE msg=audit(1780000000.100:1): proctitle={argv}",
+            'type=EXECVE msg=audit(1780000000.100:2): argc=1 a0="id"',
+            f"type=PROCTITLE msg=audit(1780000000.100:2): proctitle={argv}",
+        )
+        assert events[0].fields["CommandLine"] == "chattr -i /etc/passwd"
+        assert "Image" not in events[0].fields
+        assert events[1].fields["CommandLine"] == "id"  # EXECVE wins
+
+    def test_target_filename_from_created_path(self, tmp_path: Path) -> None:
+        events, _ = _parse(
+            tmp_path,
+            'type=CWD msg=audit(1780000000.100:1): cwd="/etc/cron.d"',
+            'type=PATH msg=audit(1780000000.100:1): item=0 name="/etc/cron.d/" nametype=PARENT',
+            'type=PATH msg=audit(1780000000.100:1): item=1 name="evil" nametype=CREATE',
+            'type=PATH msg=audit(1780000000.100:2): item=0 name="/etc/hosts" nametype=NORMAL',
+        )
+        assert events[0].fields["TargetFilename"] == "/etc/cron.d/evil"
+        assert "TargetFilename" not in events[1].fields
+
+
 class TestAuditdRecords:
     """B2 finding F1: a merged event keeps every record's own type and fields."""
 

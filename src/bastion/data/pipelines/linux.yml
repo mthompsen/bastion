@@ -31,4 +31,38 @@ categories:
     # events since B1 (Image from SYSCALL exe, CommandLine from the EXECVE argv).
     - {kinds: [auditd]}
   network_connection: [{kinds: [sysmon], event_ids: [3]}]
-  file_event: [{kinds: [sysmon], event_ids: [11]}]
+  file_event:
+    - {kinds: [sysmon], event_ids: [11]}
+    # auditd events carry TargetFilename when a PATH record created a file (see auditd below)
+    - {kinds: [auditd]}
+
+# auditd field mapping (B3 lever: auditd field mapping). Applied by bastion.ingest.auditd when
+# it builds an event; a mapped name is added only when the event does not carry it already.
+auditd:
+  # SYSCALL: the enriched syscall name SigmaHQ auditd rules read (ENRICHED log_format writes
+  # it; raw logs carry only the number). Looked up per arch from the kernel tables
+  # (arch/x86/entry/syscalls/syscall_64.tbl, syscall_32.tbl). Only the syscalls SigmaHQ
+  # r2026-07-01 rules name are listed; an unlisted number stays unmapped.
+  syscall_names:
+    "c000003e":  # x86_64
+      "59": execve
+      "99": sysinfo
+      "103": syslog
+      "133": mknod
+      "135": personality
+      "319": memfd_create
+      "322": execveat
+    "40000003":  # i386
+      "11": execve
+      "14": mknod
+      "103": syslog
+      "116": sysinfo
+      "136": personality
+      "356": memfd_create
+      "358": execveat
+  # CommandLine from the PROCTITLE record (the process's argv, NUL separated, which the kernel
+  # truncates to 128 bytes) when the event has no EXECVE argv. Image is not derived from it.
+  command_line_from_proctitle: true
+  # TargetFilename from a PATH record with nametype=CREATE (joined to the CWD record when the
+  # name is relative), so file_event rules can read file creations auditd records.
+  target_filename_from_created_path: true

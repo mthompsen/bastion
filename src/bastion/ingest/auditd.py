@@ -45,6 +45,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from bastion.models import Event, FieldValue
+from bastion.pipelines import AuditdMapping, linux_pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -195,6 +196,7 @@ class _Partial:
         exe = self.fields.get("exe")
         if isinstance(exe, str):
             self.fields["Image"] = exe
+        _map_fields(self.fields, [own for own, _ in self.records], linux_pipeline().auditd)
         records = [
             Event(timestamp=self.timestamp, platform="linux", source=source, fields=own, raw=line)
             for own, line in self.records
@@ -207,6 +209,40 @@ class _Partial:
             raw="\n".join(self.raw_lines),
             records=records,
         )
+
+
+def _map_fields(
+    merged: dict[str, FieldValue], records: list[dict[str, FieldValue]], mapping: AuditdMapping
+) -> None:
+    """Add the Sigma names the Linux pipeline derives from audit records (never overwriting).
+
+    ``SYSCALL`` (the enriched syscall name) on each SYSCALL record and on the merged event;
+    on the merged event ``CommandLine`` from PROCTITLE when no EXECVE argv exists, and
+    ``TargetFilename`` from a PATH record the syscall created.
+    """
+    for own in records:
+        if own.get("type") == "SYSCALL" and "SYSCALL" not in own:
+            syscall = mapping.syscall_name(own)
+            if syscall is not None:
+                own["SYSCALL"] = syscall
+                merged.setdefault("SYSCALL", syscall)
+    if mapping.command_line_from_proctitle and "CommandLine" not in merged:
+        proctitle = next(
+            (own.get("proctitle") for own in records if own.get("type") == "PROCTITLE"), None
+        )
+        if isinstance(proctitle, str) and proctitle:
+            merged["CommandLine"] = proctitle
+    if mapping.target_filename_from_created_path and "TargetFilename" not in merged:
+        cwd = next((own.get("cwd") for own in records if own.get("type") == "CWD"), None)
+        for own in records:
+            created = own.get("name")
+            if own.get("type") != "PATH" or str(own.get("nametype", "")).upper() != "CREATE":
+                continue
+            if isinstance(created, str) and created and created != "(null)":
+                if not created.startswith("/") and isinstance(cwd, str) and cwd.startswith("/"):
+                    created = cwd.rstrip("/") + "/" + created
+                merged["TargetFilename"] = created
+                break
 
 
 class AuditdSource:
