@@ -176,6 +176,12 @@ def test_generate_and_resolve_manifest(world: World) -> None:
     )
     resolved, notes = resolve_manifest(config, [*collected.captures, extra])
     assert resolved.split_of("new/one") in {"test", "dev"}
+    assert resolved.entries["new/one"].cohort == "b3"  # never joins the frozen set
+    assert "new/one" not in resolved.frozen_test_ids()
+    # Regenerating with a manifest present keeps every existing assignment.
+    before = {e.id: e.split for e in read_manifest(path).entries.values()}
+    after = read_manifest(generate_manifest(config)).entries
+    assert all(after[i].split == split for i, split in before.items())
     assert notes and "not in manifest.toml" in notes[0]
     # With the manifest present the run reports no assignment note.
     summary, _ = run_bench(config)

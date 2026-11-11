@@ -35,6 +35,7 @@ from bastion.bench.corpora.fixtures import fixture_captures
 from bastion.bench.evaluability import EvaluabilityReport, check_rules
 from bastion.bench.labels import read_label_table, read_supplement
 from bastion.bench.manifest import (
+    CURRENT_COHORT,
     Manifest,
     assign_splits,
     assign_splits_frozen,
@@ -276,7 +277,9 @@ def resolve_manifest(
                 "(run `bastion bench manifest` to record them)"
             )
             extra = assign_splits(unknown, manifest.seed, forced)
-            for entry in build_entries(unknown, extra, config.cache):
+            # Never the frozen cohort: only captures the committed manifest assigned are frozen.
+            cohorts = dict.fromkeys(extra, CURRENT_COHORT)
+            for entry in build_entries(unknown, extra, config.cache, cohorts):
                 manifest.entries[entry.id] = entry
         return manifest, notes
     notes.append(f"no manifest at {path}; splits assigned at run time with seed {config.seed}")
