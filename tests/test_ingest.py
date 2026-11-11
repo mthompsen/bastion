@@ -369,6 +369,22 @@ class TestAuditdFieldMapping:
         assert "Image" not in events[0].fields
         assert events[1].fields["CommandLine"] == "id"  # EXECVE wins
 
+    def test_proctitle_of_a_non_exec_syscall_is_not_a_command_line(self, tmp_path: Path) -> None:
+        argv = b"curl\x00http://192.0.2.1".hex().upper()
+        events, _ = _parse(
+            tmp_path,
+            'type=SYSCALL msg=audit(1780000000.100:1): arch=c000003e syscall=44 exe="/usr/bin/curl"'
+            "\x1dSYSCALL=sendto",
+            f"type=PROCTITLE msg=audit(1780000000.100:1): proctitle={argv}",
+            'type=SYSCALL msg=audit(1780000000.100:2): arch=c000003e syscall=59 exe="/x"',
+            f"type=PROCTITLE msg=audit(1780000000.100:2): proctitle={argv}",
+            'type=SYSCALL msg=audit(1780000000.100:3): arch=c000003e syscall=257 exe="/x"',
+            f"type=PROCTITLE msg=audit(1780000000.100:3): proctitle={argv}",
+        )
+        assert "CommandLine" not in events[0].fields  # sendto
+        assert events[1].fields["CommandLine"] == "curl http://192.0.2.1"  # execve (59)
+        assert "CommandLine" not in events[2].fields  # openat (257): not in the table
+
     def test_target_filename_from_created_path(self, tmp_path: Path) -> None:
         events, _ = _parse(
             tmp_path,

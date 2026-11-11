@@ -211,13 +211,17 @@ class _Partial:
         )
 
 
+_EXEC_SYSCALLS = frozenset({"execve", "execveat"})
+
+
 def _map_fields(
     merged: dict[str, FieldValue], records: list[dict[str, FieldValue]], mapping: AuditdMapping
 ) -> None:
     """Add the Sigma names the Linux pipeline derives from audit records (never overwriting).
 
     ``SYSCALL`` (the enriched syscall name) on each SYSCALL record and on the merged event;
-    on the merged event ``CommandLine`` from PROCTITLE when no EXECVE argv exists, and
+    on the merged event ``CommandLine`` from PROCTITLE when no EXECVE argv exists and the event
+    is a process start (an execve or execveat SYSCALL record, or none at all), and
     ``TargetFilename`` from a PATH record the syscall created.
     """
     for own in records:
@@ -226,7 +230,12 @@ def _map_fields(
             if syscall is not None:
                 own["SYSCALL"] = syscall
                 merged.setdefault("SYSCALL", syscall)
-    if mapping.command_line_from_proctitle and "CommandLine" not in merged:
+    syscalls = [own for own in records if own.get("type") == "SYSCALL"]
+    # A process_creation rule must only see a process start: the alias is limited to events
+    # whose syscall is execve or execveat, or that carry no SYSCALL record at all (datasets
+    # that ship PROCTITLE records alone). A proctitle on sendto or openat is not a start.
+    starts = all(own.get("SYSCALL") in _EXEC_SYSCALLS for own in syscalls)
+    if mapping.command_line_from_proctitle and "CommandLine" not in merged and starts:
         proctitle = next(
             (own.get("proctitle") for own in records if own.get("type") == "PROCTITLE"), None
         )
