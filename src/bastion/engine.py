@@ -30,17 +30,24 @@ from bastion.sigma.matcher import UnsupportedRuleError, match
 
 logger = logging.getLogger(__name__)
 
-#: Sigma logsource categories → the Windows event ids that carry them
-#: (Sysmon ids, plus the classic Security-log equivalents where common).
+#: Sigma logsource categories → the Windows event ids that carry them, per the Sigma
+#: taxonomy appendix (``specification/sigma-appendix-taxonomy.md``, read 2026-09-27):
+#: Sysmon ids, the PowerShell channels, plus the classic Security-log equivalents
+#: where common. A category missing here is evaluated against every Windows event,
+#: which is only safe for rules that key on fields no other event carries; the B1
+#: goodware replay showed what a negation-only rule does otherwise (raw_access_thread
+#: was spelled raw_access_read here, so its one rule fired 63,482 times on goodware).
+#: ``file_access`` and ``file_rename`` are ETW sources with no event id and stay unmapped.
 _CATEGORY_EVENT_IDS: dict[str, frozenset[int]] = {
     "process_creation": frozenset({1, 4688}),
+    "file_change": frozenset({2}),
     "network_connection": frozenset({3, 5156}),
     "sysmon_status": frozenset({4, 16}),
     "process_termination": frozenset({5}),
     "driver_load": frozenset({6}),
     "image_load": frozenset({7}),
     "create_remote_thread": frozenset({8}),
-    "raw_access_read": frozenset({9}),
+    "raw_access_thread": frozenset({9}),
     "process_access": frozenset({10}),
     "file_event": frozenset({11}),
     "registry_add": frozenset({12}),
@@ -53,8 +60,18 @@ _CATEGORY_EVENT_IDS: dict[str, frozenset[int]] = {
     "wmi_event": frozenset({19, 20, 21}),
     "dns_query": frozenset({22}),
     "file_delete": frozenset({23, 26}),
-    "clipboard_change": frozenset({24}),
+    "clipboard_capture": frozenset({24}),
     "process_tampering": frozenset({25}),
+    "file_delete_detected": frozenset({26}),
+    "file_block_executable": frozenset({27}),
+    "file_block_shredding": frozenset({28}),
+    "file_executable_detected": frozenset({29}),
+    "sysmon_error": frozenset({255}),
+    "ps_classic_start": frozenset({400}),
+    "ps_classic_provider_start": frozenset({600}),
+    "ps_classic_script": frozenset({800}),
+    "ps_module": frozenset({4103}),
+    "ps_script": frozenset({4104}),
 }
 
 

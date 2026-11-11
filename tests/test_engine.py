@@ -155,7 +155,57 @@ class TestRuleApplies:
         rule = SigmaRule(
             id="r2",
             title="r2",
-            logsource={"product": "windows", "category": "ps_script"},
-            detection={"s": {"EventID": 4104}, "condition": "s"},
+            logsource={"product": "windows", "category": "file_access"},  # ETW, no event id
+            detection={"s": {"a": 1}, "condition": "s"},
         )
         assert rule_applies(rule, windows_event(EventID=4104))
+        assert rule_applies(rule, windows_event(EventID=1))
+
+    @pytest.mark.parametrize(
+        ("category", "admitted", "blocked"),
+        [
+            (
+                "raw_access_thread",
+                9,
+                1,
+            ),  # spelled raw_access_read before B2; see docs/milestones/B2.md
+            ("clipboard_capture", 24, 1),
+            ("file_change", 2, 11),
+            ("file_executable_detected", 29, 11),
+            ("sysmon_error", 255, 1),
+            ("ps_script", 4104, 1),
+            ("ps_module", 4103, 4104),
+            ("ps_classic_start", 400, 4104),
+            ("file_delete", 26, 11),
+        ],
+    )
+    def test_taxonomy_categories_route_to_their_event_ids(
+        self, category: str, admitted: int, blocked: int
+    ) -> None:
+        rule = SigmaRule(
+            id="r3",
+            title="r3",
+            logsource={"product": "windows", "category": category},
+            detection={"s": {"a": 1}, "condition": "s"},
+        )
+        assert rule_applies(rule, windows_event(EventID=admitted))
+        assert not rule_applies(rule, windows_event(EventID=blocked))
+
+    def test_negation_only_rule_is_confined_to_its_category(self) -> None:
+        """The B1 goodware finding: a rule whose condition is only exclusions must not run
+        against events its category never produces."""
+        rule = SigmaRule(
+            id="raw",
+            title="raw",
+            logsource={"product": "windows", "category": "raw_access_thread"},
+            detection={"filter": {"Image|startswith": "C:\\Windows\\"}, "condition": "not filter"},
+        )
+        outcome = scan(
+            [
+                windows_event(EventID=1, Image="C:\\Tools\\x.exe"),
+                windows_event(EventID=9, Image="C:\\Tools\\x.exe"),
+            ],
+            [rule],
+            ATTACK,
+        )
+        assert [d.event.fields["EventID"] for d in outcome.detections] == [9]
