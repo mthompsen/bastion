@@ -115,9 +115,7 @@ def summarize_coverage(
         for tactic, total in sorted(tactic_total.items())
     }
 
-    tagged = {
-        technique_id.upper() for rule in rules for technique_id in rule.technique_ids()
-    }
+    tagged = {technique_id.upper() for rule in rules for technique_id in rule.technique_ids()}
     unknown = sorted(tagged - set(attack_lookup))
 
     return CoverageSummary(
