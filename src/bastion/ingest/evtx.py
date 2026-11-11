@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import logging
 import re
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from datetime import datetime
 from pathlib import Path
 from xml.etree import ElementTree
@@ -91,6 +91,41 @@ class EvtxSource:
                 except Exception as exc:  # skip unreadable records, keep parsing
                     logger.warning("%s: skipping unreadable record: %s", path, exc)
                     continue
+                event = xml_to_event(xml_str, source=path.name)
+                if event is not None:
+                    yield event
+
+
+#: One ``<Event ...>...</Event>`` element in an XML export (namespace and attributes vary).
+_XML_EVENT_RE = re.compile(r"<Event[\s>].*?</Event>", re.DOTALL)
+
+
+def iter_xml_events(chunks: Iterable[str]) -> Iterator[str]:
+    """Split a stream of text into whole ``<Event>`` elements, across chunk boundaries."""
+    buffer = ""
+    for chunk in chunks:
+        buffer += chunk
+        end = 0
+        for found in _XML_EVENT_RE.finditer(buffer):
+            yield found.group(0)
+            end = found.end()
+        buffer = buffer[end:]
+    if buffer.strip():
+        logger.warning("trailing text after the last complete <Event> element was skipped")
+
+
+class XmlEventLogSource:
+    """Parse Windows event XML exports (Splunk ``XmlWinEventLog``) into normalized Events.
+
+    The file holds rendered ``<Event>`` elements, one after another, as Windows Event
+    Forwarding and Splunk write them; each is normalized by :func:`xml_to_event` exactly
+    like a record read from an ``.evtx`` file.
+    """
+
+    def parse(self, path: Path) -> Iterator[Event]:
+        with path.open(encoding="utf-8", errors="replace") as handle:
+            chunks = iter(lambda: handle.read(1 << 20), "")
+            for xml_str in iter_xml_events(chunks):
                 event = xml_to_event(xml_str, source=path.name)
                 if event is not None:
                     yield event

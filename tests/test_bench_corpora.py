@@ -271,7 +271,11 @@ def test_normalize_auditd_sorts_interpreted_records(tmp_path: Path) -> None:
 def _attack_data_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     root = attack_data.corpus_dir(tmp_path)
     manifest = "datasets/attack_techniques/T1110/linux_auditd_demo/linux_auditd_demo.yml"
-    monkeypatch.setattr(attack_data, "dataset_manifests", lambda: [manifest])
+    monkeypatch.setattr(
+        attack_data,
+        "dataset_manifests",
+        lambda key="datasets_list": [manifest] if key == "datasets_list" else [],
+    )
     dataset_dir = root / "datasets/attack_techniques/T1110/linux_auditd_demo"
     dataset_dir.mkdir(parents=True)
     (dataset_dir / "part1.log").write_text("\n".join(AUDIT_LINES[:2]) + "\n", encoding="utf-8")
@@ -333,9 +337,72 @@ def test_attack_data_captures_route_by_sourcetype(
     assert by_id["attack_data/T1110/linux_auditd_demo/secure.log"].source_kind == "syslog"
     # A manifest that was never fetched is skipped quietly.
     monkeypatch.setattr(
-        attack_data, "dataset_manifests", lambda: ["datasets/attack_techniques/T0000/x/x.yml"]
+        attack_data,
+        "dataset_manifests",
+        lambda key="datasets_list": ["datasets/attack_techniques/T0000/x/x.yml"],
     )
     assert attack_data.attack_data_captures(root, ATTACK) == []
+
+
+SYSMON_XML = (
+    "<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System>"
+    "<Provider Name='Microsoft-Windows-Sysmon'/><EventID>1</EventID>"
+    "<TimeCreated SystemTime='2026-01-02T03:04:05.1234567Z'/>"
+    "<Channel>Microsoft-Windows-Sysmon/Operational</Channel><Computer>win-dc</Computer>"
+    "</System><EventData><Data Name='Image'>whoami.exe</Data>"
+    "<Data Name='CommandLine'>whoami /all</Data></EventData></Event>"
+)
+
+
+def test_attack_data_windows_datasets_become_one_capture(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = attack_data.corpus_dir(tmp_path)
+    manifest = "datasets/attack_techniques/T1110/win_demo/win_demo.yml"
+    lists = {"windows_datasets_list": [manifest]}
+    monkeypatch.setattr(
+        attack_data, "dataset_manifests", lambda key="datasets_list": lists.get(key, [])
+    )
+    folder = root / "datasets/attack_techniques/T1110/win_demo"
+    folder.mkdir(parents=True)
+    (folder / "sysmon.log").write_text(SYSMON_XML + "\n" + SYSMON_XML + "\n", encoding="utf-8")
+    (folder / "security.log").write_text(SYSMON_XML.replace(">1<", ">4688<"), encoding="utf-8")
+    entries = [
+        {
+            "path": "/datasets/attack_techniques/T1110/win_demo/sysmon.log",
+            "sourcetype": "XmlWinEventLog",
+            "source": "XmlWinEventLog:Microsoft-Windows-Sysmon/Operational",
+        },
+        {
+            "path": "/datasets/attack_techniques/T1110/win_demo/security.log",
+            "sourcetype": "XmlWinEventLog:Security",
+        },
+        {
+            "path": "/datasets/attack_techniques/T1110/win_demo/missing.log",
+            "sourcetype": "XmlWinEventLog",
+            "source": "XmlWinEventLog:System",
+        },
+        {
+            "path": "/datasets/attack_techniques/T1110/win_demo/cloud.json",
+            "sourcetype": "aws:cloudtrail",
+        },
+    ]
+    (root / manifest).write_text(
+        json.dumps({"mitre_technique": ["T1110"], "datasets": entries}), encoding="utf-8"
+    )
+    (captures,) = [attack_data.attack_data_captures(root, ATTACK)]
+    assert [c.id for c in captures] == ["attack_data/T1110/win_demo/windows"]
+    (capture,) = captures
+    assert (capture.platform, capture.source_kind, capture.techniques) == (
+        "windows",
+        "xmlevents",
+        ("T1110",),
+    )
+    assert capture.notes["files"] == "2"
+    assert "missing.log: not downloaded" in capture.notes["skipped"]
+    events = list(capture.events())
+    assert sorted(int(e.fields["EventID"] or 0) for e in events) == [1, 1, 4688]
+    assert events[0].fields["CommandLine"] == "whoami /all"
 
 
 def test_fetch_attack_data_downloads_yaml_then_files(

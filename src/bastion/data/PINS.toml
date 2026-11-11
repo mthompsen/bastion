@@ -60,6 +60,10 @@ raw_base = "https://raw.githubusercontent.com/splunk/attack_data/b4573ed3b6bf054
 media_base = "https://media.githubusercontent.com/media/splunk/attack_data/b4573ed3b6bf05473b01048dd36380dbd52288c0/"
 license = "Apache-2.0"
 datasets_list = "attack_data_auditd_datasets.txt"
+# B3 addition 1: Windows event log datasets (XmlWinEventLog), pulled with git LFS include
+# filters by scripts/fetch_attack_data_lfs.py; kept when a dataset's Windows files total at
+# most 5 MB (bench/labels/attack-data-excluded.csv lists the rest)
+windows_datasets_list = "attack_data_windows_datasets.txt"
 recorded = "2026-09-26"
 
 [corpora.citadel_captures]

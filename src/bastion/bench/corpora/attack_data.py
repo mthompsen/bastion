@@ -1,4 +1,10 @@
-"""Splunk attack_data: per-technique captures from Atomic Red Team runs (Linux auditd subset).
+"""Splunk attack_data: per-technique captures from Atomic Red Team runs.
+
+Two dataset lists are pinned: the Linux auditd subset (B1) and the Windows event log
+subset (B3), whose ``XmlWinEventLog`` files (Sysmon, Security, PowerShell, System and other
+channels) become one Windows capture per dataset, read by
+:class:`~bastion.ingest.evtx.XmlEventLogSource`. Labels always come from the dataset's own
+YAML ``mitre_technique``.
 
 Each dataset directory carries a YAML manifest naming its ``mitre_technique``
 ids and its files with a ``sourcetype``. Files are Git LFS objects, served
@@ -38,10 +44,19 @@ _AUDIT_ID_RE = re.compile(
 _RECORD_TYPE_RE = re.compile(r"^type=([A-Z_]+)")
 
 
-def dataset_manifests() -> list[str]:
-    """Repository-relative YAML paths of the approved datasets."""
-    name = str(load_pins()["corpora"][CORPUS]["datasets_list"])
-    return [line.strip() for line in data_file_text(name).splitlines() if line.strip()]
+def dataset_manifests(key: str = "datasets_list") -> list[str]:
+    """Repository-relative YAML paths of the approved datasets in one pinned list."""
+    name = load_pins()["corpora"][CORPUS].get(key)
+    if not name:
+        return []
+    return [line.strip() for line in data_file_text(str(name)).splitlines() if line.strip()]
+
+
+def is_windows_file(entry: dict[str, object]) -> bool:
+    """A dataset file in Windows event XML (``XmlWinEventLog`` sourcetype or source)."""
+    return str(entry.get("sourcetype", "")).startswith("XmlWinEventLog") or str(
+        entry.get("source", "")
+    ).startswith("XmlWinEventLog")
 
 
 def corpus_dir(cache: Path) -> Path:
@@ -116,7 +131,10 @@ def normalize_auditd(files: list[Path], dest: Path, force: bool = False) -> Coun
 def attack_data_captures(root: Path, attack: AttackData, force: bool = False) -> list[Capture]:
     license_text = str(load_pins()["corpora"][CORPUS]["license"])
     captures: list[Capture] = []
-    for manifest in dataset_manifests():
+    windows_lists = set(dataset_manifests("windows_datasets_list"))
+    linux_lists = dataset_manifests()
+    for manifest in [*linux_lists, *sorted(windows_lists - set(linux_lists))]:
+        windows_only = manifest not in linux_lists
         yaml_path = root / manifest
         if not yaml_path.is_file():
             continue
@@ -125,11 +143,20 @@ def attack_data_captures(root: Path, attack: AttackData, force: bool = False) ->
         live, notes = resolve_labels(raw_ids, attack)
         dataset_id = manifest.rsplit("/", 1)[0].removeprefix("datasets/attack_techniques/")
         auditd_files: list[Path] = []
+        windows_files: list[Path] = []
         skipped: list[str] = []
         for entry in doc.get("datasets") or []:
             relative = str(entry.get("path", "")).lstrip("/")
             sourcetype = str(entry.get("sourcetype", "")).lower()
             path = root / relative
+            if manifest in windows_lists and is_windows_file(entry):
+                if path.is_file():
+                    windows_files.append(path)
+                else:
+                    skipped.append(f"{relative}: not downloaded")
+                continue
+            if windows_only:
+                continue
             if not path.is_file():
                 skipped.append(f"{relative}: not downloaded")
             elif sourcetype == "auditd":
@@ -153,6 +180,27 @@ def attack_data_captures(root: Path, attack: AttackData, force: bool = False) ->
                 )
             else:
                 skipped.append(f"{relative}: sourcetype {sourcetype!r} not readable yet")
+        if windows_files:
+            captures.append(
+                Capture(
+                    id=f"{CORPUS}/{dataset_id}/windows",
+                    corpus=CORPUS,
+                    kind="positive",
+                    platform="windows",
+                    source_kind="xmlevents",
+                    paths=tuple(sorted(windows_files)),
+                    techniques=live,
+                    raw_labels=raw_ids,
+                    label_notes=notes,
+                    host="attack_range",
+                    license=license_text,
+                    notes={
+                        "sourcetype": "XmlWinEventLog",
+                        "files": str(len(windows_files)),
+                        **({"skipped": "; ".join(skipped)} if skipped else {}),
+                    },
+                )
+            )
         if auditd_files:
             dest = yaml_path.parent / NORMALIZED_AUDITD
             types = normalize_auditd(auditd_files, dest, force=force)

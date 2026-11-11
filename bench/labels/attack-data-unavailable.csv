@@ -1,0 +1,15 @@
+# attack_data datasets selected for the bench whose LFS objects could not be written locally (B3). Reason as git lfs reported it.
+yaml,file,reason
+datasets/attack_techniques/T1021.006/lateral_movement_pssession/lateral_movement_pssession.yml,datasets/attack_techniques/T1021.006/lateral_movement_pssession/windows-powershell-xml.log,LFS object not written (blocked)
+datasets/attack_techniques/T1027.010/manual_b64_decode_pwsh/manual_b64_decode_pwsh.yml,datasets/attack_techniques/T1027.010/manual_b64_decode_pwsh/manual_b64_decode_pwsh.log,LFS object not written (blocked)
+datasets/attack_techniques/T1033/AD_discovery/AD_discovery.yml,datasets/attack_techniques/T1033/AD_discovery/windows-powershell-xml.log,LFS object not written (blocked)
+datasets/attack_techniques/T1059.001/asyncrat_crypto_pwh_namespace/asyncrat_crypto_pwh_namespace.yml,datasets/attack_techniques/T1059.001/asyncrat_crypto_pwh_namespace/windows-powershell-xml.log,LFS object not written (blocked)
+datasets/attack_techniques/T1059.001/malicious_cmd_line_samples/malicious_cmd_line_samples.yml,datasets/attack_techniques/T1059.001/malicious_cmd_line_samples/windows-sysmon.log,LFS object not written (blocked)
+datasets/attack_techniques/T1059.001/trickbot_cmd_powershell/data.yml,datasets/attack_techniques/T1059.001/trickbot_cmd_powershell/windows-sysmon.log,LFS object not written (blocked)
+datasets/attack_techniques/T1112/vip_big_env_variable/vip_big_env_variable.yml,datasets/attack_techniques/T1112/vip_big_env_variable/vip_INTERNAL_DB_CACHE.log,LFS object not written (blocked)
+datasets/attack_techniques/T1140/snapattack/snapattack.yml,datasets/attack_techniques/T1140/snapattack/snapattack.log,LFS object not written (blocked)
+datasets/attack_techniques/T1546.003/wmi_event_subscription/wmi_event_subscription.yml,datasets/attack_techniques/T1546.003/wmi_event_subscription/windows-sysmon.log,LFS object not written (blocked)
+datasets/attack_techniques/T1546.015/pwh_com_object/pwh_com_object.yml,datasets/attack_techniques/T1546.015/pwh_com_object/windows-powershell-xml.log,LFS object not written (blocked)
+datasets/attack_techniques/T1558.004/powershell/powershell.yml,datasets/attack_techniques/T1558.004/powershell/windows-powershell-xml.log,LFS object not written (blocked)
+datasets/attack_techniques/T1608/snapattack/snapattack.yml,datasets/attack_techniques/T1608/snapattack/snapattack.log,LFS object not written (blocked)
+datasets/attack_techniques/t1592/pwh_av_recon/pwh_av_recon.yml,datasets/attack_techniques/t1592/pwh_av_recon/windows-powershell-xml.log,LFS object not written (blocked)

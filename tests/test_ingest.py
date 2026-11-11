@@ -11,7 +11,7 @@ import pytest
 
 from bastion.ingest.auditd import AuditdSource
 from bastion.ingest.base import select_source
-from bastion.ingest.evtx import EvtxSource, xml_to_event
+from bastion.ingest.evtx import EvtxSource, XmlEventLogSource, iter_xml_events, xml_to_event
 from bastion.ingest.journald import JournaldSource
 from bastion.ingest.linux import LinuxLogSource
 from bastion.models import Event
@@ -152,6 +152,28 @@ class TestEvtxSource:
         assert len(events) == 2
         assert all(event.fields["EventID"] == 1 for event in events)
         assert any("unreadable record" in record.message for record in caplog.records)
+
+
+class TestXmlEventLogSource:
+    EVENT = (
+        "<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System>"
+        "<EventID>4104</EventID><Channel>Microsoft-Windows-PowerShell/Operational</Channel>"
+        "</System><EventData><Data Name='ScriptBlockText'>Get-Process</Data></EventData></Event>"
+    )
+
+    def test_events_split_across_chunks_and_lines(self) -> None:
+        text = self.EVENT + "\n" + self.EVENT.replace("Get-Process", "a\nb") + "  "
+        chunks = [text[i : i + 7] for i in range(0, len(text), 7)]
+        assert len(list(iter_xml_events(chunks))) == 2
+
+    def test_parse_file(self, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+        path = tmp_path / "ps.log"
+        path.write_text(self.EVENT + self.EVENT + "<Event><System>", encoding="utf-8")
+        with caplog.at_level(logging.WARNING):
+            events = list(XmlEventLogSource().parse(path))
+        assert [e.fields["ScriptBlockText"] for e in events] == ["Get-Process", "Get-Process"]
+        assert events[0].fields["EventID"] == 4104 and events[0].source == "ps.log"
+        assert "trailing text" in caplog.text
 
 
 class TestAuditdSource:

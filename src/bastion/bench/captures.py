@@ -15,17 +15,25 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
 
-from bastion.ingest import AuditdSource, EvtxSource, JournaldSource, LinuxLogSource, LogSource
+from bastion.ingest import (
+    AuditdSource,
+    EvtxSource,
+    JournaldSource,
+    LinuxLogSource,
+    LogSource,
+    XmlEventLogSource,
+)
 from bastion.models import Event, Platform
 
 CaptureKind = Literal["positive", "benign", "regression", "fixture"]
 """What a capture is evidence of: a labelled technique, goodware, a per-rule
 regression case, or an in-repo synthetic fixture (the weakest ladder rung)."""
 
-SourceKind = Literal["evtx", "auditd", "syslog", "journald"]
+SourceKind = Literal["evtx", "xmlevents", "auditd", "syslog", "journald"]
 
 _SOURCES: dict[str, Callable[[], LogSource]] = {
     "evtx": EvtxSource,
+    "xmlevents": XmlEventLogSource,
     "auditd": AuditdSource,
     "syslog": LinuxLogSource,
     "journald": JournaldSource,
