@@ -1,0 +1,5 @@
+technique,name,platforms,log_sources,dev_captures,dev_capture_alerts
+T1037.004,RC Scripts,macOS;Linux;Network Devices;ESXi,auditd:SYSCALL;esxi:shell;esxi:syslog;fs:fsusage;linux:syslog;macos:unifiedlog,citadel_captures/proving2-2026-09-22/T1037.004/126f71af-e1c9-405c-94ef-26a47b16c102,5
+T1129,Shared Modules,Linux;macOS;Windows,NSM:Flow;WinEventLog:Microsoft-Windows-CodeIntegrity/Operational;WinEventLog:Security;WinEventLog:Sysmon;auditd:EXECVE;auditd:SYSCALL,attack_data/T1129/snapattack/sysmon_linux,0
+T1652,Device Driver Discovery,Linux;macOS;Windows,WinEventLog:Security;WinEventLog:Sysmon;auditd:FS;auditd:SYSCALL;macos:unifiedlog,citadel_captures/proving-2026-09-22/T1652/d57dfc9e-ed9a-418e-88f8-b59c85f8cfd1;citadel_captures/proving2-2026-09-22/T1652/d57dfc9e-ed9a-418e-88f8-b59c85f8cfd1,1;1
+T1659,Content Injection,Linux;macOS;Windows,NSM:Flow;WinEventLog:Security;WinEventLog:Sysmon;auditd:SYSCALL;macos:unifiedlog,citadel_captures/network-2026-09-22/T1659/9b360eaf-c778-4f07-a6e7-895c4f01ac1c,10
