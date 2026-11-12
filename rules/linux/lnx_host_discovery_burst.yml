@@ -1,0 +1,56 @@
+# Bastion B4 (lever c, correlation content). Ported from Citadel M2
+#   (rules/linux/lnx_mr_discovery_burst.yml at Citadel ff50c75; MIT, same author), unchanged in
+#   logic. Citadel developed and measured it on its own-lab captures (Bastion's dev-only
+#   corpus): alone the building block matched 40 benign events there, the correlation none.
+# Summiting the Pyramid: level 4, core to some implementations of T1033 and T1082 (a burst of
+#   distinct discovery commands from one parent; spacing them out evades it).
+# Status experimental, so hunting class, like every Linux local rule until a Linux goodware
+#   corpus exists (Mason, B2.md section 1).
+title: Several Host Discovery Commands From One Parent
+id: 5b0d8a3e-2f6c-4b1e-9a57-3c9e1f4d7a20
+status: experimental
+description: >
+    One parent process runs three or more distinct host discovery commands within ten seconds.
+references:
+    - https://attack.mitre.org/techniques/T1033/
+author: Citadel, ported by Bastion
+date: 2026-09-22
+modified: 2026-11-11
+tags:
+    - attack.discovery
+    - attack.t1033
+correlation:
+    type: value_count
+    rules:
+        - host_discovery_command
+    group-by:
+        - ppid
+    timespan: 10s
+    condition:
+        field: Image
+        gte: 3
+falsepositives:
+    - Login banners and shell profiles that print who is logged in, the host name and the kernel
+level: low
+---
+name: host_discovery_command
+logsource:
+    product: linux
+    category: process_creation
+detection:
+    selection:
+        Image|endswith:
+            - '/users'
+            - '/w'
+            - '/who'
+            - '/whoami'
+            - '/id'
+            - '/uname'
+            - '/hostname'
+            - '/hostnamectl'
+            - '/netstat'
+            - '/ss'
+            - '/groups'
+            - '/last'
+            - '/lsb_release'
+    condition: selection

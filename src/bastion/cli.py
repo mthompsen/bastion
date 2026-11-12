@@ -34,6 +34,7 @@ from bastion.ingest import EvtxSource, select_source
 from bastion.models import Platform, ScanResult, SigmaRule
 from bastion.report import ReportContext, write_report
 from bastion.sigma import load_rules
+from bastion.sigma.correlation import CorrelationRule, load_correlations
 from bastion.sigma.filters import SigmaFilter, load_filters
 
 app = typer.Typer(
@@ -120,6 +121,17 @@ def _load_ruleset(rules_dir: Path | None, platform: Platform | None) -> list[Sig
     return rules
 
 
+def _load_correlations(rules_dir: Path | None) -> list[CorrelationRule]:
+    """Sigma correlation rules from the same places as the rules: a directory, or cache + local."""
+    directory = rules_dir or sigma_rules_path()
+    loaded = load_correlations(directory)
+    if rules_dir is None:
+        loaded.extend(load_correlations(LOCAL_RULES_DIR))
+    for path, reason in {**loaded.unsupported, **loaded.errors}.items():
+        console.print(f"[yellow]Correlation not evaluated:[/] {Path(path).name}: {reason}")
+    return loaded.rules
+
+
 def _load_filters(filters_dir: Path | None) -> list[SigmaFilter]:
     """Sigma filter documents: an explicit directory, or the repository's ``filters/``."""
     return load_filters(filters_dir or FILTERS_DIR)
@@ -130,6 +142,12 @@ def _level_cell(level: str) -> str:
 
 
 def _print_scan_caveats(outcome: engine.ScanOutcome) -> None:
+    for finding in outcome.correlation.findings:
+        group = ", ".join(f"{k}={v}" for k, v in finding.group.items())
+        console.print(
+            f"Correlation: [bold]{finding.rule_title}[/] ({finding.level}) on {group}: "
+            f"{len(finding.events)} events, techniques {', '.join(finding.techniques) or 'none'}."
+        )
     if outcome.unsupported_rules:
         console.print(
             f"[yellow]{len(outcome.unsupported_rules)} rules use unsupported Sigma grammar"
@@ -662,7 +680,10 @@ def _run_scan(
     filters = _load_filters(filters_dir)
     attack_data = load_attack_data(bundle)
     resolution = resolve_rule_tags(rules, attack_data)
-    outcome = engine.scan(source.parse(logfile), rules, attack_data.techniques, filters)
+    correlations = _load_correlations(rules_dir)
+    outcome = engine.scan(
+        source.parse(logfile), rules, attack_data.techniques, filters, correlations
+    )
     summary = summarize_coverage(rules, attack_data.techniques)
     result = ScanResult(
         detections=outcome.detections,

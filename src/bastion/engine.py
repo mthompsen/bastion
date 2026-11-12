@@ -31,6 +31,7 @@ from bastion.attack import resolve_techniques
 from bastion.models import Detection, Event, SigmaRule, TechniqueRef
 from bastion.pipelines import event_channel, linux_pipeline, windows_pipeline
 from bastion.process_tree import ProcessTree
+from bastion.sigma.correlation import CorrelationOutcome, CorrelationRule, Correlator
 from bastion.sigma.filters import SigmaFilter
 from bastion.sigma.matcher import UnsupportedRuleError, match
 
@@ -45,6 +46,8 @@ class ScanOutcome:
     events_scanned: int = 0
     #: process starts that gained a parent field from an earlier start in the same scan
     lineage_enriched: int = 0
+    #: correlation findings and what the correlation pass could not place (B4 lever c)
+    correlation: CorrelationOutcome = field(default_factory=CorrelationOutcome)
     rules_evaluated: int = 0
     unsupported_rules: dict[str, str] = field(default_factory=dict)
     rule_errors: dict[str, str] = field(default_factory=dict)
@@ -105,12 +108,17 @@ def scan(
     rules: Sequence[SigmaRule],
     attack_lookup: dict[str, TechniqueRef],
     filters: Sequence[SigmaFilter] = (),
+    correlations: Sequence[CorrelationRule] = (),
 ) -> ScanOutcome:
     """Evaluate every applicable rule against every event.
 
     ``filters`` are Sigma filter documents: a detection whose rule a filter names is
     suppressed when the filter's selection matches the same event, and every suppression
     is counted on the outcome. A filter the matcher cannot evaluate fails open.
+
+    ``correlations`` are Sigma correlation rules, evaluated in the same pass over what their
+    building blocks (and any rules they name by id) match; findings are on
+    ``outcome.correlation``.
     """
     outcome = ScanOutcome(rules_evaluated=len(rules))
     retired: set[str] = set()
@@ -135,11 +143,16 @@ def scan(
     ]
 
     tree = ProcessTree()
+    correlator = (
+        Correlator(correlations, {r.id: r for r in rules}, rule_applies) if correlations else None
+    )
     for event in events:
         outcome.events_scanned += 1
         # Process lineage (B4 lever c): a process start gains its parent's details from an
         # earlier start in this scan, only where it lacks them, before any rule reads it.
         tree.observe(event)
+        if correlator is not None:
+            correlator.observe(event)
         is_windows = event.platform == "windows"
         event_id = event.fields.get("EventID")
         channel = event_channel(event) if is_windows else None
@@ -198,4 +211,6 @@ def scan(
                 )
             )
     outcome.lineage_enriched = tree.enriched
+    if correlator is not None:
+        outcome.correlation = correlator.finish()
     return outcome

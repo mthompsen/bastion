@@ -16,6 +16,21 @@ fetched rules and are loaded automatically alongside the cache when you run `bas
 | Wi-Fi Profile Enumeration Via Netsh | T1016.002 Wi-Fi Discovery | windows |
 | System Language And Location Discovery | T1614 System Location Discovery | windows |
 
+Correlation rules (Sigma correlation specification 2.1.0, evaluated by
+`bastion.sigma.correlation`; their building blocks never alert on their own). Each records its
+Summiting the Pyramid level and the dev capture it was developed on in a comment at the top of
+the file:
+
+| Rule | Technique | Platform | STP | Status |
+|---|---|---|---|---|
+| Failed Logons For Many Accounts From One Source | T1110.003 Password Spraying | windows | 4 | experimental |
+| Kerberos Authentication Failures For Many Accounts From One Source | T1110.003 Password Spraying | windows | 4 | experimental |
+| Several Host Discovery Commands From One Parent (ported from Citadel M2) | T1033 System Owner/User Discovery | linux | 4 | experimental |
+
+The two Windows correlations stay `experimental` because the goodware replay holds none of
+the events they read, so it cannot show they are quiet on benign data
+(`docs/milestones/B4.md` section 4).
+
 Status by platform (decided 2026-11-10, recorded in `docs/milestones/B2.md` section 1):
 
 - The 2 Windows rules carry Sigma status `test`. Each has a true-positive and a true-negative

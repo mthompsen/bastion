@@ -1,0 +1,61 @@
+# Bastion B4 (lever c, correlation content).
+# Summiting the Pyramid: level 4, core to some implementations of T1110.003. A Kerberos spray
+#   leaves one failed pre-authentication (4771, 0x18) or unknown-principal TGT request (4768,
+#   0x6) per account tried; slower or distributed sprays evade the window.
+# Developed on dev captures only: attack_data T1110.003 purplesharp_invalid_users_kerberos_xml
+#   (4768 with Status 0x6, one source, about 50 distinct TargetUserName within about a minute).
+#   No test capture was read.
+# Status experimental (hunting class): the goodware replay's Security log (win2022-evtx,
+#   22,085 events) holds no 4625, 4768 or 4771, so it cannot show these rules are quiet on
+#   benign data. On the 156 dev Windows captures only the four T1110.003 spray captures fire,
+#   once each. Promotion to test is Mason's decision (B4.md section 4).
+title: Kerberos Authentication Failures For Many Accounts From One Source
+id: 8c1d5e47-2b90-4f6a-a3d8-5e7f0b9c2a14
+status: experimental
+description: >
+    Ten or more distinct accounts fail Kerberos authentication from the same client address on
+    the same domain controller within five minutes, either as a failed pre-authentication
+    (Security 4771, status 0x18, wrong password) or a TGT request for an account that does not
+    exist (Security 4768, status 0x6): one source trying many accounts.
+references:
+    - https://attack.mitre.org/techniques/T1110/003/
+author: Bastion
+date: 2026-11-11
+tags:
+    - attack.credential-access
+    - attack.t1110.003
+correlation:
+    type: value_count
+    rules:
+        - kerberos_preauth_failed
+        - kerberos_unknown_account
+    group-by:
+        - Computer
+        - IpAddress
+    timespan: 5m
+    condition:
+        field: TargetUserName
+        gte: 10
+falsepositives:
+    - A host with many stale cached credentials re-authenticating after a password change
+level: medium
+---
+name: kerberos_preauth_failed
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4771
+        Status: '0x18'
+    condition: selection
+---
+name: kerberos_unknown_account
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4768
+        Status: '0x6'
+    condition: selection

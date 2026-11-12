@@ -69,16 +69,43 @@ def load_rules(rules_dir: Path, platform: Platform | None = None) -> list[SigmaR
     return rules
 
 
-def _load_rule_file(path: Path) -> SigmaRule | None:
+def read_documents(path: Path) -> list[Any] | None:
+    """Every YAML document in a rule file, or None (with a warning) when it does not parse."""
     try:
-        doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+        return list(yaml.safe_load_all(path.read_text(encoding="utf-8")))
     except yaml.YAMLError as exc:
         logger.warning("%s: skipping unparseable rule file: %s", path, exc)
         return None
+
+
+def is_correlation(documents: list[Any]) -> bool:
+    """A Sigma correlation file: its first document carries a ``correlation`` block."""
+    return bool(documents) and isinstance(documents[0], dict) and "correlation" in documents[0]
+
+
+def _load_rule_file(path: Path) -> SigmaRule | None:
+    documents = read_documents(path)
+    if documents is None:
+        return None
+    if is_correlation(documents):
+        # A correlation and its building blocks are loaded by bastion.sigma.correlation, and
+        # only there, so a building block can never alert on its own (Citadel ADR 0008).
+        logger.debug("%s: correlation file, loaded by the correlation loader", path)
+        return None
+    if len(documents) != 1:
+        logger.warning("%s: skipping file with %d YAML documents", path, len(documents))
+        return None
+    doc = documents[0]
     if not isinstance(doc, dict) or not isinstance(doc.get("detection"), dict):
         logger.warning("%s: skipping file without a detection block", path)
         return None
+    return rule_from_document(doc, path)
 
+
+def rule_from_document(
+    doc: dict[str, Any], path: Path, rule_id: str | None = None
+) -> SigmaRule | None:
+    """One Sigma document (a rule, a correlation header or a building block) as a SigmaRule."""
     techniques, tactics = _attack_tags(doc.get("tags") or [])
     level = str(doc.get("level", "medium")).lower()
     if level not in _VALID_LEVELS:
@@ -86,7 +113,7 @@ def _load_rule_file(path: Path) -> SigmaRule | None:
         level = "medium"
     try:
         return SigmaRule(
-            id=str(doc.get("id") or path.stem),
+            id=rule_id or str(doc.get("id") or path.stem),
             title=str(doc.get("title") or path.stem),
             level=level,  # type: ignore[arg-type]  # validated against _VALID_LEVELS above
             status=str(doc.get("status") or "").lower(),

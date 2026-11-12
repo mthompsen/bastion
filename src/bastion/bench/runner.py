@@ -65,6 +65,7 @@ from bastion.fetch import attack_bundle_path, sigma_rules_path, sigma_tree_path
 from bastion.models import Event, SigmaRule
 from bastion.pins import pin_summary
 from bastion.sigma import load_rules
+from bastion.sigma.correlation import CorrelationRule, LoadedCorrelations, load_correlations
 from bastion.sigma.filters import SigmaFilter, load_filters
 
 DEFAULT_SEED = 20260926
@@ -163,6 +164,7 @@ class RuleSet:
     evaluability: EvaluabilityReport
     hunting_ids: set[str]
     filters: list[SigmaFilter] = field(default_factory=list)
+    correlations: LoadedCorrelations = field(default_factory=LoadedCorrelations)
     tag_resolution: TagResolution = field(default_factory=TagResolution)
 
     def for_platform(self, platform: str) -> list[SigmaRule]:
@@ -172,6 +174,7 @@ class RuleSet:
 def load_ruleset(config: BenchConfig) -> RuleSet:
     rules_dir = config.rules_dir or sigma_rules_path(config.repo_root / "data")
     rules = load_rules(rules_dir)
+    correlations = load_correlations(rules_dir)
     if config.rules_dir is None:
         for tree in config.sigma_trees:
             tree_dir = sigma_tree_path(tree, config.repo_root / "data")
@@ -181,16 +184,19 @@ def load_ruleset(config: BenchConfig) -> RuleSet:
                     "run `bastion fetch`"
                 )
             rules += load_rules(tree_dir)
+            correlations.extend(load_correlations(tree_dir))
     local = config.repo_root / "rules"
     if config.rules_dir is None and local.is_dir():
         rules += load_rules(local)
+        correlations.extend(load_correlations(local))
     by_id: dict[str, SigmaRule] = {}
     for rule in rules:
         by_id.setdefault(rule.id, rule)
     report = check_rules(rules)
     hunting = {r.id for r in rules if is_hunting(r)}
+    hunting |= {c.header.id for c in correlations.rules if is_hunting(c.header)}
     filters = load_filters(config.filters_dir or config.repo_root / "filters")
-    return RuleSet(rules, by_id, report, hunting, filters)
+    return RuleSet(rules, by_id, report, hunting, filters, correlations=correlations)
 
 
 def load_attack(config: BenchConfig) -> AttackData:
@@ -343,6 +349,7 @@ def evaluate_capture(
     split: str,
     limit: int | None = None,
     filters: Sequence[SigmaFilter] = (),
+    correlations: Sequence[CorrelationRule] = (),
 ) -> CaptureOutcome:
     """Run the engine over one capture exactly as ``bastion scan`` would."""
     first: datetime | None = None
@@ -359,9 +366,24 @@ def evaluate_capture(
                 last = when if last is None or when > last else last
             yield event
 
-    outcome = engine.scan(tracked(), rules, attack.techniques, filters)
+    outcome = engine.scan(tracked(), rules, attack.techniques, filters, correlations)
     counts: Counter[str] = Counter(d.rule_id for d in outcome.detections)
     by_rule = {r.id: r for r in rules}
+    # A correlation finding fires like a rule: one count per finding, tagged with the
+    # techniques of its constituents only (bastion.sigma.correlation).
+    correlated = {c.id: c for c in correlations}
+    finding_techniques: dict[str, list[str]] = {}
+    for finding in outcome.correlation.findings:
+        counts[finding.rule_id] += 1
+        finding_techniques[finding.rule_id] = finding.techniques
+    for rule_id in correlated:
+        if rule_id in counts:
+            by_rule.setdefault(
+                rule_id,
+                correlated[rule_id].header.model_copy(
+                    update={"resolved_techniques": finding_techniques[rule_id]}
+                ),
+            )
     fired = [
         Fired(
             rule_id=rule_id,
@@ -475,6 +497,7 @@ def run_bench(
                     split,
                     config.max_events_per_capture,
                     ruleset.filters,
+                    ruleset.correlations.rules,
                 )
             except Exception as exc:  # a broken file must not end the run
                 outcome = CaptureOutcome(
@@ -657,6 +680,16 @@ def summarize(
             "local_rule_ids": sorted(r.id for r in local_rules),
             "local_rules_hunting": sorted(r.id for r in local_rules if r.id in ruleset.hunting_ids),
             "filters_loaded": sorted(f.id for f in ruleset.filters),
+            "correlations": {
+                "loaded": sorted(c.id for c in ruleset.correlations.rules),
+                "hunting": sorted(
+                    c.id for c in ruleset.correlations.rules if c.id in ruleset.hunting_ids
+                ),
+                "unsupported": {
+                    Path(k).name: v for k, v in sorted(ruleset.correlations.unsupported.items())
+                },
+                "errors": {Path(k).name: v for k, v in sorted(ruleset.correlations.errors.items())},
+            },
             "suppressed_by_filters": dict(
                 sorted(
                     Counter(

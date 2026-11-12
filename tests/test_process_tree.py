@@ -6,11 +6,11 @@ from pathlib import Path
 
 from bastion.engine import scan
 from bastion.ingest.auditd import AuditdSource
-from bastion.models import Event, SigmaRule
+from bastion.models import Event, FieldValue, SigmaRule
 from bastion.process_tree import ProcessTree
 
 
-def _sec(event_id: int, **fields: object) -> Event:
+def _sec(event_id: int, **fields: FieldValue) -> Event:
     return Event(
         platform="windows",
         source="Security.evtx",
@@ -19,7 +19,7 @@ def _sec(event_id: int, **fields: object) -> Event:
     )
 
 
-def _sysmon(event_id: int, **fields: object) -> Event:
+def _sysmon(event_id: int, **fields: FieldValue) -> Event:
     return Event(
         platform="windows",
         source="sysmon.evtx",

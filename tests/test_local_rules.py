@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from bastion.models import Event, FieldValue
+from bastion.sigma.correlation import load_correlations
 from bastion.sigma.loader import load_rules
 from bastion.sigma.matcher import match
 
@@ -24,8 +25,11 @@ def make_event(platform: str, **fields: FieldValue) -> Event:
 
 
 def test_every_rule_file_loads() -> None:
+    """Single-event rules load as rules; correlation files load through the correlation loader."""
     rule_files = list(LOCAL_RULES_DIR.rglob("*.yml"))
-    assert len(LOCAL_RULES) == len(rule_files)
+    correlations = load_correlations(LOCAL_RULES_DIR)
+    assert not correlations.errors and not correlations.unsupported
+    assert len(LOCAL_RULES) + len(correlations.rules) == len(rule_files)
     assert len(LOCAL_RULES) >= 8
 
 
