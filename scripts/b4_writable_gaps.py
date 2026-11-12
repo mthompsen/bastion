@@ -27,17 +27,17 @@ from bastion.coverage import host_relevant, telemetry_readable
 
 def main(run: str, out: Path) -> None:
     repo = Path.cwd()
-    settings = tomllib.load(open(repo / "bench" / "bench.toml", "rb"))
+    settings = tomllib.loads((repo / "bench" / "bench.toml").read_text(encoding="utf-8"))
     trees = tuple(settings.get("rules", {}).get("sigma_trees", []))
     config = BenchConfig(cache=repo, repo_root=repo, sigma_trees=trees)
     ruleset = load_ruleset(config)
     attack = load_attack_data(repo / "data" / "attack" / "enterprise-attack.json")
     alerting_tags = {t.upper() for r in ruleset.rules if is_alerting(r) for t in r.technique_ids()}
-    manifest = {
-        e["id"]: e for e in tomllib.load(open(repo / "bench" / "manifest.toml", "rb"))["capture"]
-    }
+    manifest_doc = tomllib.loads((repo / "bench" / "manifest.toml").read_text(encoding="utf-8"))
+    manifest = {e["id"]: e for e in manifest_doc["capture"]}
     fired: dict[str, int] = {}
-    for line in open(repo / "bench" / "results" / run / "outcomes.jsonl", encoding="utf-8"):
+    outcomes = (repo / "bench" / "results" / run / "outcomes.jsonl").read_text(encoding="utf-8")
+    for line in outcomes.splitlines():
         outcome = json.loads(line)["outcome"]
         entry = manifest.get(outcome["capture_id"])
         if entry is None or entry["split"] != "dev":
