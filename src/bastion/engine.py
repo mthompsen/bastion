@@ -30,6 +30,7 @@ from dataclasses import dataclass, field
 from bastion.attack import resolve_techniques
 from bastion.models import Detection, Event, SigmaRule, TechniqueRef
 from bastion.pipelines import event_channel, linux_pipeline, windows_pipeline
+from bastion.process_tree import ProcessTree
 from bastion.sigma.filters import SigmaFilter
 from bastion.sigma.matcher import UnsupportedRuleError, match
 
@@ -42,6 +43,8 @@ class ScanOutcome:
 
     detections: list[Detection] = field(default_factory=list)
     events_scanned: int = 0
+    #: process starts that gained a parent field from an earlier start in the same scan
+    lineage_enriched: int = 0
     rules_evaluated: int = 0
     unsupported_rules: dict[str, str] = field(default_factory=dict)
     rule_errors: dict[str, str] = field(default_factory=dict)
@@ -131,8 +134,12 @@ def scan(
         for rule in rules
     ]
 
+    tree = ProcessTree()
     for event in events:
         outcome.events_scanned += 1
+        # Process lineage (B4 lever c): a process start gains its parent's details from an
+        # earlier start in this scan, only where it lacks them, before any rule reads it.
+        tree.observe(event)
         is_windows = event.platform == "windows"
         event_id = event.fields.get("EventID")
         channel = event_channel(event) if is_windows else None
@@ -190,4 +197,5 @@ def scan(
                     techniques=technique_cache[rule.id],
                 )
             )
+    outcome.lineage_enriched = tree.enriched
     return outcome
