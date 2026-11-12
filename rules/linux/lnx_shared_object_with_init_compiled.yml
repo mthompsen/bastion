@@ -1,0 +1,48 @@
+# Bastion B4 (lever a, writable gap T1129; bench/b4/writable-gaps-dev.csv).
+# Summiting the Pyramid: level 3, core to pre-existing tools. Building a shared object whose
+#   initialiser runs as soon as any process loads it is how a malicious module gets code
+#   execution on load; a prebuilt library, or one using a constructor attribute in its source
+#   rather than the linker flag, evades it.
+# Developed on dev capture attack_data/T1129/snapattack/sysmon_linux (Sysmon for Linux 1: gcc
+#   -shared -fPIC -Wl,-init,<symbol>). No test capture read.
+# Status experimental (hunting class), as every Linux local rule (Mason, B2.md section 1).
+title: Shared Object Compiled With A Load-Time Initialiser
+id: 4c8f2a17-9e3b-4d61-a0c7-5b1e8d3f6a92
+status: experimental
+description: >
+    A C compiler or linker builds a shared object (-shared) and sets its initialiser with the
+    linker flag -init, so a function runs as soon as any process loads the library.
+references:
+    - https://attack.mitre.org/techniques/T1129/
+author: Bastion
+date: 2026-11-11
+tags:
+    - attack.execution
+    - attack.t1129
+logsource:
+    product: linux
+    category: process_creation
+detection:
+    selection_tool:
+        - Image|contains:
+              - '/gcc'
+              - '/cc'
+              - '/clang'
+              - '/ld'
+              - '/x86_64-linux-gnu-gcc'
+        - CommandLine|startswith:
+              - 'gcc '
+              - 'cc '
+              - 'clang '
+              - 'ld '
+    selection_shared:
+        CommandLine|contains: '-shared'
+    selection_init:
+        CommandLine|contains:
+            - '-Wl,-init,'
+            - '-Wl,-init='
+            - ' -init '
+    condition: all of selection_*
+falsepositives:
+    - Library builds that set an initialiser deliberately (rare; most use a constructor attribute)
+level: medium

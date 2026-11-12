@@ -1,0 +1,40 @@
+# Bastion B4 (lever a, writable gap T1652; bench/b4/writable-gaps-dev.csv).
+# Summiting the Pyramid: level 3, core to pre-existing tools (lsmod, kmod list, modinfo, and
+#   reading /proc/modules); a custom binary reading the module list itself evades it.
+# Developed on dev captures citadel_captures/proving-2026-09-22/T1652/d57dfc9e and
+#   proving2-2026-09-22/T1652/d57dfc9e (Citadel own-lab, dev-only corpus): sh -c lsmod, then
+#   kmod run as lsmod. No test capture read.
+# Status experimental (hunting class), as every Linux local rule (Mason, B2.md section 1).
+title: Loaded Kernel Module Enumeration
+id: 9b4e1d73-6a2c-4f08-b5d9-2e8c7a1f4b65
+status: experimental
+description: >
+    A process lists the loaded kernel modules or their details: lsmod (kmod), kmod list, modinfo,
+    or a reader of /proc/modules. Adversaries check for security or monitoring drivers before
+    acting.
+references:
+    - https://attack.mitre.org/techniques/T1652/
+author: Bastion
+date: 2026-11-11
+tags:
+    - attack.discovery
+    - attack.t1652
+logsource:
+    product: linux
+    category: process_creation
+detection:
+    selection_lsmod:
+        - Image|endswith: '/lsmod'
+        - CommandLine|startswith: 'lsmod'
+        - CommandLine|re: '^\S*/lsmod(\s|$)'
+    selection_kmod:
+        Image|endswith: '/kmod'
+        CommandLine|contains: ' list'
+    selection_modinfo:
+        Image|endswith: '/modinfo'
+    selection_proc:
+        CommandLine|contains: '/proc/modules'
+    condition: 1 of selection_*
+falsepositives:
+    - Administrators and inventory or monitoring agents listing modules
+level: low

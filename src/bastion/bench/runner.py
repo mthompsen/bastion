@@ -616,18 +616,20 @@ def summarize(
     regression_summary = regression_pass_rate(
         outcomes, collected.regression_skipped, ruleset.by_id, pins_label
     )
+    # Correlations run over every capture, so each benign replay evaluated all of them.
+    correlation_ids = [c.id for c in ruleset.correlations.rules]
     baseline_volume = benign_volume(
         outcomes,
         collected.known_fps,
         config.budget,
-        [r.id for r in ruleset.for_platform("windows")],
+        [r.id for r in ruleset.for_platform("windows")] + correlation_ids,
         corpus="evtx_baseline",
     )
     lab_volume = benign_volume(
         outcomes,
         collected.known_fps,
         config.budget,
-        [r.id for r in ruleset.for_platform("linux")],
+        [r.id for r in ruleset.for_platform("linux")] + correlation_ids,
         corpus="citadel_captures",
     )
     ladder = evidence_ladder(outcomes, ruleset.rules, attack)

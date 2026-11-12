@@ -134,3 +134,48 @@ def test_windows_rules_stay_quiet_on_benign_process() -> None:
     for rule in LOCAL_RULES:
         if rule.logsource.get("product") == "windows":
             assert not match(rule, benign).matched, f"{rule.title} fired on notepad"
+
+
+# --- B4 lever a: Linux writable-gap rules (experimental, hunting class) ----------------------
+
+B4_LINUX = {
+    "RC Script Modified From The Command Line": (
+        [("/usr/bin/tee", "tee -a /etc/rc.local"), ("/usr/bin/chmod", "chmod +x /etc/rc.local")],
+        [("/usr/bin/cat", "cat /etc/rc.local"), ("/usr/bin/tee", "tee -a /etc/hosts")],
+    ),
+    "Loaded Kernel Module Enumeration": (
+        [
+            ("/usr/bin/kmod", "lsmod"),
+            ("/usr/sbin/modinfo", "modinfo e1000"),
+            ("/usr/bin/cat", "cat /proc/modules"),
+            ("/usr/bin/kmod", "kmod list"),
+        ],
+        [("/usr/bin/kmod", "kmod static-nodes"), ("/usr/bin/cat", "cat /proc/cpuinfo")],
+    ),
+    "Shared Object Compiled With A Load-Time Initialiser": (
+        [
+            (
+                "/usr/bin/x86_64-linux-gnu-gcc-13",
+                "gcc -shared -fPIC -Wl,-init,woot -o libnss_/woot1337.so.2 woot1337.c",
+            )
+        ],
+        [
+            ("/usr/bin/gcc", "gcc -shared -fPIC -o libfoo.so foo.c"),
+            ("/usr/bin/gcc", "gcc -Wl,-init,x -o prog prog.c"),
+        ],
+    ),
+}
+
+
+@pytest.mark.parametrize("title", sorted(B4_LINUX))
+def test_b4_linux_process_rules_fire_and_stay_quiet(title: str) -> None:
+    rule = next(r for r in LOCAL_RULES if r.title == title)
+    assert rule.status == "experimental"
+    positives, negatives = B4_LINUX[title]
+    for image, command_line in positives:
+        event = make_event("linux", Image=image, CommandLine=command_line)
+        assert match(rule, event).matched, (title, command_line)
+    for image, command_line in negatives:
+        event = make_event("linux", Image=image, CommandLine=command_line)
+        assert not match(rule, event).matched, (title, command_line)
+

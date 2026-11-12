@@ -1,0 +1,47 @@
+# Bastion B4 (lever a, writable gap T1037.004; bench/b4/writable-gaps-dev.csv).
+# Summiting the Pyramid: level 4. Writing or making executable an rc script is core to RC
+#   script persistence; the command must name the file, so a write done inside an interpreter
+#   (a Python script opening the file) evades this rule and is not seen.
+# Developed on dev capture citadel_captures/proving2-2026-09-22/T1037.004/126f71af (Citadel
+#   own-lab, dev-only corpus): touch, tee and chmod +x on /etc/rc.local. No test capture read.
+# Status experimental (hunting class): Linux local rules stay experimental until a Linux
+#   goodware corpus exists (Mason, B2.md section 1).
+title: RC Script Modified From The Command Line
+id: 6e2a4b91-0c7d-4f35-8a1e-3d9b5c7f2e60
+status: experimental
+description: >
+    A process whose command line names a System V rc script (/etc/rc.local, /etc/rc.d/rc.local,
+    /etc/rc.common): creating, writing, copying over or making executable a script that runs as
+    root at boot. Read-only viewers are excluded.
+references:
+    - https://attack.mitre.org/techniques/T1037/004/
+author: Bastion
+date: 2026-11-11
+tags:
+    - attack.persistence
+    - attack.privilege-escalation
+    - attack.t1037.004
+logsource:
+    product: linux
+    category: process_creation
+detection:
+    selection:
+        CommandLine|contains:
+            - '/etc/rc.local'
+            - '/etc/rc.d/rc.local'
+            - '/etc/rc.common'
+    filter_viewers:
+        Image|endswith:
+            - '/cat'
+            - '/less'
+            - '/more'
+            - '/head'
+            - '/tail'
+            - '/grep'
+            - '/stat'
+            - '/ls'
+            - '/file'
+    condition: selection and not filter_viewers
+falsepositives:
+    - Administrators maintaining rc.local on hosts that still use it
+level: medium

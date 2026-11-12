@@ -16,6 +16,15 @@ fetched rules and are loaded automatically alongside the cache when you run `bas
 | Wi-Fi Profile Enumeration Via Netsh | T1016.002 Wi-Fi Discovery | windows |
 | System Language And Location Discovery | T1614 System Location Discovery | windows |
 
+B4 lever a, writable gaps (`bench/b4/writable-gaps-dev.csv`), each developed on one dev capture
+and recording its Summiting the Pyramid level at the top of the file; all `experimental`:
+
+| Rule | Technique | Platform | STP | Developed on (dev) |
+|---|---|---|---|---|
+| RC Script Modified From The Command Line | T1037.004 RC Scripts | linux | 4 | Citadel own-lab `proving2-2026-09-22/T1037.004` |
+| Loaded Kernel Module Enumeration | T1652 Device Driver Discovery | linux | 3 | Citadel own-lab `proving-2026-09-22/T1652`, `proving2-2026-09-22/T1652` |
+| Shared Object Compiled With A Load-Time Initialiser | T1129 Shared Modules | linux | 3 | attack_data `T1129/snapattack/sysmon_linux` |
+
 Correlation rules (Sigma correlation specification 2.1.0, evaluated by
 `bastion.sigma.correlation`; their building blocks never alert on their own). Each records its
 Summiting the Pyramid level and the dev capture it was developed on in a comment at the top of

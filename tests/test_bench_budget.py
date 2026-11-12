@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+from bastion.sigma.correlation import load_correlations
 from bastion.sigma.loader import load_rules
 
 REPO = Path(__file__).resolve().parents[1]
@@ -34,22 +35,28 @@ def summary() -> dict[str, object]:
     return _latest_summary()
 
 
+def _local_ids() -> list[str]:
+    """Every local rule, single-event and correlation (correlation files are not plain rules)."""
+    rules = [r.id for r in load_rules(REPO / "rules")]
+    return rules + [c.id for c in load_correlations(REPO / "rules").rules]
+
+
 def test_every_local_rule_went_through_benign_replay(summary: dict[str, object]) -> None:
-    local_rules = load_rules(REPO / "rules")
+    local_ids = _local_ids()
     benign = summary["benign"]
     assert isinstance(benign, dict)
     evaluated: set[str] = set()
     for corpus in benign.values():
         assert isinstance(corpus, dict)
         evaluated.update(corpus["evaluated_rule_ids"])
-    missing = sorted(r.id for r in local_rules if r.id not in evaluated)
+    missing = sorted(rule_id for rule_id in local_ids if rule_id not in evaluated)
     assert missing == [], (
         f"local rules without a benign replay result: {missing}; run `bastion bench run` and commit"
     )
 
 
 def test_local_rules_are_within_the_benign_budget(summary: dict[str, object]) -> None:
-    local_ids = {r.id for r in load_rules(REPO / "rules")}
+    local_ids = set(_local_ids())
     benign = summary["benign"]
     assert isinstance(benign, dict)
     budget = float(summary["budget_alerts_per_host_day"])  # type: ignore[arg-type]
