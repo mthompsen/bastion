@@ -8,3 +8,10 @@ alerts_per_host_day = 20.0
 seed = 20260926
 # Corpora whose captures never enter the held-out split.
 dev_only = ["citadel_captures"]
+
+[rules]
+# SigmaHQ trees loaded beside rules/ by `bastion bench run` (cached by `bastion fetch` from the
+# same pinned release). B4 lever d, Mason's decision: rules-emerging-threats is its own
+# reported class, outside the headline and the goodware budget figure until Mason decides;
+# rules-threat-hunting is hunting class. `bastion scan` does not load them.
+sigma_trees = ["rules-emerging-threats", "rules-threat-hunting"]

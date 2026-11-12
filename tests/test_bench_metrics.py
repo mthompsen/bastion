@@ -19,6 +19,8 @@ from bastion.bench.metrics import (
     cross_firing,
     detection_rates,
     evidence_ladder,
+    is_alerting,
+    is_emerging,
     is_hunting,
     ladder_distribution,
     not_evaluable_summary,
@@ -339,3 +341,60 @@ def test_not_evaluable_summary_by_reason_and_split() -> None:
         "examples": ["silent"],
     }
     assert summary["top_rules"][0] == {"rule_id": "r-brute", "title": "brute", "pairs": 6}
+
+
+# --- emerging-threats class (B4 lever d) ----------------------------------------------------
+
+
+def _emerging(rule_id: str, techniques: list[str], count: int = 1, level: str = "high") -> Fired:
+    return Fired(rule_id, f"title {rule_id}", level, False, techniques, count, emerging=True)
+
+
+def test_is_emerging_and_is_alerting_by_tree() -> None:
+    et = SigmaRule(
+        id="e", title="e", status="test", file_path="x/rules-emerging-threats/2025/y.yml"
+    )
+    core = SigmaRule(id="c", title="c", status="test", file_path="x/rules/windows/y.yml")
+    assert is_emerging(et) and not is_alerting(et) and not is_hunting(et)
+    assert is_alerting(core) and not is_emerging(core)
+
+
+def test_emerging_class_is_outside_the_headline_and_reported_with_it() -> None:
+    outcomes = [
+        _outcome("et-only", ["T1059"], [_emerging("e", ["T1059"])]),
+        _outcome("core", ["T1110"], [_fired("c", ["T1110"])]),
+    ]
+    headline = detection_rates(outcomes, ATTACK, "test", "pins")
+    assert (headline.overall.numerator, headline.any_alert.numerator) == (1, 1)
+    with_et = detection_rates(outcomes, ATTACK, "test", "pins", include_emerging=True)
+    assert (with_et.overall.numerator, with_et.strict.numerator) == (2, 2)
+    assert with_et.any_alert.numerator == 2
+    assert cross_firing(outcomes, "test")["captures_with_cross_firing"] == 0
+
+
+def test_benign_volume_keeps_emerging_out_of_the_budget_figure() -> None:
+    outcomes = [
+        _outcome(
+            "b",
+            [],
+            [
+                _fired("core", [], level="medium", count=4),
+                _emerging("et", [], level="medium", count=6),
+                _emerging("et-low", [], level="low", count=2),
+            ],
+            kind="benign",
+            first="2026-01-01T00:00:00+00:00",
+            last="2026-01-03T00:00:00+00:00",
+        )
+    ]
+    volume = benign_volume(outcomes, {}, 20.0, [])
+    assert volume.alerts == 4 and volume.per_host_day == 2.0
+    assert (volume.alerts_emerging, volume.alerts_emerging_medium_plus) == (8, 6)
+    assert volume.per_host_day_emerging == 4.0
+    assert volume.per_host_day_emerging_medium_plus == 3.0
+
+
+def test_fired_without_emerging_field_reads_as_not_emerging() -> None:
+    raw = _outcome("x", [], [_fired("a", [])]).as_dict()
+    del raw["fired"][0]["emerging"]
+    assert CaptureOutcome.from_dict(raw).fired[0].emerging is False

@@ -52,6 +52,7 @@ from bastion.bench.metrics import (
     cross_firing,
     detection_rates,
     evidence_ladder,
+    is_emerging,
     is_hunting,
     labelled_positives,
     ladder_distribution,
@@ -60,7 +61,7 @@ from bastion.bench.metrics import (
     robustness,
     validated_coverage,
 )
-from bastion.fetch import attack_bundle_path, sigma_rules_path
+from bastion.fetch import attack_bundle_path, sigma_rules_path, sigma_tree_path
 from bastion.models import Event, SigmaRule
 from bastion.pins import pin_summary
 from bastion.sigma import load_rules
@@ -93,6 +94,8 @@ class BenchConfig:
     max_events_per_capture: int | None = None
     run_name: str | None = None
     dev_only_corpora: tuple[str, ...] = ("citadel_captures",)
+    #: SigmaHQ trees loaded beside rules/ (bench.toml [rules] sigma_trees; B4 lever d)
+    sigma_trees: tuple[str, ...] = ()
 
     def results_dir_root(self) -> Path:
         return self.results_root or self.repo_root / "bench" / "results"
@@ -169,6 +172,15 @@ class RuleSet:
 def load_ruleset(config: BenchConfig) -> RuleSet:
     rules_dir = config.rules_dir or sigma_rules_path(config.repo_root / "data")
     rules = load_rules(rules_dir)
+    if config.rules_dir is None:
+        for tree in config.sigma_trees:
+            tree_dir = sigma_tree_path(tree, config.repo_root / "data")
+            if not tree_dir.is_dir():
+                raise FileNotFoundError(
+                    f"bench.toml loads the SigmaHQ tree {tree!r}, but {tree_dir} is missing; "
+                    "run `bastion fetch`"
+                )
+            rules += load_rules(tree_dir)
     local = config.repo_root / "rules"
     if config.rules_dir is None and local.is_dir():
         rules += load_rules(local)
@@ -356,6 +368,7 @@ def evaluate_capture(
             title=by_rule[rule_id].title if rule_id in by_rule else "",
             level=by_rule[rule_id].level if rule_id in by_rule else "",
             hunting=rule_id in hunting_ids,
+            emerging=rule_id in by_rule and is_emerging(by_rule[rule_id]),
             techniques=list(by_rule[rule_id].technique_ids()) if rule_id in by_rule else [],
             count=count,
         )
@@ -539,6 +552,16 @@ def summarize(
             "per_technique": {t: r.as_dict() for t, r in detection.per_technique.items()},
             "per_tactic": {t: r.as_dict() for t, r in detection.per_tactic.items()},
             "cross_firing": cross_firing(subset, split),
+            "with_emerging": _with_emerging(subset, split),
+        }
+
+    def _with_emerging(subset: Sequence[CaptureOutcome], split: str) -> dict[str, Any]:
+        """The emerging-threats class added to the headline class; reported, never the headline."""
+        detection = detection_rates(subset, attack, split, pins_label, include_emerging=True)
+        return {
+            "detection_rate": detection.overall.as_dict(),
+            "detection_rate_strict": detection.strict.as_dict(),
+            "any_alert_rate": detection.any_alert.as_dict(),
         }
 
     rates: dict[str, Any] = {split: rate_block(outcomes, split) for split in ("test", "dev")}
@@ -616,8 +639,15 @@ def summarize(
         "event_cap_per_capture": config.max_events_per_capture,
         "rules": {
             "loaded": len(ruleset.rules),
-            "alerting": sum(1 for r in ruleset.rules if r.id not in ruleset.hunting_ids),
+            "alerting": sum(
+                1 for r in ruleset.rules if r.id not in ruleset.hunting_ids and not is_emerging(r)
+            ),
             "hunting": len(ruleset.hunting_ids),
+            # emerging threats outside the hunting class: reported, never in the headline
+            "emerging": sum(
+                1 for r in ruleset.rules if r.id not in ruleset.hunting_ids and is_emerging(r)
+            ),
+            "sigma_trees": ["rules", *config.sigma_trees],
             "not_evaluable": len(ruleset.evaluability.unsupported),
             "not_evaluable_by_reason": ruleset.evaluability.by_reason,
             "not_evaluable_files": [

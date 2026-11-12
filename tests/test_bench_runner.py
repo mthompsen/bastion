@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -256,3 +257,25 @@ def test_report_states_when_no_benign_captures_were_scanned(world: World) -> Non
         "modifier:fieldref 1" in text and "hunting class by status" in text and "Event cap" in text
     )
     assert json.dumps(summary)  # the summary is plain JSON throughout
+
+
+def test_load_ruleset_adds_configured_sigma_trees(world: World) -> None:
+    sigma = world.repo_root / "data" / "sigma"
+    shutil.copytree(world.rules_dir, sigma / "rules")
+    tree = sigma / "rules-emerging-threats" / "2025"
+    tree.mkdir(parents=True)
+    (tree / "et.yml").write_text(
+        "title: Emerging Threat Rule\nid: 0e0e0e0e-0000-4000-8000-00000000e7e7\nstatus: test\n"
+        "logsource:\n    product: windows\n    category: process_creation\n"
+        "detection:\n    sel:\n        Image|endswith: '\\evil.exe'\n    condition: sel\n"
+        "level: high\ntags:\n    - attack.t1059\n",
+        encoding="utf-8",
+    )
+    base = load_ruleset(_config(world, rules_dir=None))
+    with_tree = load_ruleset(
+        _config(world, rules_dir=None, sigma_trees=("rules-emerging-threats",))
+    )
+    added = {r.id for r in with_tree.rules} - {r.id for r in base.rules}
+    assert added == {"0e0e0e0e-0000-4000-8000-00000000e7e7"}
+    with pytest.raises(FileNotFoundError, match="rules-threat-hunting"):
+        load_ruleset(_config(world, rules_dir=None, sigma_trees=("rules-threat-hunting",)))

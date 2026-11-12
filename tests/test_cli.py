@@ -113,12 +113,17 @@ def test_fetch_reports_cached_datasets(
     def fake_fetch_sigma(data_dir: Path, force: bool) -> Path:
         return rules_dir
 
+    def fake_fetch_sigma_trees(data_dir: Path, force: bool) -> dict[str, Path]:
+        return {"rules-emerging-threats": rules_dir}
+
     monkeypatch.setattr("bastion.cli.fetch_attack", fake_fetch_attack)
     monkeypatch.setattr("bastion.cli.fetch_sigma", fake_fetch_sigma)
+    monkeypatch.setattr("bastion.cli.fetch_sigma_trees", fake_fetch_sigma_trees)
     result = runner.invoke(app, ["fetch", "--force", "--data-dir", str(tmp_path)])
     assert result.exit_code == 0
     assert "ATT&CK" in result.output
     assert "Sigma" in result.output
+    assert "rules-emerging-threats" in result.output
 
 
 def test_fetch_failure_exits_nonzero(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

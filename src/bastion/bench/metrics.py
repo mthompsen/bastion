@@ -116,6 +116,9 @@ class Fired:
     hunting: bool
     techniques: list[str]
     count: int
+    #: the rule is in the SigmaHQ emerging-threats tree: its own reported class, outside the
+    #: headline (B4 lever d, Mason's decision); defaults False for runs that predate it
+    emerging: bool = False
 
 
 @dataclass
@@ -165,6 +168,16 @@ def is_hunting(rule: SigmaRule) -> bool:
     )
 
 
+def is_emerging(rule: SigmaRule) -> bool:
+    """The SigmaHQ emerging-threats tree: a class of its own, reported outside the headline."""
+    return "rules-emerging-threats" in rule.file_path.replace("\\", "/")
+
+
+def is_alerting(rule: SigmaRule) -> bool:
+    """The headline class: neither hunting nor emerging threats."""
+    return not is_hunting(rule) and not is_emerging(rule)
+
+
 # --- technique matching -------------------------------------------------------------------
 
 
@@ -189,11 +202,12 @@ def tagged_to(rule_techniques: Iterable[str], label: str) -> bool:
     return False
 
 
-def _alerting(outcome: CaptureOutcome) -> list[Fired]:
-    return [f for f in outcome.fired if not f.hunting]
+def _alerting(outcome: CaptureOutcome, include_emerging: bool = False) -> list[Fired]:
+    """Fired rules of the headline class; with ``include_emerging``, emerging threats too."""
+    return [f for f in outcome.fired if not f.hunting and (include_emerging or not f.emerging)]
 
 
-def _hit(outcome: CaptureOutcome) -> tuple[bool, bool]:
+def _hit(outcome: CaptureOutcome, include_emerging: bool = False) -> tuple[bool, bool]:
     """``(parent_aware, strict)``: detected under the headline definition, and under exact tags.
 
     Parent-aware (the headline, Mason's decision B1-2) counts a rule tagged to the label or to
@@ -202,7 +216,7 @@ def _hit(outcome: CaptureOutcome) -> tuple[bool, bool]:
     """
     exact = False
     hierarchical = False
-    for fired in _alerting(outcome):
+    for fired in _alerting(outcome, include_emerging):
         tags = {t.upper() for t in fired.techniques}
         for label in outcome.techniques:
             if label.upper() in tags:
@@ -235,9 +249,17 @@ class DetectionRates:
 
 
 def detection_rates(
-    outcomes: Iterable[CaptureOutcome], attack: AttackData, split: str, pins_label: str
+    outcomes: Iterable[CaptureOutcome],
+    attack: AttackData,
+    split: str,
+    pins_label: str,
+    include_emerging: bool = False,
 ) -> DetectionRates:
-    """Detection rate (technique recall) and any-alert rate over labelled positives."""
+    """Detection rate (technique recall) and any-alert rate over labelled positives.
+
+    The headline counts the alerting class only. ``include_emerging`` adds the emerging-threats
+    class, for the separately reported rate that is never the headline.
+    """
     positives = labelled_positives(outcomes, split)
     basis = f"labelled positive captures, {split} split, {pins_label}"
     hits = 0
@@ -249,11 +271,11 @@ def detection_rates(
     per_tactic_hits: Counter[str] = Counter()
     per_tactic_total: Counter[str] = Counter()
     for outcome in positives:
-        detected, strict = _hit(outcome)
+        detected, strict = _hit(outcome, include_emerging)
         hits += int(detected)
         strict_hits += int(strict)
         hierarchical += int(detected and not strict)
-        any_alert += int(bool(_alerting(outcome)))
+        any_alert += int(bool(_alerting(outcome, include_emerging)))
         tactics: set[str] = set()
         for technique in outcome.techniques:
             per_technique_total[technique] += 1
@@ -357,7 +379,7 @@ def claimed_coverage(
     rules: Sequence[SigmaRule], attack: AttackData, evaluable: Mapping[str, bool]
 ) -> dict[str, Rate]:
     """Claimed and telemetry-feasible coverage per section 4 (full matrix, Windows, Linux)."""
-    alerting = [r for r in rules if evaluable.get(r.id + r.file_path, True) and not is_hunting(r)]
+    alerting = [r for r in rules if evaluable.get(r.id + r.file_path, True) and is_alerting(r)]
     feasible = [r for r in alerting if _feasible(r)]
     out: dict[str, Rate] = {}
     for label, subset in (
@@ -369,6 +391,8 @@ def claimed_coverage(
         out[f"{label}:linux"] = _coverage_rate(label, subset, attack, "linux")
     hunting = [r for r in rules if is_hunting(r)]
     out["hunting_class:enterprise"] = _coverage_rate("hunting_class", hunting, attack, None)
+    emerging = [r for r in rules if is_emerging(r) and not is_hunting(r)]
+    out["emerging_class:enterprise"] = _coverage_rate("emerging_class", emerging, attack, None)
     return out
 
 
@@ -442,7 +466,7 @@ def _coverage_rate(
 
 def blind_spot_split(rules: Sequence[SigmaRule], attack: AttackData) -> dict[str, int]:
     """The three-way uncovered split for the alerting class, reusing coverage.py's classifiers."""
-    tagged = {t.upper() for r in rules if not is_hunting(r) for t in r.technique_ids()}
+    tagged = {t.upper() for r in rules if is_alerting(r) for t in r.technique_ids()}
     uncovered = [ref for tid, ref in attack.techniques.items() if tid not in tagged]
     on_host = [ref for ref in uncovered if host_relevant(ref)]
     writable = [ref for ref in on_host if telemetry_readable(ref)]
@@ -563,6 +587,11 @@ class BenignVolume:
     within_budget: bool | None
     notes: list[str]
     evaluated_rule_ids: list[str]
+    #: the emerging-threats class, outside the budget figure and reported beside it
+    alerts_emerging: int = 0
+    alerts_emerging_medium_plus: int = 0
+    per_host_day_emerging: float | None = None
+    per_host_day_emerging_medium_plus: float | None = None
 
 
 def benign_volume(
@@ -606,12 +635,18 @@ def benign_volume(
     per_rule_counter: dict[str, dict[str, Any]] = {}
     alerts = 0
     medium_plus = 0
+    emerging = 0
+    emerging_medium_plus = 0
     for outcome in benign:
         for fired in outcome.fired:
             if fired.hunting:
                 continue
-            alerts += fired.count
             is_medium_plus = fired.level in {"medium", "high", "critical"}
+            if fired.emerging:
+                emerging += fired.count
+                emerging_medium_plus += fired.count if is_medium_plus else 0
+                continue
+            alerts += fired.count
             medium_plus += fired.count if is_medium_plus else 0
             entry = per_rule_counter.setdefault(
                 fired.rule_id,
@@ -646,6 +681,10 @@ def benign_volume(
         within_budget=None if rate is None else rate <= budget,
         notes=notes,
         evaluated_rule_ids=sorted(set(evaluated_rule_ids)),
+        alerts_emerging=emerging,
+        alerts_emerging_medium_plus=emerging_medium_plus,
+        per_host_day_emerging=emerging / host_days if host_days else None,
+        per_host_day_emerging_medium_plus=emerging_medium_plus / host_days if host_days else None,
     )
 
 
@@ -697,7 +736,7 @@ def not_evaluable_summary(
         by_field.update(outcome.not_evaluable_fields)
         by_rule.update(outcome.not_evaluable)
     alerting_rules = {
-        rid for rid in by_rule if rid in rules_by_id and not is_hunting(rules_by_id[rid])
+        rid for rid in by_rule if rid in rules_by_id and is_alerting(rules_by_id[rid])
     }
     per_split: dict[str, Any] = {}
     for split in ("test", "dev"):
@@ -761,7 +800,7 @@ def evidence_ladder(
 ) -> dict[str, str]:
     """Strongest evidence any alerting rule has per technique, for every enterprise technique."""
     ladder: dict[str, str] = {}
-    rule_only = {t.upper() for r in rules if not is_hunting(r) for t in r.technique_ids()}
+    rule_only = {t.upper() for r in rules if is_alerting(r) for t in r.technique_ids()}
     for technique in attack.techniques:
         ladder[technique] = "rule-only" if technique in rule_only else "none"
     strength = {name: index for index, name in enumerate(LADDER)}

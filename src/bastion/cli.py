@@ -27,6 +27,7 @@ from bastion.fetch import (
     attack_bundle_path,
     fetch_attack,
     fetch_sigma,
+    fetch_sigma_trees,
     sigma_rules_path,
 )
 from bastion.ingest import EvtxSource, select_source
@@ -332,6 +333,12 @@ def fetch(
             f"Sigma ruleset {SIGMA_VERSION} cached at [bold]{sigma_path}[/]"
             f" ({rule_files} rule files)"
         )
+        for tree, tree_path in fetch_sigma_trees(data_dir=data_dir, force=force).items():
+            tree_files = sum(1 for _ in tree_path.rglob("*.yml"))
+            console.print(
+                f"Sigma {tree} {SIGMA_VERSION} cached at [bold]{tree_path}[/]"
+                f" ({tree_files} rule files; benchmark only, not loaded by scan)"
+            )
     except (httpx.HTTPError, ValueError) as exc:
         console.print(f"[red]Fetch failed:[/] {exc}")
         raise typer.Exit(code=1) from exc
@@ -462,6 +469,7 @@ def _bench_config(
         max_events_per_capture=max_events,
         run_name=run_name,
         dev_only_corpora=dev_only,
+        sigma_trees=tuple(str(s) for s in settings.get("rules", {}).get("sigma_trees", [])),
     )
 
 

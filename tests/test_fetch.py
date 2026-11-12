@@ -13,12 +13,15 @@ import pytest
 from bastion.fetch import (
     ATTACK_URL,
     ATTACK_VERSION,
+    SIGMA_EXTRA_TREES,
     SIGMA_URL,
     SIGMA_VERSION,
     attack_bundle_path,
     fetch_attack,
     fetch_sigma,
+    fetch_sigma_trees,
     sigma_rules_path,
+    sigma_tree_path,
 )
 
 VALID_BUNDLE = json.dumps({"type": "bundle", "objects": []}).encode()
@@ -50,6 +53,8 @@ def _sigma_zip(root: str = f"sigma-{SIGMA_VERSION}") -> bytes:
         archive.writestr(f"{root}/rules/linux/auth.yml", "title: Linux Rule\n")
         archive.writestr(f"{root}/tests/not_a_rule.yml", "title: Skipped\n")
         archive.writestr(f"{root}/README.md", "readme")
+        archive.writestr(f"{root}/rules-emerging-threats/2025/et.yml", "title: ET Rule\n")
+        archive.writestr(f"{root}/rules-threat-hunting/windows/th.yml", "title: TH Rule\n")
     return buffer.getvalue()
 
 
@@ -122,3 +127,30 @@ def test_fetch_sigma_rejects_archive_without_rules(tmp_path: Path) -> None:
         archive.writestr("sigma-x/README.md", "no rules here")
     with pytest.raises(ValueError, match="no rules"):
         fetch_sigma(data_dir=tmp_path, client=_serving(buffer.getvalue(), url=SIGMA_URL))
+
+
+def test_fetch_sigma_trees_extracts_each_tree_beside_rules(tmp_path: Path) -> None:
+    paths = fetch_sigma_trees(data_dir=tmp_path, client=_serving(_sigma_zip(), url=SIGMA_URL))
+    assert set(paths) == set(SIGMA_EXTRA_TREES)
+    assert paths["rules-emerging-threats"] == sigma_tree_path("rules-emerging-threats", tmp_path)
+    assert (paths["rules-emerging-threats"] / "2025" / "et.yml").exists()
+    assert (paths["rules-threat-hunting"] / "windows" / "th.yml").exists()
+    assert not sigma_rules_path(tmp_path).exists()  # rules/ is fetch_sigma's job
+    version = (tmp_path / "sigma" / "sigma-trees.version.txt").read_text(encoding="utf-8")
+    assert f"version: {SIGMA_VERSION}" in version
+    assert "rules-threat-hunting files: 1" in version
+
+
+def test_fetch_sigma_trees_uses_cache_without_network(tmp_path: Path) -> None:
+    for tree in SIGMA_EXTRA_TREES:
+        sigma_tree_path(tree, tmp_path).mkdir(parents=True)
+    paths = fetch_sigma_trees(data_dir=tmp_path, client=_refusing())
+    assert all(path.is_dir() for path in paths.values())
+
+
+def test_fetch_sigma_trees_rejects_archive_missing_a_tree(tmp_path: Path) -> None:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("sigma-x/rules-threat-hunting/a.yml", "title: a\n")
+    with pytest.raises(ValueError, match="rules-emerging-threats"):
+        fetch_sigma_trees(data_dir=tmp_path, client=_serving(buffer.getvalue(), url=SIGMA_URL))

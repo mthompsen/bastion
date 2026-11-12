@@ -115,6 +115,64 @@ def fetch_sigma(
     return dest
 
 
+#: SigmaHQ trees outside ``rules/`` that the benchmark can load as separately measured classes
+#: (B4 lever d): emerging threats (its own reported class) and threat hunting (hunting class).
+SIGMA_EXTRA_TREES: tuple[str, ...] = ("rules-emerging-threats", "rules-threat-hunting")
+
+
+def sigma_tree_path(tree: str, data_dir: Path = DEFAULT_DATA_DIR) -> Path:
+    """Where a cached SigmaHQ rule tree lives (``rules`` or one of ``SIGMA_EXTRA_TREES``)."""
+    return data_dir / "sigma" / tree
+
+
+def fetch_sigma_trees(
+    data_dir: Path = DEFAULT_DATA_DIR,
+    force: bool = False,
+    client: httpx.Client | None = None,
+    trees: tuple[str, ...] = SIGMA_EXTRA_TREES,
+) -> dict[str, Path]:
+    """Cache the extra SigmaHQ trees from the same pinned release as ``rules/``.
+
+    Each tree lands beside ``rules/`` under ``data/sigma/<tree>/``. The download is skipped
+    when every requested tree is cached (unless ``force``); a tree missing from the archive is
+    an error, so a pin that lacks it cannot pass silently.
+    """
+    paths = {tree: sigma_tree_path(tree, data_dir) for tree in trees}
+    if not force and all(path.is_dir() for path in paths.values()):
+        return paths
+    archive = zipfile.ZipFile(io.BytesIO(_request(client, SIGMA_URL)))
+    counts: dict[str, int] = {}
+    for tree, dest in paths.items():
+        if dest.exists():
+            shutil.rmtree(dest)
+        counts[tree] = _extract_tree(archive, tree, dest)
+        if counts[tree] == 0:
+            raise ValueError(f"no {tree}/ tree found in archive from {SIGMA_URL}")
+    data_dir.joinpath("sigma", "sigma-trees.version.txt").write_text(
+        f"version: {SIGMA_VERSION}\nurl: {SIGMA_URL}\n"
+        + "".join(f"{tree} files: {n}\n" for tree, n in counts.items()),
+        encoding="utf-8",
+    )
+    return paths
+
+
+def _extract_tree(archive: zipfile.ZipFile, tree: str, dest: Path) -> int:
+    """Extract ``<archive root>/<tree>/...`` into ``dest``; returns the number of files."""
+    extracted = 0
+    for name in archive.namelist():
+        parts = Path(name).parts
+        if len(parts) < 3 or parts[1] != tree or name.endswith("/"):
+            continue
+        relative = Path(*parts[2:])
+        if ".." in relative.parts:
+            raise ValueError(f"archive member escapes extraction root: {name!r}")
+        target = dest / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(archive.read(name))
+        extracted += 1
+    return extracted
+
+
 def _download(client: httpx.Client | None, url: str) -> bytes:
     payload = _request(client, url)
     try:

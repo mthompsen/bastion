@@ -39,17 +39,24 @@ def render_report(summary: Mapping[str, Any]) -> str:
     add(
         "Every rate below is numerator of denominator with a Wilson 95% interval and its basis. "
         "Hunting class (status experimental, unsupported, deprecated, or the threat-hunting tree) "
-        "never raises a headline number."
+        "never raises a headline number. The emerging-threats class (the SigmaHQ "
+        "rules-emerging-threats tree, when loaded) is reported beside the headline and never in it."
     )
     add("")
     add("## Rules")
     add("")
-    add("| Loaded | Alerting class | Hunting class | Not evaluable (grammar) |")
-    add("|-:|-:|-:|-:|")
+    add(
+        "| Loaded | Alerting class | Hunting class | Emerging-threats class "
+        "| Not evaluable (grammar) |"
+    )
+    add("|-:|-:|-:|-:|-:|")
     add(
         f"| {rules['loaded']} | {rules['alerting']} | {rules['hunting']} | "
-        f"{rules['not_evaluable']} |"
+        f"{rules.get('emerging', 0)} | {rules['not_evaluable']} |"
     )
+    if rules.get("sigma_trees"):
+        add("")
+        add("SigmaHQ trees loaded: " + ", ".join(f"`{t}`" for t in rules["sigma_trees"]) + ".")
     if rules["not_evaluable_by_reason"]:
         add("")
         add(
@@ -177,6 +184,21 @@ def render_report(summary: Mapping[str, Any]) -> str:
                 f"{_rate_line(block['detection_rate_strict'])} | "
                 f"{_rate_line(block['any_alert_rate'])} |"
             )
+        if summary.get("rules", {}).get("emerging"):
+            add("")
+            add(
+                "With the emerging-threats class added (reported, not the headline): "
+                + "; ".join(
+                    f"{label} {_rate_line(block['with_emerging']['detection_rate'])}, strict "
+                    f"{_rate_line(block['with_emerging']['detection_rate_strict'])}"
+                    for label, block in (
+                        ("frozen B1 test set", frozen),
+                        ("expanded test split", summary["rates"]["test"]),
+                    )
+                    if "with_emerging" in block
+                )
+                + "."
+            )
     by_corpus = summary.get("rates_by_corpus") or {}
     for split, corpora in by_corpus.items():
         if not corpora:
@@ -254,6 +276,13 @@ def render_report(summary: Mapping[str, Any]) -> str:
             f"{volume['alerts']} | {rate:.2f} | {rate_medium:.2f} | {volume['budget']} | "
             f"{'yes' if volume['within_budget'] else 'no'} |"
         )
+        if volume.get("alerts_emerging"):
+            add("")
+            add(
+                f"Emerging-threats class, outside the budget figure: {volume['alerts_emerging']} "
+                f"alerts, {volume['per_host_day_emerging']:.2f} per host-day "
+                f"({volume['per_host_day_emerging_medium_plus']:.2f} medium and above)."
+            )
         if volume["notes"]:
             add("")
             add("Notes: " + "; ".join(volume["notes"]) + ".")
