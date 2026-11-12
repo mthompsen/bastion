@@ -38,6 +38,11 @@ filter:
     condition: selection
 ```
 
-No filter documents ship today. The T1006 goodware volume measured in B1 turned out to be a
-routing defect in Bastion (see `docs/milestones/B2.md`), not a property of the rule, so no
-filter was written for it.
+Shipped filters:
+
+| File | Rule | Why |
+|:-|:-|:-|
+| `linux/lnx_auditd_system_shutdown_reboot_init_branch.yml` | System Shutdown/Reboot - Linux | The rule's init branch matches the keywords `init` and `0`/`6` anywhere in an audit event; kept only for the init and telinit commands (`docs/milestones/B4.md` section 1) |
+
+The T1006 goodware volume measured in B1 turned out to be a routing defect in Bastion (see
+`docs/milestones/B2.md`), not a property of the rule, so no filter was written for it.

@@ -165,3 +165,72 @@ def test_cli_applies_filters_dir_and_discloses_suppression(tmp_path: Path) -> No
     written = (tmp_path / "out" / "result.json").read_text(encoding="utf-8")
     assert '"filtered_detections"' in written and SSH_RULE_ID in written
     assert "aaaaaaaa-0000-4000-8000-000000000001" in written
+
+
+# --- shipped filter: System Shutdown/Reboot - Linux, init branch (B4 lever b) -------------
+
+SHUTDOWN_RULE = """title: System Shutdown/Reboot - Linux (detection as in SigmaHQ r2026-07-01)
+id: 4cb57c2f-1f29-41f8-893d-8bed8e1c1d2f
+status: test
+logsource:
+    product: linux
+    service: auditd
+detection:
+    execve:
+        type: 'EXECVE'
+    shutdowncmd:
+        - 'shutdown'
+        - 'reboot'
+        - 'halt'
+        - 'poweroff'
+    init:
+        - 'init'
+        - 'telinit'
+    initselection:
+        - 0
+        - 6
+    condition: execve and (shutdowncmd or (init and initselection))
+level: informational
+tags:
+    - attack.t1529
+"""
+
+
+def _audit_event(serial: int, comm: str, args: list[str]) -> str:
+    argv = " ".join(f'a{i}="{arg}"' for i, arg in enumerate(args))
+    stamp = f"msg=audit(1731340000.{serial:03d}:{serial})"
+    return (
+        f"type=SYSCALL {stamp}: arch=c000003e syscall=59 success=yes exit=0 ppid=1 pid={serial} "
+        f'auid=1000 uid=0 comm="{comm}" exe="/usr/bin/{comm}" key=(null)\n'
+        f"type=EXECVE {stamp}: argc={len(args)} {argv}\n"
+    )
+
+
+def test_shipped_shutdown_filter_keeps_real_commands_and_drops_stray_init(
+    tmp_path: Path,
+) -> None:
+    from bastion.ingest.auditd import AuditdSource
+
+    rules_dir = tmp_path / "rules"
+    rules_dir.mkdir()
+    (rules_dir / "shutdown.yml").write_text(SHUTDOWN_RULE, encoding="utf-8")
+    rules = load_rules(rules_dir)
+    log = tmp_path / "audit.log"
+    log.write_text(
+        _audit_event(101, "sh", ["sh", "-c", "echo initialised 0"])  # stray init and 0
+        + _audit_event(102, "logger", ["logger", "init done 6"])  # stray init and 6
+        + _audit_event(103, "init", ["init", "0"])  # the init branch as intended
+        + _audit_event(104, "telinit", ["/sbin/telinit", "6"])
+        + _audit_event(105, "shutdown", ["shutdown", "-P", "now"])  # shutdowncmd branch
+        + _audit_event(106, "systemctl", ["systemctl", "reboot"]),
+        encoding="utf-8",
+    )
+    events = list(AuditdSource().parse(log))
+    shipped = load_filters(Path(__file__).parent.parent / "filters")
+    unfiltered = scan(events, rules, ATTACK, [])
+    filtered = scan(events, rules, ATTACK, shipped)
+    assert len(unfiltered.detections) == 6
+    kept = sorted(str(d.event.fields.get("a0")) for d in filtered.detections)
+    assert kept == ["/sbin/telinit", "init", "shutdown", "systemctl"]
+    assert filtered.filtered == {"4cb57c2f-1f29-41f8-893d-8bed8e1c1d2f": 2}
+    assert filtered.filter_errors == {}

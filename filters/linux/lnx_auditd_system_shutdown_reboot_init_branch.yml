@@ -1,0 +1,43 @@
+title: System Shutdown/Reboot - Linux, init branch only for the init command
+id: 9d3c2b1e-5f47-4a8e-b6d1-2c7e0f4a8b93
+status: test
+description: >
+    Keeps the rule's init branch (init or telinit with runlevel 0 or 6) to events whose
+    executed command is init or telinit. The rule's keyword lists match anywhere in the audit
+    event, so the branch fires on any process whose record text holds the substring "init"
+    and a "0" or "6" anywhere, such as a timestamp or a uid.
+justification: >
+    Sigma specification 2.1.0, "Keywords search" (sigma-specification ba9251a), defines keyword
+    search as searching across an entire event and does not restrict it to whole tokens or to
+    the command; Bastion's substring matching follows that, so the noise comes from the rule's
+    keywords, not from Bastion. Measured on the own-lab benign background at b3-xml (B4.md
+    section 1): 290 of the rule's 310 firings came through the init branch, all on processes
+    whose command (EXECVE a0) is not init or telinit (sh, logger, ln, tee, python3, sed and
+    others); none of them was a shutdown or a reboot. The filter suppresses a detection only
+    when the event's command is not init or telinit and none of the rule's shutdown command
+    keywords (shutdown, reboot, halt, poweroff) appears, so every firing through the
+    shutdowncmd branch is kept, including the real `shutdown -P now` in the own-lab logs.
+    Recall cost: an init or telinit invocation is still detected, because the process exec
+    record has a0 init or telinit. A runlevel change requested some other way (systemctl
+    isolate, a direct write to /run/initctl) was never what the branch matched. Measured
+    before and after in B4.md section 1. Upstream issue text drafted there for Mason's review.
+author: Bastion (B4)
+date: 2026-11-11
+logsource:
+    product: linux
+filter:
+    rules:
+        - 4cb57c2f-1f29-41f8-893d-8bed8e1c1d2f  # System Shutdown/Reboot - Linux
+    init_command:
+        - a0:
+              - 'init'
+              - 'telinit'
+        - a0|endswith:
+              - '/init'
+              - '/telinit'
+    shutdown_keywords:
+        - 'shutdown'
+        - 'reboot'
+        - 'halt'
+        - 'poweroff'
+    condition: not init_command and not shutdown_keywords
