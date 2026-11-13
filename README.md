@@ -77,9 +77,11 @@ in [`matcher.py`](src/bastion/sigma/matcher.py): field maps with the
 `utf16le`/`wide`/`utf16be` encodings), wildcards with Sigma escaping, keyword lists, and
 conditions built from `and`/`or`/`not`, parentheses, and `N of` / `all of`. Anything outside
 the subset raises a recorded `UnsupportedRuleError`. At the pinned release (SigmaHQ
-r2026-07-01) that leaves 3 of the 3,150 rules the benchmark loads unevaluable: two use the
-`fieldref` modifier and one the `re` modifier's `i` flag. Two of the three are Windows rules.
-A scan reports only the ones its events reach, so the run below reports 1.
+r2026-07-01) that leaves 4 of the 3,760 rules the benchmark loads (the core tree, the
+emerging-threats and threat-hunting trees, and the local pack) unevaluable: three use the
+`fieldref` modifier and one the `re` modifier's `i` flag. Three of the four are Windows rules.
+`bastion scan` loads the core tree and the local pack only, and reports only the unevaluable
+rules its events reach, so the run below reports 1.
 
 `engine.py` pre-filters rules by platform and Sigma event category, so a `registry_set` rule
 is never evaluated against a process-creation event, and retires erroring rules without
