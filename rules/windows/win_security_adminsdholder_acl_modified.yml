@@ -1,0 +1,38 @@
+# Bastion B4b (procedure variant of T1546; bench/b4b/candidates-dev.csv).
+# Summiting the Pyramid: level 4. Every AdminSDHolder persistence changes the container's security
+#   descriptor, whatever tool writes it; the event exists only where directory service changes
+#   are audited on the container.
+# Developed on dev capture attack_data/T1546/adminsdholder_modified/windows (Security 5136:
+#   ObjectDN, AttributeLDAPDisplayName, OperationType, ObjectClass). No test capture read.
+# Tags: T1098 is the behaviour (an ACL change that SDProp copies to every protected account
+#   every 60 minutes); T1546 follows the Splunk analytic for this dataset, because a scheduled
+#   system process re-applies the stamped ACL.
+title: AdminSDHolder Security Descriptor Modified
+id: 6fd93f17-08b1-48f3-987a-e93ca6653514
+status: experimental
+description: >
+    The ntSecurityDescriptor of CN=AdminSDHolder,CN=System is changed. SDProp copies this ACL
+    onto every protected administrative account and group, so a permission granted here
+    persists on them even after it is removed from the accounts themselves.
+references:
+    - https://attack.mitre.org/techniques/T1098/
+author: Bastion
+date: 2026-11-13
+tags:
+    - attack.persistence
+    - attack.privilege-escalation
+    - attack.t1098
+    - attack.t1546
+logsource:
+    product: windows
+    service: security
+    definition: 'Requirements: Audit Directory Service Changes, with a SACL on the AdminSDHolder container'
+detection:
+    selection:
+        EventID: 5136
+        ObjectDN|startswith: 'CN=AdminSDHolder,CN=System,'
+        AttributeLDAPDisplayName: 'nTSecurityDescriptor'
+    condition: selection
+falsepositives:
+    - Deliberate changes to protected-account permissions by domain administrators
+level: high

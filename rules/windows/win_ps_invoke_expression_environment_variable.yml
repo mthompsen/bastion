@@ -1,0 +1,31 @@
+# Bastion B4b (procedure variant of T1059.001; bench/b4b/candidates-dev.csv).
+# Summiting the Pyramid: level 4. Running code that was stored in an environment variable is how
+#   a fileless loader keeps its payload out of the script text; any variable name matches.
+#   Copying the variable into another variable first, or another execution primitive, evades it.
+# Developed on dev capture attack_data/T1059.001/vip_env_var_execution/windows (PowerShell 4104
+#   ScriptBlockText only). No test capture read.
+title: PowerShell Runs Code Stored In An Environment Variable
+id: 28e49540-d532-4778-98cb-5fad0ecd9ef4
+status: experimental
+description: >
+    A script block passes the value of an environment variable straight to Invoke-Expression
+    (IEX). Loaders stage a payload in a user or process environment variable and execute it
+    from there, so the payload never appears in the script that runs it.
+references:
+    - https://attack.mitre.org/techniques/T1059/001/
+author: Bastion
+date: 2026-11-13
+tags:
+    - attack.execution
+    - attack.t1059.001
+logsource:
+    product: windows
+    category: ps_script
+    definition: 'Requirements: Script Block Logging must be enabled'
+detection:
+    selection:
+        ScriptBlockText|re: '(?i)\b(iex|invoke-expression)\b[\s(]*\$env:'
+    condition: selection
+falsepositives:
+    - Administrative scripts that deliberately run commands stored in environment variables (rare)
+level: high

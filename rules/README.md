@@ -40,6 +40,20 @@ The two Windows correlations stay `experimental` because the goodware replay hol
 the events they read, so it cannot show they are quiet on benign data
 (`docs/milestones/B4.md` section 4).
 
+B4b procedure variants (`docs/milestones/B4b.md`): rules for techniques that upstream rules
+already claim but miss on a dev capture. Each records its dev capture in its header.
+
+| Rule | Technique | Platform | STP | Developed on (dev) |
+|---|---|---|---|---|
+| PowerShell Runs Code Stored In An Environment Variable | T1059.001 PowerShell | windows | 4 | attack_data `T1059.001/vip_env_var_execution` |
+| PowerShell Invokes A Command Name Built From Concatenated Fragments | T1059.001 PowerShell, T1027.010 | windows | 3 | EVTX-ATTACK-SAMPLES `Other/emotet/exec_emotet_ps_4104` |
+| AdminSDHolder Security Descriptor Modified | T1098, T1546 | windows | 4 | attack_data `T1546/adminsdholder_modified` |
+| Auto-Elevating Binary Opened By A Program Outside System Folders | T1134.001, T1548.002 | windows | 3 | attack_data `T1134.001/uac_process_handle_dup` |
+| PsExec-Style Service Redirection Pipes Under Any Service Name | T1569.002, T1021.002 | windows | 3 | EVTX-ATTACK-SAMPLES `Defense Evasion/DE_renamed_psexec_service_sysmon_17_18` |
+
+All five are `experimental` until they have fixtures (they do) and benign evidence that holds
+the events they read (Mason, 2026-11-13).
+
 Status by platform (decided 2026-11-10, recorded in `docs/milestones/B2.md` section 1):
 
 - The 2 Windows rules carry Sigma status `test`. Each has a true-positive and a true-negative

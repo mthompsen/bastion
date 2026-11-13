@@ -179,3 +179,104 @@ def test_b4_linux_process_rules_fire_and_stay_quiet(title: str) -> None:
         event = make_event("linux", Image=image, CommandLine=command_line)
         assert not match(rule, event).matched, (title, command_line)
 
+
+# --- B4b: Windows procedure-variant rules (experimental until benign evidence holds) ---------
+
+B4B_WINDOWS: dict[str, tuple[list[dict[str, FieldValue]], list[dict[str, FieldValue]]]] = {
+    "PowerShell Runs Code Stored In An Environment Variable": (
+        [
+            {"EventID": 4104, "ScriptBlockText": "IEX $env:INTERNAL_DB_CACHE"},
+            {"EventID": 4104, "ScriptBlockText": "Invoke-Expression ($env:Payload)"},
+        ],
+        [
+            {"EventID": 4104, "ScriptBlockText": "Write-Output $env:USERNAME"},
+            {"EventID": 4104, "ScriptBlockText": "IEX (Get-Content .\\setup.ps1 -Raw)"},
+        ],
+    ),
+    "PowerShell Invokes A Command Name Built From Concatenated Fragments": (
+        [
+            {
+                "EventID": 4104,
+                "ScriptBlockText": "&('ne'+'w-'+'item') $env:temp -itemtype Directory",
+            },
+            {"EventID": 4104, "ScriptBlockText": '. ( "Invo" + "ke-Item" ) $x'},
+        ],
+        [
+            {"EventID": 4104, "ScriptBlockText": "& 'C:\\tools\\run.ps1' -Verbose"},
+            {"EventID": 4104, "ScriptBlockText": "$path = 'C:\\' + 'logs'; & $cmd $path"},
+        ],
+    ),
+    "AdminSDHolder Security Descriptor Modified": (
+        [
+            {
+                "EventID": 5136,
+                "ObjectDN": "CN=AdminSDHolder,CN=System,DC=corp,DC=local",
+                "AttributeLDAPDisplayName": "nTSecurityDescriptor",
+            }
+        ],
+        [
+            {
+                "EventID": 5136,
+                "ObjectDN": "CN=AdminSDHolder,CN=System,DC=corp,DC=local",
+                "AttributeLDAPDisplayName": "description",
+            },
+            {
+                "EventID": 5136,
+                "ObjectDN": "CN=Users,DC=corp,DC=local",
+                "AttributeLDAPDisplayName": "nTSecurityDescriptor",
+            },
+        ],
+    ),
+    "Auto-Elevating Binary Opened By A Program Outside System Folders": (
+        [
+            {
+                "EventID": 10,
+                "SourceImage": "C:\\Temp\\loader.exe",
+                "TargetImage": "C:\\Windows\\System32\\ComputerDefaults.exe",
+                "GrantedAccess": "0x12367b",
+            }
+        ],
+        [
+            {
+                "EventID": 10,
+                "SourceImage": "C:\\Windows\\System32\\svchost.exe",
+                "TargetImage": "C:\\Windows\\System32\\fodhelper.exe",
+                "GrantedAccess": "0x1000",
+            },
+            {
+                "EventID": 10,
+                "SourceImage": "C:\\Temp\\loader.exe",
+                "TargetImage": "C:\\Windows\\System32\\notepad.exe",
+                "GrantedAccess": "0x1fffff",
+            },
+        ],
+    ),
+    "PsExec-Style Service Redirection Pipes Under Any Service Name": (
+        [
+            {
+                "EventID": 17,
+                "Image": "C:\\Windows\\svchost.exe",
+                "PipeName": "\\svchost-WS01-8116-stdin",
+            },
+            {
+                "EventID": 17,
+                "Image": "C:\\Windows\\PSEXESVC.exe",
+                "PipeName": "\\PSEXESVC-WS01-42-stderr",
+            },
+        ],
+        [
+            {"EventID": 17, "Image": "C:\\Windows\\svchost.exe", "PipeName": "\\svchost"},
+            {"EventID": 17, "Image": "C:\\x.exe", "PipeName": "\\mojo.1234.5678.stdin"},
+        ],
+    ),
+}
+
+
+@pytest.mark.parametrize("title", sorted(B4B_WINDOWS))
+def test_b4b_windows_rules_fire_and_stay_quiet(title: str) -> None:
+    rule = next(r for r in LOCAL_RULES if r.title == title)
+    positives, negatives = B4B_WINDOWS[title]
+    for fields in positives:
+        assert match(rule, make_event("windows", **fields)).matched, (title, fields)
+    for fields in negatives:
+        assert not match(rule, make_event("windows", **fields)).matched, (title, fields)

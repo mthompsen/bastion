@@ -37,3 +37,8 @@ cc9cbe82-7bc0-4ef5-bc23-bbfb83947be7,sample,3,File Decoded From Base64/Hex Via C
 d7a95147-145f-4678-b85d-d1ff4a3bb3f6,sample,2,CobaltStrike Service Installations - Security,Service command strings of one framework's defaults
 24357373-078f-44ed-9ac4-6d334a668a11,sample,3,Direct Autorun Keys Modification,Pre-existing tool reg.exe add on autorun keys; writing the key by API evades it
 584bca0f-3608-4402-80fd-4075ff6072e3,sample,1,Potential CommandLine Obfuscation Using Unicode Characters From Suspicious Image,A list of specific look-alike characters the adversary chooses; any other character evades it
+28e49540-d532-4778-98cb-5fad0ecd9ef4,local,4,PowerShell Runs Code Stored In An Environment Variable,Executing a payload staged in an environment variable with any variable name; copying the value to another variable first evades it
+07921803-74ea-4e6d-81a5-c5f82ba971d4,local,3,PowerShell Invokes A Command Name Built From Concatenated Fragments,The call or dot operator on concatenated quoted fragments is a common token-obfuscation primitive; a variable holding the name evades it
+6fd93f17-08b1-48f3-987a-e93ca6653514,local,4,AdminSDHolder Security Descriptor Modified,Every AdminSDHolder persistence changes the container ACL whatever tool writes it; needs directory service change auditing on the container
+7ddac8dc-2970-4e3c-898f-fab7bb3d7b99,local,3,Auto-Elevating Binary Opened By A Program Outside System Folders,Handle access to a listed auto-elevating binary from outside system folders; a target outside the list or a source inside them evades it
+14ce3a8e-c2c5-40bc-839d-6da4e35e95d0,local,3,PsExec-Style Service Redirection Pipes Under Any Service Name,The PsExec redirection pipe naming survives a renamed service; a tool with its own pipe naming evades it

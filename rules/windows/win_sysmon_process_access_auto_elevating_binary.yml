@@ -1,0 +1,47 @@
+# Bastion B4b (procedure variant of T1134.001; bench/b4b/candidates-dev.csv).
+# Summiting the Pyramid: level 3. Opening an auto-elevating Microsoft binary from a program that
+#   lives outside the Windows and Program Files folders is how token and handle theft UAC
+#   bypasses reach a high-integrity process; the target list is pre-existing tooling, and a
+#   target outside the list evades it.
+# Developed on dev capture attack_data/T1134.001/uac_process_handle_dup/windows (Sysmon 10:
+#   SourceImage, TargetImage, GrantedAccess). No test capture read.
+title: Auto-Elevating Binary Opened By A Program Outside System Folders
+id: 7ddac8dc-2970-4e3c-898f-fab7bb3d7b99
+status: experimental
+description: >
+    A process running from outside C:\Windows and the Program Files folders opens a handle to
+    an auto-elevating Microsoft binary (ComputerDefaults, fodhelper, sdclt, eventvwr, slui,
+    WSReset, changepk). Malware starts one of these, which elevates without a prompt, then
+    duplicates its token or handles to run with high integrity.
+references:
+    - https://attack.mitre.org/techniques/T1134/001/
+    - https://attack.mitre.org/techniques/T1548/002/
+author: Bastion
+date: 2026-11-13
+tags:
+    - attack.privilege-escalation
+    - attack.t1134.001
+    - attack.t1548.002
+logsource:
+    product: windows
+    category: process_access
+detection:
+    selection:
+        TargetImage|endswith:
+            - '\ComputerDefaults.exe'
+            - '\fodhelper.exe'
+            - '\sdclt.exe'
+            - '\eventvwr.exe'
+            - '\slui.exe'
+            - '\WSReset.exe'
+            - '\changepk.exe'
+    filter_main_system:
+        SourceImage|startswith:
+            - 'C:\Windows\'
+            - 'C:\Program Files\'
+            - 'C:\Program Files (x86)\'
+            - 'C:\ProgramData\Microsoft\Windows Defender\'
+    condition: selection and not 1 of filter_main_*
+falsepositives:
+    - Security or management agents installed outside Program Files
+level: high

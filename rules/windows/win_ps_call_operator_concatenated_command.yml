@@ -1,0 +1,33 @@
+# Bastion B4b (procedure variant of T1059.001; bench/b4b/candidates-dev.csv).
+# Summiting the Pyramid: level 3. Invoking a command whose name is assembled from quoted
+#   fragments with the call or dot operator is a common token-obfuscation primitive (Emotet,
+#   Invoke-Obfuscation); a variable holding the name, or another obfuscation, evades it.
+# Developed on dev capture evtx_attack_samples/Other/emotet/exec_emotet_ps_4104.evtx
+#   (ScriptBlockText only). No test capture read.
+title: PowerShell Invokes A Command Name Built From Concatenated Fragments
+id: 07921803-74ea-4e6d-81a5-c5f82ba971d4
+status: experimental
+description: >
+    A script block uses the call operator (&) or dot operator on a parenthesised concatenation
+    of quoted string fragments, such as &('ne'+'w-'+'object'). Splitting a cmdlet name into
+    fragments defeats signatures on the name and is rare in legitimate scripts.
+references:
+    - https://attack.mitre.org/techniques/T1027/010/
+author: Bastion
+date: 2026-11-13
+tags:
+    - attack.execution
+    - attack.t1059.001
+    - attack.stealth
+    - attack.t1027.010
+logsource:
+    product: windows
+    category: ps_script
+    definition: 'Requirements: Script Block Logging must be enabled'
+detection:
+    selection:
+        ScriptBlockText|re: '[&.]\s*\(\s*\(?\s*[''"][\w-]{1,12}[''"]\s*\+\s*\(?\s*[''"][\w-]{1,12}[''"]'
+    condition: selection
+falsepositives:
+    - Generated or minified scripts that build command names dynamically
+level: medium

@@ -1,0 +1,35 @@
+# Bastion B4b (candidate from the T1036 dev capture; bench/b4b/candidates-dev.csv).
+# Summiting the Pyramid: level 3. PsExec's service names its redirection pipes
+#   <service>-<computer>-<pid>-stdin/stdout/stderr whatever the service is renamed to, so the
+#   naming structure survives the rename that defeats rules keyed on PSEXESVC; a tool with its
+#   own pipe naming evades it.
+# Developed on dev capture evtx_attack_samples/Defense Evasion/DE_renamed_psexec_service_sysmon_17_18.evtx
+#   (Sysmon 17: Image, PipeName). No test capture read.
+# Tags: the behaviour is remote service execution over SMB. The dataset's label (T1036,
+#   masquerading) is the rename, which this rule does not detect, so T1036 is not tagged.
+title: PsExec-Style Service Redirection Pipes Under Any Service Name
+id: 14ce3a8e-c2c5-40bc-839d-6da4e35e95d0
+status: experimental
+description: >
+    A pipe named <name>-<computer>-<pid>-stdin, -stdout or -stderr is created. PsExec and its
+    clones create these for the remote process's console streams, using the service name as
+    the prefix, so a renamed PsExec service still produces them.
+references:
+    - https://attack.mitre.org/techniques/T1569/002/
+author: Bastion
+date: 2026-11-13
+tags:
+    - attack.execution
+    - attack.t1569.002
+    - attack.lateral-movement
+    - attack.t1021.002
+logsource:
+    product: windows
+    category: pipe_created
+detection:
+    selection:
+        PipeName|re: '^\\[^\\]+-[^\\]+-\d+-std(in|out|err)$'
+    condition: selection
+falsepositives:
+    - Legitimate PsExec use by administrators
+level: medium
