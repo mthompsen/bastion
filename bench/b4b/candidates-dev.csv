@@ -1,0 +1,234 @@
+technique,name,platform,held_out_other_corpus,held_out_same_platform,held_out_exact_label,held_out_frozen_130,held_out_by_corpus,dev_capture,dev_corpus,miss_reason
+T1548.002,Bypass User Account Control,windows,22,22,22,14,evtx_attack_samples:22,attack_data/T1548.002/ssa_eventvwr/windows,attack_data,"evaluated, no match"
+T1218,System Binary Proxy Execution,windows,17,29,9,11,attack_data:12;evtx_attack_samples:17,attack_data/T1218/diskshadow/windows,attack_data,hunting or emerging rule fires
+T1218,System Binary Proxy Execution,windows,17,29,9,11,attack_data:12;evtx_attack_samples:17,attack_data/T1218/lolbas_with_network_traffic/windows,attack_data,hunting or emerging rule fires
+T1218,System Binary Proxy Execution,windows,17,29,9,11,attack_data:12;evtx_attack_samples:17,attack_data/T1218/vip_aspnet_process/windows,attack_data,"evaluated, no match"
+T1021,Remote Services,windows,15,22,4,7,attack_data:7;evtx_attack_samples:15,attack_data/T1021/allow_inbound_traffic_in_firewall_rule/windows,attack_data,"evaluated, no match"
+T1218,System Binary Proxy Execution,windows,12,29,9,11,attack_data:12;evtx_attack_samples:17,evtx_attack_samples/Execution/exec_sysmon_1_ftp.evtx,evtx_attack_samples,tagged rule not evaluable (12)
+T1218,System Binary Proxy Execution,windows,12,29,9,11,attack_data:12;evtx_attack_samples:17,evtx_attack_samples/Execution/exec_sysmon_1_lolbin_pcalua.evtx,evtx_attack_samples,tagged rule not evaluable (12)
+T1218,System Binary Proxy Execution,windows,12,29,9,11,attack_data:12;evtx_attack_samples:17,evtx_attack_samples/Execution/susp_explorer_exec.evtx,evtx_attack_samples,tagged rule not evaluable (19)
+T1218,System Binary Proxy Execution,windows,12,29,9,11,attack_data:12;evtx_attack_samples:17,evtx_attack_samples/Execution/windows_bits_4_59_60_lolbas desktopimgdownldr.evtx,evtx_attack_samples,"evaluated, no match"
+T1685,Disable or Modify Tools,windows,10,18,12,5,attack_data:10;evtx_attack_samples:8,evtx_attack_samples/Defense Evasion/DE_UAC_Disabled_Sysmon_12_13.evtx,evtx_attack_samples,tagged rule not evaluable (4)
+T1685,Disable or Modify Tools,windows,10,18,12,5,attack_data:10;evtx_attack_samples:8,evtx_attack_samples/Defense Evasion/de_PsScriptBlockLogging_disabled_sysmon12_13.evtx,evtx_attack_samples,tagged rule not evaluable (1)
+T1685,Disable or Modify Tools,windows,10,18,12,5,attack_data:10;evtx_attack_samples:8,evtx_attack_samples/Defense Evasion/de_sysmon_13_VBA_Security_AccessVBOM.evtx,evtx_attack_samples,tagged rule not evaluable (1)
+T1685,Disable or Modify Tools,windows,10,18,12,5,attack_data:10;evtx_attack_samples:8,evtx_attack_samples/Defense Evasion/process_suspend_sysmon_10_ga_800.evtx,evtx_attack_samples,"evaluated, no match"
+T1685,Disable or Modify Tools,windows,10,18,12,5,attack_data:10;evtx_attack_samples:8,evtx_attack_samples/Lateral Movement/LM_add_new_namedpipe_tp_nullsession_registry_turla_like_ttp.evtx,evtx_attack_samples,tagged rule not evaluable (1)
+T1059.001,PowerShell,windows,10,13,9,2,attack_data:10;evtx_attack_samples:3,evtx_attack_samples/Other/emotet/exec_emotet_ps_4104.evtx,evtx_attack_samples,"evaluated, no match"
+T1059.001,PowerShell,windows,10,13,9,2,attack_data:10;evtx_attack_samples:3,evtx_attack_samples/Other/emotet/exec_emotet_ps_800_get-item.evtx,evtx_attack_samples,"evaluated, no match"
+T1059.001,PowerShell,windows,10,13,9,2,attack_data:10;evtx_attack_samples:3,evtx_attack_samples/Other/emotet/exec_emotet_ps_800_invoke-item.evtx,evtx_attack_samples,"evaluated, no match"
+T1059.001,PowerShell,windows,10,13,9,2,attack_data:10;evtx_attack_samples:3,evtx_attack_samples/Other/emotet/exec_emotet_ps_800_new-object.evtx,evtx_attack_samples,"evaluated, no match"
+T1003,OS Credential Dumping,windows,9,21,9,8,attack_data:9;evtx_attack_samples:12,evtx_attack_samples/Credential Access/CA_DCSync_4662.evtx,evtx_attack_samples,"evaluated, no match"
+T1003,OS Credential Dumping,windows,9,21,9,8,attack_data:9;evtx_attack_samples:12,evtx_attack_samples/Credential Access/CA_protectedstorage_5145_rpc_masterkey.evtx,evtx_attack_samples,"evaluated, no match"
+T1003,OS Credential Dumping,windows,9,21,9,8,attack_data:9;evtx_attack_samples:12,evtx_attack_samples/Credential Access/babyshark_mimikatz_powershell.evtx,evtx_attack_samples,hunting or emerging rule fires
+T1003,OS Credential Dumping,windows,9,21,9,8,attack_data:9;evtx_attack_samples:12,evtx_attack_samples/Credential Access/dc_applog_ntdsutil_dfir_325_326_327.evtx,evtx_attack_samples,tagged rule not evaluable (1)
+T1685.005,Clear Windows Event Logs,windows,9,15,3,5,attack_data:9;evtx_attack_samples:6,evtx_attack_samples/Defense Evasion/DE_104_system_log_cleared.evtx,evtx_attack_samples,tagged rule not evaluable (1)
+T1685.001,Disable or Modify Windows Event Log,windows,8,15,3,5,attack_data:8;evtx_attack_samples:7,evtx_attack_samples/Defense Evasion/DE_WinEventLogSvc_Crash_System_7036.evtx,evtx_attack_samples,"evaluated, no match"
+T1003.004,LSA Secrets,windows,8,10,1,8,attack_data:2;evtx_attack_samples:8,attack_data/T1003.004/NoLMHash/windows,attack_data,"evaluated, no match"
+T1134.001,Token Impersonation/Theft,windows,8,8,1,7,evtx_attack_samples:8,attack_data/T1134.001/uac_process_handle_dup/windows,attack_data,"evaluated, no match"
+T1021,Remote Services,windows,7,22,4,7,attack_data:7;evtx_attack_samples:15,evtx_attack_samples/Lateral Movement/smb_bi_auth_conn_spoolsample.evtx,evtx_attack_samples,"evaluated, no match"
+T1546,Event Triggered Execution,windows,7,13,2,6,attack_data:6;evtx_attack_samples:7,attack_data/T1546/adminsdholder_modified/windows,attack_data,"evaluated, no match"
+T1036,Masquerading,windows,7,8,4,1,attack_data:7;evtx_attack_samples:1,evtx_attack_samples/AutomatedTestingTools/Malware/rundll32_hollowing_wermgr_masquerading.evtx,evtx_attack_samples,hunting or emerging rule fires
+T1036,Masquerading,windows,7,8,4,1,attack_data:7;evtx_attack_samples:1,evtx_attack_samples/Defense Evasion/DE_renamed_psexec_service_sysmon_17_18.evtx,evtx_attack_samples,"evaluated, no match"
+T1218.011,Rundll32,windows,6,18,9,7,attack_data:6;evtx_attack_samples:12,evtx_attack_samples/AutomatedTestingTools/Malware/rundll32_hollowing_wermgr_masquerading.evtx,evtx_attack_samples,hunting or emerging rule fires
+T1685.005,Clear Windows Event Logs,windows,6,15,3,5,attack_data:9;evtx_attack_samples:6,attack_data/T1070.001/suspicious_kerberos_service_ticket_request/windows,attack_data,"evaluated, no match"
+T1218.014,MMC,windows,6,10,1,4,attack_data:4;evtx_attack_samples:6,attack_data/T1218.014/msc_execution/windows,attack_data,"evaluated, no match"
+T1574.001,DLL,windows,6,10,8,2,attack_data:6;evtx_attack_samples:4,evtx_attack_samples/Defense Evasion/Sysmon 7 dllhijack_cdpsshims_CDPSvc.evtx,evtx_attack_samples,"evaluated, no match"
+T1021.001,Remote Desktop Protocol,windows,6,9,5,5,attack_data:3;evtx_attack_samples:6,attack_data/T1021.001/execution_from_rdp_share/windows,attack_data,"evaluated, no match"
+T1021.001,Remote Desktop Protocol,windows,6,9,5,5,attack_data:3;evtx_attack_samples:6,attack_data/T1021.001/susp_default_rdp_creation/windows,attack_data,"evaluated, no match"
+T1021.002,SMB/Windows Admin Shares,windows,6,9,5,4,attack_data:3;evtx_attack_samples:6,attack_data/T1021.002/impacket_smbexec/windows,attack_data,tagged rule not evaluable (5)
+T1021.002,SMB/Windows Admin Shares,windows,6,9,5,4,attack_data:3;evtx_attack_samples:6,attack_data/T1021.002/impacket_wmiexec/windows,attack_data,tagged rule not evaluable (5)
+T1055,Process Injection,windows,6,9,8,4,attack_data:3;evtx_attack_samples:6,attack_data/T1055/named_pipes/windows,attack_data,"evaluated, no match"
+T1021.006,Windows Remote Management,windows,6,8,4,4,attack_data:2;evtx_attack_samples:6,attack_data/T1021.006/compmgtm_access/windows,attack_data,"evaluated, no match"
+T1021.006,Windows Remote Management,windows,6,8,4,4,attack_data:2;evtx_attack_samples:6,attack_data/T1021.006/wsman_trustedhost/windows,attack_data,"evaluated, no match"
+T1078,Valid Accounts,windows,6,8,4,2,attack_data:6;evtx_attack_samples:2,evtx_attack_samples/Persistence/DACL_DCSync_Right_Powerview_ Add-DomainObjectAcl.evtx,evtx_attack_samples,"evaluated, no match"
+T1021.003,Distributed Component Object Model,windows,6,7,3,3,attack_data:1;evtx_attack_samples:6,attack_data/T1021.003/lateral_movement_speechruntime/windows,attack_data,hunting or emerging rule fires
+T1110,Brute Force,windows,6,7,1,1,attack_data:6;evtx_attack_samples:1,evtx_attack_samples/Credential Access/MSSQL_multiple_failed_logon_EventID_18456.evtx,evtx_attack_samples,tagged rule not evaluable (1)
+T1053,Scheduled Task/Job,windows,5,7,2,1,attack_data:5;evtx_attack_samples:2,evtx_attack_samples/Lateral Movement/LM_ScheduledTask_ATSVC_target_host.evtx,evtx_attack_samples,hunting or emerging rule fires
+T1053.005,Scheduled Task,windows,5,7,5,1,attack_data:5;evtx_attack_samples:2,evtx_attack_samples/Execution/temp_scheduled_task_4698_4699.evtx,evtx_attack_samples,hunting or emerging rule fires
+T1059,Command and Scripting Interpreter,windows,4,20,4,2,attack_data:16;evtx_attack_samples:4,attack_data/T1059/snapattack/windows,attack_data,hunting or emerging rule fires
+T1059,Command and Scripting Interpreter,windows,4,20,4,2,attack_data:16;evtx_attack_samples:4,attack_data/T1059/suspiciously_named_executables/windows,attack_data,"evaluated, no match"
+T1218.010,Regsvr32,windows,4,11,2,5,attack_data:4;evtx_attack_samples:7,evtx_attack_samples/Execution/exec_sysmon_1_lolbin_renamed_regsvr32_scrobj.evtx,evtx_attack_samples,tagged rule not evaluable (20)
+T1574.001,DLL,windows,4,10,8,2,attack_data:6;evtx_attack_samples:4,attack_data/T1574.001/iscsicpl/windows,attack_data,"evaluated, no match"
+T1574.001,DLL,windows,4,10,8,2,attack_data:6;evtx_attack_samples:4,attack_data/T1574.002/sccm_adsource_dll/windows,attack_data,"evaluated, no match"
+T1068,Exploitation for Privilege Escalation,windows,4,7,7,2,attack_data:3;evtx_attack_samples:4,attack_data/T1068/snapattack/windows,attack_data,tagged rule not evaluable (1)
+T1068,Exploitation for Privilege Escalation,windows,4,7,7,2,attack_data:3;evtx_attack_samples:4,attack_data/T1068/windows_escalation_behavior/windows,attack_data,"evaluated, no match"
+T1547,Boot or Logon Autostart Execution,windows,4,7,1,2,attack_data:4;evtx_attack_samples:3,evtx_attack_samples/Persistence/sysmon_1_smss_child_proc_bootexecute_setupexecute.evtx,evtx_attack_samples,"evaluated, no match"
+T1059.001,PowerShell,windows,3,13,9,2,attack_data:10;evtx_attack_samples:3,attack_data/T1059.001/vip_env_var_execution/windows,attack_data,"evaluated, no match"
+T1003.002,Security Account Manager,windows,3,12,3,8,attack_data:3;evtx_attack_samples:9,evtx_attack_samples/Credential Access/remote_sam_registry_access_via_backup_operator_priv.evtx,evtx_attack_samples,"evaluated, no match"
+T1218.005,Mshta,windows,3,11,2,5,attack_data:3;evtx_attack_samples:8,evtx_attack_samples/Execution/sysmon_vbs_sharpshooter_stageless_meterpreter.evtx,evtx_attack_samples,tagged rule not evaluable (9)
+T1021.001,Remote Desktop Protocol,windows,3,9,5,5,attack_data:3;evtx_attack_samples:6,evtx_attack_samples/Lateral Movement/DFIR_RDP_Client_TimeZone_RdpCoreTs_104_example.evtx,evtx_attack_samples,"evaluated, no match"
+T1021.001,Remote Desktop Protocol,windows,3,9,5,5,attack_data:3;evtx_attack_samples:6,evtx_attack_samples/Lateral Movement/sharprdp_sysmon_7_mstscax.dll.evtx,evtx_attack_samples,"evaluated, no match"
+T1021.002,SMB/Windows Admin Shares,windows,3,9,5,4,attack_data:3;evtx_attack_samples:6,evtx_attack_samples/Lateral Movement/LM_tsclient_startup_folder.evtx,evtx_attack_samples,"evaluated, no match"
+T1055,Process Injection,windows,3,9,8,4,attack_data:3;evtx_attack_samples:6,evtx_attack_samples/Defense Evasion/Win_4985_T1186_Process_Doppelganging.evtx,evtx_attack_samples,"evaluated, no match"
+T1068,Exploitation for Privilege Escalation,windows,3,7,7,2,attack_data:3;evtx_attack_samples:4,evtx_attack_samples/Privilege Escalation/CVE-2020-0796_SMBV3Ghost_LocalPrivEsc_Sysmon_3_1_10.evtx,evtx_attack_samples,"evaluated, no match"
+T1068,Exploitation for Privilege Escalation,windows,3,7,7,2,attack_data:3;evtx_attack_samples:4,evtx_attack_samples/Privilege Escalation/privesc_registry_symlink_CVE-2020-1377.evtx,evtx_attack_samples,"evaluated, no match"
+T1068,Exploitation for Privilege Escalation,windows,3,7,7,2,attack_data:3;evtx_attack_samples:4,evtx_attack_samples/Privilege Escalation/privesc_spoolfool_mahdihtm_sysmon_1_11_7_13.evtx,evtx_attack_samples,"evaluated, no match"
+T1068,Exploitation for Privilege Escalation,windows,3,7,7,2,attack_data:3;evtx_attack_samples:4,evtx_attack_samples/Privilege Escalation/privesc_sysmon_cve_20201030_spooler.evtx,evtx_attack_samples,"evaluated, no match"
+T1569.002,Service Execution,windows,3,6,5,1,attack_data:3;evtx_attack_samples:3,attack_data/T1569.002/remcom/windows,attack_data,tagged rule not evaluable (4)
+T1569.002,Service Execution,windows,3,6,5,1,attack_data:3;evtx_attack_samples:3,attack_data/T1569.002/windows_service_created_with_suspicious_service_path/windows,attack_data,"evaluated, no match"
+T1569.002,Service Execution,windows,3,6,5,1,attack_data:3;evtx_attack_samples:3,evtx_attack_samples/Lateral Movement/LM_Remote_Service02_7045.evtx,evtx_attack_samples,"evaluated, no match"
+T1572,Protocol Tunneling,windows,3,4,4,0,attack_data:1;evtx_attack_samples:3,attack_data/T1572/ssh_proxy_command/windows,attack_data,"evaluated, no match"
+T1003.001,LSASS Memory,windows,2,13,4,8,attack_data:2;evtx_attack_samples:11,evtx_attack_samples/Credential Access/LsassSilentProcessExit_process_exit_monitor_3001_lsass.evtx,evtx_attack_samples,"evaluated, no match"
+T1055.012,Process Hollowing,windows,2,8,0,4,attack_data:2;evtx_attack_samples:6,evtx_attack_samples/AutomatedTestingTools/Malware/rundll32_hollowing_wermgr_masquerading.evtx,evtx_attack_samples,hunting or emerging rule fires
+T1078,Valid Accounts,windows,2,8,4,2,attack_data:6;evtx_attack_samples:2,attack_data/T1078/defaultaccount/windows,attack_data,"evaluated, no match"
+T1053.005,Scheduled Task,windows,2,7,5,1,attack_data:5;evtx_attack_samples:2,attack_data/T1053.005/svchost_lolbas_execution_process_spawn/windows,attack_data,tagged rule not evaluable (1)
+T1053.005,Scheduled Task,windows,2,7,5,1,attack_data:5;evtx_attack_samples:2,attack_data/T1053.005/winevent_scheduled_task_created_to_spawn_shell/windows,attack_data,"evaluated, no match"
+T1059.007,JavaScript,windows,2,6,2,1,attack_data:4;evtx_attack_samples:2,attack_data/T1059.007/node_execute_js_script/windows,attack_data,hunting or emerging rule fires
+T1078.002,Domain Accounts,windows,2,6,2,2,attack_data:4;evtx_attack_samples:2,attack_data/T1078.002/resetnightmare/windows,attack_data,"evaluated, no match"
+T1098,Account Manipulation,windows,2,6,6,1,attack_data:4;evtx_attack_samples:2,attack_data/T1098/windows_multiple_accounts_deleted/windows,attack_data,"evaluated, no match"
+T1078.003,Local Accounts,windows,2,5,1,2,attack_data:3;evtx_attack_samples:2,attack_data/T1078.003/snapattack/windows,attack_data,"evaluated, no match"
+T1047,Windows Management Instrumentation,windows,2,4,4,1,attack_data:2;evtx_attack_samples:2,attack_data/T1047/snapattack/windows,attack_data,"evaluated, no match"
+T1047,Windows Management Instrumentation,windows,2,4,4,1,attack_data:2;evtx_attack_samples:2,evtx_attack_samples/Lateral Movement/LM_WMIC_4648_rpcss.evtx,evtx_attack_samples,tagged rule not evaluable (3)
+T1047,Windows Management Instrumentation,windows,2,4,4,1,attack_data:2;evtx_attack_samples:2,evtx_attack_samples/Lateral Movement/wmi_remote_registry_sysmon.evtx,evtx_attack_samples,"evaluated, no match"
+T1505.001,SQL Stored Procedures,windows,2,4,3,0,attack_data:2;evtx_attack_samples:2,evtx_attack_samples/Lateral Movement/LM_xp_cmdshell_MSSQL_Events.evtx,evtx_attack_samples,"evaluated, no match"
+T1505.001,SQL Stored Procedures,windows,2,4,3,0,attack_data:2;evtx_attack_samples:2,evtx_attack_samples/Lateral Movement/MSSQL_15281_xp_cmdshell_exec_failed_attempt.evtx,evtx_attack_samples,"evaluated, no match"
+T1564,Hide Artifacts,windows,2,4,1,0,attack_data:2;evtx_attack_samples:2,attack_data/T1564/sc_sdset_tampering/windows,attack_data,"evaluated, no match"
+T1087,Account Discovery,windows,2,3,2,1,attack_data:1;evtx_attack_samples:2,attack_data/T1087/enumerate_users_local_group_using_telegram/windows,attack_data,"evaluated, no match"
+T1087.002,Domain Account,windows,2,3,1,1,attack_data:1;evtx_attack_samples:2,attack_data/T1087.002/adsi_discovery/windows,attack_data,"evaluated, no match"
+T1552.001,Credentials In Files,windows,2,3,2,1,attack_data:1;evtx_attack_samples:2,attack_data/T1552.001/winscp_access/windows,attack_data,"evaluated, no match"
+T1057,Process Discovery,windows,2,2,2,0,attack_data:2,evtx_attack_samples/Discovery/discovery_meterpreter_ps_cmd_process_listing_sysmon_10.evtx,evtx_attack_samples,"evaluated, no match"
+T1098.004,SSH Authorized Keys,linux,2,2,1,1,attack_data:2,citadel_captures/proving2-2026-09-22/T1098.004/342cc723-127c-4d3a-8292-9c0c6b4ecadc,citadel_captures,"evaluated, no match"
+T1105,Ingress Tool Transfer,windows,2,2,2,0,attack_data:2,evtx_attack_samples/Execution/windows_bits_4_59_60_lolbas desktopimgdownldr.evtx,evtx_attack_samples,"evaluated, no match"
+T1134,Access Token Manipulation,windows,1,11,7,8,attack_data:1;evtx_attack_samples:10,evtx_attack_samples/Privilege Escalation/Invoke_TokenDuplication_UAC_Bypass4624.evtx,evtx_attack_samples,"evaluated, no match"
+T1134,Access Token Manipulation,windows,1,11,7,8,attack_data:1;evtx_attack_samples:10,evtx_attack_samples/Privilege Escalation/PrivEsc_NetSvc_SessionToken_Retrival_via_localSMB_Auth_5145.evtx,evtx_attack_samples,"evaluated, no match"
+T1134,Access Token Manipulation,windows,1,11,7,8,attack_data:1;evtx_attack_samples:10,evtx_attack_samples/Privilege Escalation/win10_4703_SeDebugPrivilege_enabled.evtx,evtx_attack_samples,"evaluated, no match"
+T1036,Masquerading,windows,1,8,4,1,attack_data:7;evtx_attack_samples:1,attack_data/T1036/msdtc_process_param/windows,attack_data,"evaluated, no match"
+T1036,Masquerading,windows,1,8,4,1,attack_data:7;evtx_attack_samples:1,attack_data/T1036/suspicious_process_path/windows,attack_data,"evaluated, no match"
+T1059.003,Windows Command Shell,windows,1,7,3,1,attack_data:6;evtx_attack_samples:1,attack_data/T1059.003/cmd_for_loop/windows,attack_data,"evaluated, no match"
+T1059.003,Windows Command Shell,windows,1,7,3,1,attack_data:6;evtx_attack_samples:1,attack_data/T1059.003/powershell_spawn_cmd/windows,attack_data,"evaluated, no match"
+T1059.003,Windows Command Shell,windows,1,7,3,1,attack_data:6;evtx_attack_samples:1,attack_data/T1059.003/snapattack/windows,attack_data,tagged rule not evaluable (11)
+T1036.003,Rename Legitimate Utilities,windows,1,6,2,1,attack_data:5;evtx_attack_samples:1,attack_data/T1036.003/mpcmdrun/windows,attack_data,tagged rule not evaluable (12)
+T1059.005,Visual Basic,windows,1,5,1,1,attack_data:4;evtx_attack_samples:1,attack_data/T1059.005/lotus_blossom_chrysalis/windows,attack_data,"evaluated, no match"
+T1110.003,Password Spraying,windows,1,5,4,1,attack_data:4;evtx_attack_samples:1,attack_data/T1110.003/purplesharp_invalid_users_kerberos_xml/windows,attack_data,hunting or emerging rule fires
+T1110.003,Password Spraying,windows,1,5,4,1,attack_data:4;evtx_attack_samples:1,attack_data/T1110.003/purplesharp_multiple_users_from_process_xml/windows,attack_data,hunting or emerging rule fires
+T1110.003,Password Spraying,windows,1,5,4,1,attack_data:4;evtx_attack_samples:1,attack_data/T1110.003/purplesharp_remote_spray_xml/windows,attack_data,hunting or emerging rule fires
+T1110.003,Password Spraying,windows,1,5,4,1,attack_data:4;evtx_attack_samples:1,attack_data/T1110.003/purplesharp_valid_users_ntlm_xml/windows,attack_data,hunting or emerging rule fires
+T1135,Network Share Discovery,windows,1,4,4,0,attack_data:3;evtx_attack_samples:1,attack_data/T1135/large_number_computer_service_tickets/windows,attack_data,"evaluated, no match"
+T1135,Network Share Discovery,windows,1,4,4,0,attack_data:3;evtx_attack_samples:1,attack_data/T1135/net_share_discovery_via_dir/windows,attack_data,tagged rule not evaluable (3)
+T1135,Network Share Discovery,windows,1,4,4,0,attack_data:3;evtx_attack_samples:1,attack_data/T1135/powerview_sharefinder/windows,attack_data,"evaluated, no match"
+T1087,Account Discovery,windows,1,3,2,1,attack_data:1;evtx_attack_samples:2,evtx_attack_samples/Discovery/discovery_local_user_or_group_windows_security_4799_4798.evtx,evtx_attack_samples,"evaluated, no match"
+T1505.003,Web Shell,windows,1,3,2,0,attack_data:2;evtx_attack_samples:1,attack_data/T1505.003/sharepoint_webshell/windows,attack_data,hunting or emerging rule fires
+T1552.001,Credentials In Files,windows,1,3,2,1,attack_data:1;evtx_attack_samples:2,evtx_attack_samples/Credential Access/CA_4624_4625_LogonType2_LogonProc_chrome.evtx,evtx_attack_samples,"evaluated, no match"
+T1018,Remote System Discovery,windows,1,2,2,0,attack_data:1;evtx_attack_samples:1,attack_data/T1018/windows_get_adcomputer_unconstrained_delegation_discovery/windows,attack_data,"evaluated, no match"
+T1069.002,Domain Groups,windows,1,2,1,0,attack_data:1;evtx_attack_samples:1,attack_data/T1069.002/domain_group_discovery_with_adsisearcher/windows,attack_data,"evaluated, no match"
+T1070.006,Timestomp,windows,1,2,1,1,attack_data:1;evtx_attack_samples:1,evtx_attack_samples/AutomatedTestingTools/Malware/DE_timestomp_and_dll_sideloading_and_RunPersist.evtx,evtx_attack_samples,"evaluated, no match"
+T1136.002,Domain Account,windows,1,2,1,0,attack_data:1;evtx_attack_samples:1,attack_data/T1136.002/snapattack/windows,attack_data,"evaluated, no match"
+T1187,Forced Authentication,windows,1,2,2,0,attack_data:1;evtx_attack_samples:1,attack_data/T1187/snapattack/windows,attack_data,"evaluated, no match"
+T1550.002,Pass the Hash,windows,1,2,1,0,attack_data:1;evtx_attack_samples:1,evtx_attack_samples/Lateral Movement/ImpersonateUser-via local Pass The Hash Sysmon and Security.evtx,evtx_attack_samples,"evaluated, no match"
+T1570,Lateral Tool Transfer,windows,1,2,2,0,attack_data:1;evtx_attack_samples:1,attack_data/T1570/snapattack/windows,attack_data,"evaluated, no match"
+T1003.008,/etc/passwd and /etc/shadow,linux,1,1,1,1,attack_data:1,citadel_captures/proving2-2026-09-22/T1003.008/3723ab77-c546-403c-8fb4-bb577033b235,citadel_captures,"evaluated, no match"
+T1542.001,System Firmware,windows,1,1,1,0,evtx_attack_samples:1,attack_data/T1542.001/snapattack/windows,attack_data,"evaluated, no match"
+T1685.004,Disable or Modify Linux Audit System Log,linux,1,1,1,1,attack_data:1,citadel_captures/proving2-2026-09-22/T1685.004/33a29ab1-cabb-407f-9448-269041bf2856,citadel_captures,hunting or emerging rule fires
+T1548.002,Bypass User Account Control,windows,0,22,22,14,evtx_attack_samples:22,evtx_attack_samples/Privilege Escalation/sysmon_11_1_15_WScriptBypassUAC.evtx,evtx_attack_samples,tagged rule not evaluable (1)
+T1548.002,Bypass User Account Control,windows,0,22,22,14,evtx_attack_samples:22,evtx_attack_samples/Privilege Escalation/sysmon_11_1_7_uacbypass_cliconfg.evtx,evtx_attack_samples,tagged rule not evaluable (1)
+T1548.002,Bypass User Account Control,windows,0,22,22,14,evtx_attack_samples:22,evtx_attack_samples/Privilege Escalation/sysmon_13_1_compmgmtlauncherUACBypass.evtx,evtx_attack_samples,tagged rule not evaluable (1)
+T1548.002,Bypass User Account Control,windows,0,22,22,14,evtx_attack_samples:22,evtx_attack_samples/Privilege Escalation/sysmon_1_7_11_migwiz.evtx,evtx_attack_samples,tagged rule not evaluable (1)
+T1548.002,Bypass User Account Control,windows,0,22,22,14,evtx_attack_samples:22,evtx_attack_samples/Privilege Escalation/sysmon_uacbypass_CDSSync_schtask_hijack_byeintegrity5.evtx,evtx_attack_samples,"evaluated, no match"
+T1548,Abuse Elevation Control Mechanism,linux,0,19,13,5,attack_data:19,attack_data/T1548/apt_get/sysmon_linux,attack_data,"evaluated, no match"
+T1548,Abuse Elevation Control Mechanism,linux,0,19,13,5,attack_data:19,attack_data/T1548/c89/sysmon_linux,attack_data,"evaluated, no match"
+T1548,Abuse Elevation Control Mechanism,linux,0,19,13,5,attack_data:19,attack_data/T1548/c99/sysmon_linux,attack_data,"evaluated, no match"
+T1548,Abuse Elevation Control Mechanism,linux,0,19,13,5,attack_data:19,attack_data/T1548/docker/sysmon_linux,attack_data,"evaluated, no match"
+T1548,Abuse Elevation Control Mechanism,linux,0,19,13,5,attack_data:19,attack_data/T1548/emacs/sysmon_linux,attack_data,"evaluated, no match"
+T1548,Abuse Elevation Control Mechanism,linux,0,19,13,5,attack_data:19,attack_data/T1548/gdb/sysmon_linux,attack_data,"evaluated, no match"
+T1548,Abuse Elevation Control Mechanism,linux,0,19,13,5,attack_data:19,attack_data/T1548/gem/sysmon_linux,attack_data,"evaluated, no match"
+T1548,Abuse Elevation Control Mechanism,linux,0,19,13,5,attack_data:19,attack_data/T1548/make/sysmon_linux,attack_data,"evaluated, no match"
+T1548,Abuse Elevation Control Mechanism,linux,0,19,13,5,attack_data:19,attack_data/T1548/mysql/sysmon_linux,attack_data,"evaluated, no match"
+T1548,Abuse Elevation Control Mechanism,linux,0,19,13,5,attack_data:19,attack_data/T1548/node/sysmon_linux,attack_data,"evaluated, no match"
+T1548,Abuse Elevation Control Mechanism,linux,0,19,13,5,attack_data:19,attack_data/T1548/octave/sysmon_linux,attack_data,"evaluated, no match"
+T1548,Abuse Elevation Control Mechanism,linux,0,19,13,5,attack_data:19,attack_data/T1548/openvpn/sysmon_linux,attack_data,"evaluated, no match"
+T1548,Abuse Elevation Control Mechanism,linux,0,19,13,5,attack_data:19,attack_data/T1548/sqlite3/sysmon_linux,attack_data,"evaluated, no match"
+T1548.003,Sudo and Sudo Caching,linux,0,18,5,4,attack_data:18,attack_data/T1548.003/auditd_path_cwd_doas_conf/auditd,attack_data,"evaluated, no match"
+T1548.003,Sudo and Sudo Caching,linux,0,18,5,4,attack_data:18,attack_data/T1548.003/auditd_path_sudoers/auditd,attack_data,"evaluated, no match"
+T1548.003,Sudo and Sudo Caching,linux,0,18,5,4,attack_data:18,attack_data/T1548.003/linux_suspicious_sudo_parameter/sysmon_linux,attack_data,"evaluated, no match"
+T1547,Boot or Logon Autostart Execution,linux,0,6,2,4,attack_data:6,attack_data/T1547/linux_motd_script_added/sysmon_linux,attack_data,"evaluated, no match"
+T1547,Boot or Logon Autostart Execution,linux,0,6,2,4,attack_data:6,attack_data/T1547/linux_udev_rule_created/sysmon_linux,attack_data,"evaluated, no match"
+T1547.006,Kernel Modules and Extensions,linux,0,6,4,4,attack_data:6,attack_data/T1547.006/linux_auditd_modprobe_new/auditd,attack_data,"evaluated, no match"
+T1547.006,Kernel Modules and Extensions,linux,0,6,4,4,attack_data:6,attack_data/T1547.006/linux_auditd_modprobe_unload_module/auditd,attack_data,"evaluated, no match"
+T1547.006,Kernel Modules and Extensions,linux,0,6,4,4,attack_data:6,attack_data/T1547.006/linux_auditd_rmmod/auditd,attack_data,"evaluated, no match"
+T1558,Steal or Forge Kerberos Tickets,windows,0,6,3,0,attack_data:6,attack_data/T1558/windows_computer_account_with_spn/windows,attack_data,"evaluated, no match"
+T1068,Exploitation for Privilege Escalation,linux,0,5,5,2,attack_data:5,attack_data/T1068/linux_auditd_copy_fail/auditd,attack_data,tagged rule not evaluable (1)
+T1068,Exploitation for Privilege Escalation,linux,0,5,5,2,attack_data:5,attack_data/T1068/linux_possible_nimbuspwn_directory_traversal/sysmon_linux,attack_data,"evaluated, no match"
+T1068,Exploitation for Privilege Escalation,linux,0,5,5,2,attack_data:5,attack_data/T1068/linux_possible_privilege_escalation_via_pythonpath/sysmon_linux,attack_data,"evaluated, no match"
+T1068,Exploitation for Privilege Escalation,linux,0,5,5,2,attack_data:5,attack_data/T1068/snapattack/sysmon_linux,attack_data,"evaluated, no match"
+T1484,Domain or Tenant Policy Modification,windows,0,5,1,0,attack_data:5,attack_data/T1484/DCShadowPermissions/windows,attack_data,tagged rule not evaluable (1)
+T1484.001,Group Policy Modification,windows,0,5,4,0,attack_data:5,attack_data/T1484.001/group_policy_deleted/windows,attack_data,tagged rule not evaluable (1)
+T1484.001,Group Policy Modification,windows,0,5,4,0,attack_data:5,attack_data/T1484.001/group_policy_disabled/windows,attack_data,tagged rule not evaluable (1)
+T1558.003,Kerberoasting,windows,0,5,2,0,attack_data:5,attack_data/T1558.003/powerview-2/windows,attack_data,"evaluated, no match"
+T1558.003,Kerberoasting,windows,0,5,2,0,attack_data:5,attack_data/T1558.003/powerview/windows,attack_data,"evaluated, no match"
+T1027,Obfuscated Files or Information,windows,0,4,2,0,attack_data:4,attack_data/T1027/FuckThatPacker/windows,attack_data,"evaluated, no match"
+T1027,Obfuscated Files or Information,windows,0,4,2,0,attack_data:4,attack_data/T1027/snapattack/windows,attack_data,"evaluated, no match"
+T1059,Command and Scripting Interpreter,linux,0,4,2,0,attack_data:4,attack_data/T1059/linux_bash_reverse_shell/sysmon_linux,attack_data,"evaluated, no match"
+T1059.004,Unix Shell,linux,0,4,2,0,attack_data:4,attack_data/T1059.004/linux_netcat_outbound_connection/sysmon_linux,attack_data,"evaluated, no match"
+T1071.004,DNS,windows,0,4,3,0,attack_data:4,attack_data/T1071.004/kerberos_coercion/windows,attack_data,"evaluated, no match"
+T1071.004,DNS,windows,0,4,3,0,attack_data:4,attack_data/T1071.004/snapattack/windows,attack_data,"evaluated, no match"
+T1071.004,DNS,windows,0,4,3,0,attack_data:4,attack_data/T1071.004/vbc_dnsquery/windows,attack_data,"evaluated, no match"
+T1204,User Execution,windows,0,4,1,0,attack_data:4,attack_data/T1204/failed_login_service_account_ad/windows,attack_data,"evaluated, no match"
+T1204.002,Malicious File,windows,0,4,3,0,attack_data:4,attack_data/T1204.002/batch_file_in_system32/windows,attack_data,"evaluated, no match"
+T1556,Modify Authentication Process,windows,0,4,2,0,attack_data:4,attack_data/T1556/disable_lsa_protection_new/windows,attack_data,"evaluated, no match"
+T1036,Masquerading,linux,0,3,2,0,attack_data:3,attack_data/T1036/linux_possible_system_binary_backdoor/sysmon_linux,attack_data,"evaluated, no match"
+T1053.003,Cron,linux,0,3,3,2,attack_data:3,attack_data/T1053.003/auditd_path_cron/auditd,attack_data,"evaluated, no match"
+T1053.003,Cron,linux,0,3,3,2,attack_data:3,attack_data/T1053.003/linux_auditd_crontab_edit/auditd,attack_data,tagged rule not evaluable (1)
+T1112,Modify Registry,windows,0,3,3,0,attack_data:3,attack_data/T1112/firewall_modify_delete/windows,attack_data,tagged rule not evaluable (1)
+T1112,Modify Registry,windows,0,3,3,0,attack_data:3,attack_data/T1112/reg_profiles_private2/windows,attack_data,tagged rule not evaluable (1)
+T1190,Exploit Public-Facing Application,windows,0,3,3,0,attack_data:3,attack_data/T1190/proxyshell/windows,attack_data,"evaluated, no match"
+T1190,Exploit Public-Facing Application,windows,0,3,3,0,attack_data:3,attack_data/T1190/screenconnect/windows,attack_data,"evaluated, no match"
+T1222.001,Windows Permissions,windows,0,3,2,0,attack_data:3,attack_data/T1222.001/fsutil_symlink_eval/windows,attack_data,"evaluated, no match"
+T1485,Data Destruction,windows,0,3,3,0,attack_data:3,attack_data/T1485/excessive_file_del_in_windefender_dir/windows,attack_data,"evaluated, no match"
+T1485,Data Destruction,linux,0,3,3,2,attack_data:3,attack_data/T1485/linux_auditd_shred/auditd,attack_data,"evaluated, no match"
+T1485,Data Destruction,linux,0,3,3,2,attack_data:3,attack_data/T1485/rm_boot_dir/sysmon_linux,attack_data,"evaluated, no match"
+T1485,Data Destruction,windows,0,3,3,0,attack_data:3,attack_data/T1485/snapattack/windows,attack_data,tagged rule not evaluable (2)
+T1489,Service Stop,linux,0,3,3,2,attack_data:3,attack_data/T1489/linux_auditd_auditd_service_stop/auditd,attack_data,"evaluated, no match"
+T1489,Service Stop,linux,0,3,3,2,attack_data:3,attack_data/T1489/linux_auditd_service_stop/auditd,attack_data,"evaluated, no match"
+T1497,Virtualization/Sandbox Evasion,windows,0,3,3,0,attack_data:3,attack_data/T1497/browser_disable_extension/windows,attack_data,"evaluated, no match"
+T1497,Virtualization/Sandbox Evasion,windows,0,3,3,0,attack_data:3,attack_data/T1497/snapattack/windows,attack_data,"evaluated, no match"
+T1566,Phishing,windows,0,3,1,0,attack_data:3,attack_data/T1566/snapattack/windows,attack_data,"evaluated, no match"
+T1012,Query Registry,windows,0,2,2,0,attack_data:2,attack_data/T1012/host_file_accessed/windows,attack_data,"evaluated, no match"
+T1033,System Owner/User Discovery,linux,0,2,2,1,attack_data:2,attack_data/T1033/linux_auditd_whoami_new/auditd,attack_data,"evaluated, no match"
+T1033,System Owner/User Discovery,linux,0,2,2,1,attack_data:2,attack_data/T1033/linux_root_execution_of_id/sysmon_linux,attack_data,"evaluated, no match"
+T1046,Network Service Discovery,windows,0,2,2,0,attack_data:2,attack_data/T1565.001/wbadmin_recovery/windows,attack_data,"evaluated, no match"
+T1053.002,At,linux,0,2,2,2,attack_data:2,attack_data/T1053.002/linux_auditd_chown_root/auditd,attack_data,"evaluated, no match"
+T1082,System Information Discovery,linux,0,2,2,1,attack_data:2,attack_data/T1082/linux_auditd_lsmod/auditd,attack_data,"evaluated, no match"
+T1083,File and Directory Discovery,linux,0,2,2,2,attack_data:2,attack_data/T1083/linux_auditd_find_db/auditd,attack_data,tagged rule not evaluable (1)
+T1083,File and Directory Discovery,linux,0,2,2,2,attack_data:2,attack_data/T1083/linux_auditd_find_document/auditd,attack_data,tagged rule not evaluable (1)
+T1098,Account Manipulation,linux,0,2,1,1,attack_data:2,attack_data/T1098/linux_usermod_root_uid_set/sysmon_linux,attack_data,"evaluated, no match"
+T1098.004,SSH Authorized Keys,linux,0,2,1,1,attack_data:2,attack_data/T1098.004/auditd_path_ssh_config/auditd,attack_data,"evaluated, no match"
+T1105,Ingress Tool Transfer,windows,0,2,2,0,attack_data:2,attack_data/T1105/ironlanguage_download/windows,attack_data,hunting or emerging rule fires
+T1185,Browser Session Hijacking,windows,0,2,2,0,attack_data:2,attack_data/T1185/browser_unusual_flag/windows,attack_data,"evaluated, no match"
+T1185,Browser Session Hijacking,windows,0,2,2,0,attack_data:2,attack_data/T1185/disable_chrome_update/windows,attack_data,"evaluated, no match"
+T1190,Exploit Public-Facing Application,linux,0,2,2,0,attack_data:2,attack_data/T1190/linux_cve-2023-33246_rocketmq_exploitation/sysmon_linux,attack_data,"evaluated, no match"
+T1197,BITS Jobs,windows,0,2,2,1,evtx_attack_samples:2,evtx_attack_samples/Persistence/persist_bitsadmin_Microsoft-Windows-Bits-Client-Operational.evtx,evtx_attack_samples,tagged rule not evaluable (2)
+T1207,Rogue Domain Controller,windows,0,2,2,0,attack_data:2,attack_data/T1207/short_lived_server_object/windows,attack_data,"evaluated, no match"
+T1219,Remote Access Tools,windows,0,2,2,0,attack_data:2,attack_data/T1219/teamviewer/windows,attack_data,tagged rule not evaluable (1)
+T1490,Inhibit System Recovery,windows,0,2,2,0,attack_data:2,attack_data/T1490/snapattack/windows,attack_data,"evaluated, no match"
+T1542,Pre-OS Boot,linux,0,2,2,0,attack_data:2,attack_data/T1542/linux_possible_bootloader_modifications/sysmon_linux,attack_data,"evaluated, no match"
+T1543.003,Windows Service,windows,0,2,2,0,attack_data:2,attack_data/T1543.003/services_lolbas_execution/windows,attack_data,tagged rule not evaluable (4)
+T1543.003,Windows Service,windows,0,2,2,0,attack_data:2,attack_data/T1543.003/snapattack/windows,attack_data,tagged rule not evaluable (4)
+T1567,Exfiltration Over Web Service,windows,0,2,1,0,attack_data:2,attack_data/T1567/snapattack/windows,attack_data,"evaluated, no match"
+T1595,Active Scanning,windows,0,2,1,0,attack_data:2,attack_data/T1595/snapattack/windows,attack_data,tagged rule not evaluable (2)
+T1014,Rootkit,linux,0,1,1,0,attack_data:1,attack_data/T1014/medusa_rootkit/sysmon_linux,attack_data,"evaluated, no match"
+T1021.004,SSH,linux,0,1,1,0,attack_data:1,attack_data/T1021.004/atomic_red_team/sysmon_linux,attack_data,"evaluated, no match"
+T1037.005,Startup Items,linux,0,1,1,0,attack_data:1,attack_data/T1037.005/linux_persistence_via_system_generator/sysmon_linux,attack_data,"evaluated, no match"
+T1119,Automated Collection,windows,0,1,1,0,attack_data:1,attack_data/T1119/windows_dir_piped_to_findstr_activity/windows,attack_data,tagged rule not evaluable (1)
+T1136.001,Local Account,linux,0,1,1,1,attack_data:1,attack_data/T1136.001/linux_auditd_add_user/auditd,attack_data,"evaluated, no match"
+T1195.002,Compromise Software Supply Chain,windows,0,1,1,0,attack_data:1,attack_data/T1195.002/3CX/windows,attack_data,"evaluated, no match"
+T1202,Indirect Command Execution,windows,0,1,1,0,attack_data:1,attack_data/T1202/atomic_red_team/windows,attack_data,"evaluated, no match"
+T1204.002,Malicious File,linux,0,1,1,0,attack_data:1,attack_data/T1204.002/snapattack/sysmon_linux,attack_data,"evaluated, no match"
+T1222.002,Linux and Mac Permissions,linux,0,1,1,1,attack_data:1,attack_data/T1222.002/linux_auditd_chmod_exec_attrib/auditd,attack_data,"evaluated, no match"
+T1482,Domain Trust Discovery,windows,0,1,1,0,attack_data:1,attack_data/T1482/snapattack/windows,attack_data,"evaluated, no match"
+T1505,Server Software Component,linux,0,1,1,0,attack_data:1,attack_data/T1505/linux_suspicious_redis_activity/sysmon_linux,attack_data,tagged rule not evaluable (1)
+T1542.003,Bootkit,windows,0,1,1,0,attack_data:1,attack_data/T1542.003/snapattack/windows,attack_data,"evaluated, no match"
+T1552.003,Shell History,linux,0,1,1,0,attack_data:1,attack_data/T1552.003/snapattack/sysmon_linux,attack_data,"evaluated, no match"
+T1552.004,Private Keys,linux,0,1,1,1,attack_data:1,attack_data/T1552.004/linux_auditd_find_gpg/auditd,attack_data,"evaluated, no match"
+T1555.005,Password Managers,linux,0,1,1,1,attack_data:1,attack_data/T1555.005/linux_auditd_find_password_db/auditd,attack_data,"evaluated, no match"
+T1563.002,RDP Hijacking,windows,0,1,1,0,attack_data:1,attack_data/T1563.002/windows_rdp_connection_successful/windows,attack_data,"evaluated, no match"
+T1620,Reflective Code Loading,windows,0,1,1,0,attack_data:1,attack_data/T1620/common_language_runtim_loaded/windows,attack_data,"evaluated, no match"
+T1649,Steal or Forge Authentication Certificates,windows,0,1,1,0,attack_data:1,attack_data/T1649/atomic_red_team/windows,attack_data,tagged rule not evaluable (2)
+T1053.006,Systemd Timers,linux,0,0,0,0,,citadel_captures/proving2-2026-09-22/T1053.006/f4983098-bb13-44fb-9b2c-46149961807b,citadel_captures,"evaluated, no match"
+T1057,Process Discovery,linux,0,0,0,0,,citadel_captures/discovery-2026-09-18/T1057/4ff64f0b-aaf2-4866-b39d-38d9791407cc,citadel_captures,hunting or emerging rule fires
+T1546.005,Trap,linux,0,0,0,0,,citadel_captures/proving2-2026-09-22/T1546.005/a74b2e07-5952-4c03-8b56-56274b076b61,citadel_captures,"evaluated, no match"
+T1556.003,Pluggable Authentication Modules,linux,0,0,0,0,,citadel_captures/proving2-2026-09-22/T1556.003/4b9dde80-ae22-44b1-a82a-644bf009eb9c,citadel_captures,"evaluated, no match"
+T1560.002,Archive via Library,linux,0,0,0,0,,citadel_captures/proving-2026-09-22/T1560.002/001a042b-859f-44d9-bf81-fd1c4e2200b0,citadel_captures,"evaluated, no match"
+T1560.002,Archive via Library,linux,0,0,0,0,,citadel_captures/proving2-2026-09-22/T1560.002/001a042b-859f-44d9-bf81-fd1c4e2200b0,citadel_captures,"evaluated, no match"
+T1569.003,Systemctl,linux,0,0,0,0,,citadel_captures/proving2-2026-09-22/T1569.003/e58c8723-5503-4533-b642-535cd20ec648,citadel_captures,"evaluated, no match"
+T1690,Prevent Command History Logging,linux,0,0,0,0,,citadel_captures/proving-2026-09-22/T1690/386d3850-2ce7-4508-b56b-c0558922c814,citadel_captures,"evaluated, no match"
+T1690,Prevent Command History Logging,linux,0,0,0,0,,citadel_captures/proving2-2026-09-22/T1690/386d3850-2ce7-4508-b56b-c0558922c814,citadel_captures,"evaluated, no match"
