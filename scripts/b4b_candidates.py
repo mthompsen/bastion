@@ -11,7 +11,9 @@ labels only**; the exact-label and frozen-130 counts are listed beside it. No te
 outcome is read, so the ranking cannot steer towards test captures that are currently missed.
 The held-out count is also split by corpus, because gains are reported on captures from a
 corpus other than the dev capture's. Each dev capture carries a miss reason from its own
-outcome record; only "evaluated, no match" is a procedure variant for B4b.
+outcome record. Only "evaluated, no alerting firing" is B4b material: when an alerting rule
+fires but is tagged to another technique, the miss is a tag dispute (B2: no retagging), and a
+local rule written for it would be a retag by duplicate.
 
 usage: python scripts/b4b_candidates.py <run name> <out.csv>
 """
@@ -66,7 +68,9 @@ def main(run: str, out: Path) -> None:
         ]
         if tagged_ne:
             return f"tagged rule not evaluable ({len(tagged_ne)})"
-        return "evaluated, no match"
+        if any(not (f.get("hunting") or f.get("emerging")) for f in outcome["fired"]):
+            return "alerting rule fires, tagged elsewhere"
+        return "evaluated, no alerting firing"
 
     missed: dict[str, str] = {}
     outcomes = (repo / "bench" / "results" / run / "outcomes.jsonl").read_text(encoding="utf-8")
