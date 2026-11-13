@@ -352,8 +352,15 @@ def render_report(summary: Mapping[str, Any]) -> str:
     add("")
     add(
         f"{rob['scored']} of {rob['rules']} rules scored; {rob['unscored']} unscored. "
-        "Scoring starts in B4."
+        "Scores and rationale: `bench/stp-scores.csv` (every local rule and a seeded sample "
+        "of SigmaHQ rules)."
     )
+    levels = {k: v for k, v in rob["levels"].items() if k != "unscored"}
+    if levels:
+        add("")
+        add("| " + " | ".join(levels) + " |")
+        add("|" + "-:|" * len(levels))
+        add("| " + " | ".join(str(v) for v in levels.values()) + " |")
     caps = summary["captures"]
     add("")
     add("## Captures")

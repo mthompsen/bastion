@@ -398,3 +398,8 @@ def test_fired_without_emerging_field_reads_as_not_emerging() -> None:
     raw = _outcome("x", [], [_fired("a", [])]).as_dict()
     del raw["fired"][0]["emerging"]
     assert CaptureOutcome.from_dict(raw).fired[0].emerging is False
+
+
+def test_robustness_counts_only_scores_for_rules_passed() -> None:
+    result = robustness(RULES, {RULES[0].id: "level-4", "not-a-loaded-rule": "level-2"})
+    assert result["scored"] == 1 and result["unscored"] == 1

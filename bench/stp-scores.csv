@@ -1,0 +1,39 @@
+# Summiting the Pyramid (CTID) robustness scores, B4 (START_PROMPT section 10 B4; scoring method in docs/milestones/B4.md section 7).
+# Levels: 1 ephemeral values; 2 core to adversary-brought tools; 3 core to pre-existing tools; 4 core to some implementations of the (sub-)technique; 5 core to the (sub-)technique.
+# Convention: AND of conditions scores at its weakest required part; OR of branches at the branch hardest to avoid.
+# source: local = rules/ in this repository (every one scored); sample = SigmaHQ r2026-07-01 core rules/, alerting class, product windows or linux, the first 20 by sha256("20260926:" + id).
+rule_id,source,level,title,rationale
+5b0d8a3e-2f6c-4b1e-9a57-3c9e1f4d7a20,local,4,Several Host Discovery Commands From One Parent,A burst of distinct discovery binaries from one parent; any tool set produces it; spacing the commands out evades it
+3f6a9c21-7e48-4d0b-9b35-1c2e8a4f6d07,local,4,Failed Logons For Many Accounts From One Source,One failed logon per account sprayed is inherent to the technique; a spray slower than the window evades it
+8c1d5e47-2b90-4f6a-a3d8-5e7f0b9c2a14,local,4,Kerberos Authentication Failures For Many Accounts From One Source,Failed Kerberos pre-authentication per account is inherent to a Kerberos spray; a slow spray evades it
+6e2a4b91-0c7d-4f35-8a1e-3d9b5c7f2e60,local,4,RC Script Modified From The Command Line,Writing an rc script is core to RC script persistence; a write from inside an interpreter that never names the file on a command line evades it
+9b4e1d73-6a2c-4f08-b5d9-2e8c7a1f4b65,local,3,Loaded Kernel Module Enumeration,Keys on lsmod kmod modinfo and /proc/modules on a command line; a custom binary reading the module list evades it
+4c8f2a17-9e3b-4d61-a0c7-5b1e8d3f6a92,local,3,Shared Object Compiled With A Load-Time Initialiser,Keys on the compiler and linker flag; a prebuilt library or a constructor attribute in source evades it
+6a3d9e41-7f25-4c8b-92e6-b1d4f8a0c755,local,2,Crypto Miner Indicators In Logs,Miner binary names are adversary-brought; the stratum URL branch matches only when the pool URL is logged and a config file avoids that
+2f7b4c93-d816-4e5a-87c1-64a9e0b3d966,local,3,Host Log Enumeration,Pre-existing tools (utmpdump lastlog) and literal cat command strings; another reader such as less evades the cat branch
+1e8c5f72-64d9-4a1b-bc3e-50f2a9d7e833,local,3,PAM Configuration Modification,The /etc/pam.d path is core to the sub-technique but is ANDed with a list of editor and shell write verbs; another writer evades it
+7c2f9a3e-51b4-4d8a-9f6e-08a3c2d4e511,local,4,Shadow File Read Attempt,Reading /etc/shadow is core to the sub-technique with any tool; seen only when the path appears in an auth log line
+9d4a7b58-2c61-4f3e-a8d9-37b0c5e1f644,local,3,SSH Authorized Keys File Modification,The authorized_keys path is core but is ANDed with a list of write tools; another writer evades it
+4b6e1d27-83af-49c0-b5d2-19e7f30a6c22,local,3,Systemd Timer Unit Creation Or Activation,Keys on systemctl verbs with a .timer unit; enabling by creating the wants symlink directly evades it
+5c9f8a16-3e72-4b4d-a0c5-91d8e6b2f388,local,3,System Language And Location Discovery,Pre-existing tools (reg query of Control\Nls and locale cmdlets); an API call from a custom binary evades it
+8e5b2d64-a937-4f0c-b1e8-72c6d9f4a077,local,3,Wi-Fi Profile Enumeration Via Netsh,Pre-existing tool netsh wlan show; the WLAN API from a custom binary evades it
+fa1a7e52-3d02-435b-81b8-00da14dd66c1,sample,3,Diskshadow Script Mode - Execution From Potential Suspicious Location,Pre-existing tool diskshadow with a script from a listed folder; another folder evades it
+360a1340-398a-46b6-8d06-99b905dc69d2,sample,4,Windows Defender Grace Period Expired,An operating system event independent of the tool that caused it; one of several ways protection lapses
+fbc5e92f-3044-4e73-a5c6-1c4359b539de,sample,2,PowerShell Script With File Hostname Resolving Capabilities,Four literal strings of one script's content; rewriting the script evades it
+ab90dab8-c7da-4010-9193-563528cfa347,sample,3,Potentially Suspicious Self Extraction Directive File Created,The .sed directive is an artifact of the pre-existing IExpress tool; any extension change at creation evades it
+f88e112a-21aa-44bd-9b01-6ee2a2bbbed1,sample,4,Failed Logon From Public IP,Failed logon events from public sources are produced by any external guessing tool; internal sources are out of scope
+5de03871-5d46-4539-a82d-3aa992a69a83,sample,4,Registry Disable System Restore,The policy value itself is matched whatever tool writes it; other ways to inhibit recovery evade it
+98054878-5eab-434c-85d4-72d4e5a3361b,sample,2,HackTool - EDRSilencer Execution - Filter Added,Keys on the filter name one tool uses; renaming the filter evades it
+7c81fec3-1c1d-43b0-996a-46753041b1b6,sample,4,UAC Bypass via Event Viewer,The mscfile open command key is core to this bypass whatever tool writes it
+36bed6b2-e9a0-4fff-beeb-413a92b86138,sample,3,Active Directory Computers Enumeration With Get-AdComputer,Pre-existing cmdlet; a raw LDAP query evades it
+7e9cf7b6-e827-11ed-a05b-15959c120003,sample,4,Potentially Suspicious Network Connection To Notion API,The service endpoint is core to command and control over Notion; another web service evades it
+8cd538a4-62d5-4e83-810b-12d41e428d6e,sample,4,Processes Accessing the Microphone and Webcam,Consent store object access is produced by any non-packaged program using the devices
+bac9fb54-2da7-44e9-988f-11e9a5edbc0c,sample,3,Potential Password Spraying Attempt Using Dsacls.EXE,Pre-existing tool dsacls with credential arguments
+1f6b8cd4-3e60-47cc-b282-5aa1cbc9182d,sample,2,Remote Access Tool - Team Viewer Session Started On Linux Host,Exact process names and command line of one remote access product
+f89b08d0-77ad-4728-817b-9b16c5a69c7a,sample,2,HackTool - SharpImpersonation Execution,Names and arguments of one offensive tool
+cc9cbe82-7bc0-4ef5-bc23-bbfb83947be7,sample,3,File Decoded From Base64/Hex Via Certutil.EXE,Pre-existing tool certutil with its decode flags
+092bc4b9-3d1d-43b4-a6b4-8c8acd83522f,sample,4,PowerShell Core DLL Loaded By Non PowerShell Process,Unmanaged PowerShell has to load System.Management.Automation whatever host process runs it
+7002aa10-b8d4-47ae-b5ba-51ab07e228b9,sample,3,Potential Mpclient.DLL Sideloading Via Defender Binaries,A pre-existing Defender binary run from outside its install folders; another signed sideloading host evades it
+d7a95147-145f-4678-b85d-d1ff4a3bb3f6,sample,2,CobaltStrike Service Installations - Security,Service command strings of one framework's defaults
+24357373-078f-44ed-9ac4-6d334a668a11,sample,3,Direct Autorun Keys Modification,Pre-existing tool reg.exe add on autorun keys; writing the key by API evades it
+584bca0f-3608-4402-80fd-4075ff6072e3,sample,1,Potential CommandLine Obfuscation Using Unicode Characters From Suspicious Image,A list of specific look-alike characters the adversary chooses; any other character evades it

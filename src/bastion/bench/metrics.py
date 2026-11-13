@@ -838,9 +838,10 @@ def robustness(rules: Sequence[SigmaRule], scores: Mapping[str, str]) -> dict[st
     distribution: Counter[str] = Counter()
     for rule in rules:
         distribution[scores.get(rule.id, "unscored")] += 1
+    unscored = distribution.get("unscored", 0)
     return {
         "levels": dict(sorted(distribution.items())),
-        "scored": len(scores),
-        "unscored": distribution.get("unscored", 0),
+        "scored": len(rules) - unscored,
+        "unscored": unscored,
         "rules": len(rules),
     }

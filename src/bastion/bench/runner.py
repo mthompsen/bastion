@@ -142,6 +142,25 @@ def evaluation_source_hash() -> str:
     return digest.hexdigest()[:12]
 
 
+def load_stp_scores(repo_root: Path) -> dict[str, str]:
+    """Summiting the Pyramid levels from ``bench/stp-scores.csv`` (rule id -> ``level-N``).
+
+    The file is committed with its rationale per rule (B4); a missing file means nothing is
+    scored yet.
+    """
+    import csv
+
+    path = repo_root / "bench" / "stp-scores.csv"
+    if not path.is_file():
+        return {}
+    lines = [
+        line
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.startswith("#")
+    ]
+    return {row["rule_id"]: f"level-{row['level']}" for row in csv.DictReader(lines)}
+
+
 def bastion_commit(repo_root: Path) -> str:
     try:
         out = subprocess.run(
@@ -723,7 +742,10 @@ def summarize(
             "citadel_background": _volume_dict(lab_volume),
         },
         "ladder": {"distribution": ladder_distribution(ladder), "per_technique": ladder},
-        "robustness": robustness(ruleset.rules, {}),
+        "robustness": robustness(
+            [*ruleset.rules, *(c.header for c in ruleset.correlations.rules)],
+            load_stp_scores(config.repo_root),
+        ),
         "not_evaluable": not_evaluable_summary(outcomes, ruleset.by_id),
         "captures": {
             "total": len(outcomes),
