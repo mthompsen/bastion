@@ -1,0 +1,37 @@
+# Bastion B4b (procedure variant of T1055; bench/b4b/candidates-dev.csv).
+# Summiting the Pyramid: level 4. Process doppelganging needs an NTFS transaction to write and
+#   roll back the payload image, whatever tool does it; transactions are otherwise used by
+#   installers and servicing in system folders. A loader placed in Program Files evades it.
+# Developed on dev capture evtx_attack_samples/Defense Evasion/Win_4985_T1186_Process_Doppelganging.evtx
+#   (Security 4985: SubjectUserName, ProcessName, TransactionId, ResourceManager). No test capture read.
+title: File System Transaction Used By A Program Outside System Folders
+id: 3f024d3c-e660-4749-b4a4-ff74efb0326f
+status: experimental
+description: >
+    Security 4985 (the state of a transaction has changed) is logged for a process outside
+    C:\Windows and the Program Files folders. Transactional NTFS is deprecated for applications;
+    process doppelganging uses a transaction to map a payload that never persists on disk.
+references:
+    - https://attack.mitre.org/techniques/T1055/013/
+author: Bastion
+date: 2026-11-13
+tags:
+    - attack.stealth
+    - attack.privilege-escalation
+    - attack.t1055.013
+logsource:
+    product: windows
+    service: security
+    definition: 'Requirements: Audit File System or Audit Kernel Object (4985 is logged with object access auditing)'
+detection:
+    selection:
+        EventID: 4985
+    filter_main_system:
+        ProcessName|startswith:
+            - 'C:\Windows\'
+            - 'C:\Program Files\'
+            - 'C:\Program Files (x86)\'
+    condition: selection and not 1 of filter_main_*
+falsepositives:
+    - Old installers that still use transactional NTFS from a temporary folder
+level: high

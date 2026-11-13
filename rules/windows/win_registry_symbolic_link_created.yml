@@ -1,0 +1,37 @@
+# Bastion B4b (procedure variant of T1068; bench/b4b/candidates-dev.csv).
+# Summiting the Pyramid: level 4. A registry symbolic link redirects a privileged writer into a
+#   key the caller cannot write itself; every registry-link exploitation primitive sets
+#   SymbolicLinkValue, whatever the exploit. A link created by a process in system folders
+#   evades it.
+# Developed on dev capture evtx_attack_samples/Privilege Escalation/privesc_registry_symlink_CVE-2020-1377.evtx
+#   (Sysmon 12 and 13: Image, TargetObject, EventType, Details). No test capture read.
+title: Registry Symbolic Link Created By A Program Outside System Folders
+id: d061eed2-90c8-494d-8c6c-00843a635390
+status: experimental
+description: >
+    A process outside C:\Windows and the Program Files folders sets SymbolicLinkValue on a
+    registry key, turning the key into a link to another key. Local privilege escalation
+    exploits use registry links to redirect a privileged service's writes into a key such as a
+    service configuration.
+references:
+    - https://attack.mitre.org/techniques/T1068/
+author: Bastion
+date: 2026-11-13
+tags:
+    - attack.privilege-escalation
+    - attack.t1068
+logsource:
+    product: windows
+    category: registry_set
+detection:
+    selection:
+        TargetObject|endswith: '\SymbolicLinkValue'
+    filter_main_system:
+        Image|startswith:
+            - 'C:\Windows\'
+            - 'C:\Program Files\'
+            - 'C:\Program Files (x86)\'
+    condition: selection and not 1 of filter_main_*
+falsepositives:
+    - Software that creates registry links for compatibility (rare outside system components)
+level: high

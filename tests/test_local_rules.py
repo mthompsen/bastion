@@ -280,3 +280,176 @@ def test_b4b_windows_rules_fire_and_stay_quiet(title: str) -> None:
         assert match(rule, make_event("windows", **fields)).matched, (title, fields)
     for fields in negatives:
         assert not match(rule, make_event("windows", **fields)).matched, (title, fields)
+
+
+# --- B4b batch 2: Windows procedure-variant rules ---------------------------------------------
+
+B4B_WINDOWS_2: dict[str, tuple[list[dict[str, FieldValue]], list[dict[str, FieldValue]]]] = {
+    "MMC Opens A Console File From A User-Writable Folder": (
+        [
+            {
+                "EventID": 1,
+                "Image": "C:\\Windows\\System32\\mmc.exe",
+                "CommandLine": '"C:\\Windows\\system32\\mmc.exe" "C:\\Temp\\guide\\prompts.msc"',
+            },
+            {
+                "EventID": 1,
+                "Image": "C:\\Windows\\System32\\mmc.exe",
+                "CommandLine": 'mmc.exe "C:\\Users\\bob\\Downloads\\invoice.msc"',
+            },
+        ],
+        [
+            {
+                "EventID": 1,
+                "Image": "C:\\Windows\\System32\\mmc.exe",
+                "CommandLine": 'mmc.exe "C:\\Windows\\system32\\compmgmt.msc"',
+            },
+            {
+                "EventID": 1,
+                "Image": "C:\\Windows\\System32\\notepad.exe",
+                "CommandLine": "notepad.exe C:\\Temp\\notes.msc",
+            },
+        ],
+    ),
+    "WinRM TrustedHosts Changed From PowerShell": (
+        [
+            {
+                "EventID": 4104,
+                "ScriptBlockText": "Set-Item WSMan:\\localhost\\Client\\TrustedHosts -Value '*'",
+            }
+        ],
+        [
+            {
+                "EventID": 4104,
+                "ScriptBlockText": "Get-Item WSMan:\\localhost\\Client\\TrustedHosts",
+            },
+            {"EventID": 4104, "ScriptBlockText": "Set-Item -Path Env:TrustedHostsNote -Value 1"},
+        ],
+    ),
+    "Service Process Started From The Root Of The Windows Folder": (
+        [
+            {
+                "EventID": 1,
+                "Image": "C:\\Windows\\XSljVQla.exe",
+                "ParentImage": "C:\\Windows\\System32\\services.exe",
+            }
+        ],
+        [
+            {
+                "EventID": 1,
+                "Image": "C:\\Windows\\System32\\svchost.exe",
+                "ParentImage": "C:\\Windows\\System32\\services.exe",
+            },
+            {
+                "EventID": 1,
+                "Image": "C:\\Windows\\explorer.exe",
+                "ParentImage": "C:\\Windows\\System32\\userinit.exe",
+            },
+        ],
+    ),
+    "RDP Client Control Loaded By A Program Outside System Folders": (
+        [
+            {
+                "EventID": 7,
+                "Image": "C:\\ProgramData\\USOShared\\SharpRDP.exe",
+                "ImageLoaded": "C:\\Windows\\SysWOW64\\mstscax.dll",
+            }
+        ],
+        [
+            {
+                "EventID": 7,
+                "Image": "C:\\Windows\\System32\\mstsc.exe",
+                "ImageLoaded": "C:\\Windows\\System32\\mstscax.dll",
+            },
+            {
+                "EventID": 7,
+                "Image": "C:\\ProgramData\\tool.exe",
+                "ImageLoaded": "C:\\Windows\\System32\\kernel32.dll",
+            },
+        ],
+    ),
+    "File System Transaction Used By A Program Outside System Folders": (
+        [{"EventID": 4985, "ProcessName": "C:\\ProgramData\\proc_doppel64.exe"}],
+        [
+            {"EventID": 4985, "ProcessName": "C:\\Windows\\System32\\msiexec.exe"},
+            {"EventID": 4688, "ProcessName": "C:\\ProgramData\\proc_doppel64.exe"},
+        ],
+    ),
+    "Registry Symbolic Link Created By A Program Outside System Folders": (
+        [
+            {
+                "EventID": 13,
+                "Image": "C:\\Users\\u\\Desktop\\exploit.exe",
+                "TargetObject": "HKLM\\SOFTWARE\\Microsoft\\DRM\\DEMO2\\SymbolicLinkValue",
+                "Details": "\\Registry\\Machine\\System\\CurrentControlSet\\Services\\ABC",
+            }
+        ],
+        [
+            {
+                "EventID": 13,
+                "Image": "C:\\Windows\\System32\\svchost.exe",
+                "TargetObject": "HKLM\\SOFTWARE\\Classes\\x\\SymbolicLinkValue",
+                "Details": "\\Registry\\Machine\\Software\\Classes\\y",
+            },
+            {
+                "EventID": 13,
+                "Image": "C:\\Users\\u\\Desktop\\tool.exe",
+                "TargetObject": "HKCU\\Software\\Tool\\Setting",
+                "Details": "1",
+            },
+        ],
+    ),
+    "Printer CopyFiles Module Registered To A Non-Default Library": (
+        [
+            {
+                "EventID": 13,
+                "Image": "C:\\Windows\\System32\\spoolsv.exe",
+                "TargetObject": (
+                    "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Print\\Printers"
+                    "\\Microsoft XPS Document Writer v4\\CopyFiles\\Module"
+                ),
+                "Details": "C:\\Windows\\system32\\spool\\DRIVERS\\x64\\4\\Test.dll",
+            }
+        ],
+        [
+            {
+                "EventID": 13,
+                "Image": "C:\\Windows\\System32\\spoolsv.exe",
+                "TargetObject": (
+                    "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Print\\Printers"
+                    "\\HP LaserJet\\CopyFiles\\ICM\\Module"
+                ),
+                "Details": "mscms.dll",
+            }
+        ],
+    ),
+    "Service Installed With A Bare Executable Name": (
+        [
+            {"EventID": 7045, "ServiceName": "remotesvc", "ImagePath": "calc.exe"},
+            {"EventID": 7045, "ServiceName": "x", "ImagePath": "cmd.exe /c whoami > out.txt"},
+        ],
+        [
+            {
+                "EventID": 7045,
+                "ServiceName": "Spooler",
+                "ImagePath": "C:\\Windows\\System32\\spoolsv.exe",
+            },
+            {
+                "EventID": 7045,
+                "ServiceName": "svc",
+                "ImagePath": '"C:\\Program Files\\Vendor\\agent.exe" -service',
+            },
+        ],
+    ),
+}
+
+
+@pytest.mark.parametrize("title", sorted(B4B_WINDOWS_2))
+def test_b4b_batch2_windows_rules_fire_and_stay_quiet(title: str) -> None:
+    rule = next(r for r in LOCAL_RULES if r.title == title)
+    assert rule.status == "experimental"
+    positives, negatives = B4B_WINDOWS_2[title]
+    for fields in positives:
+        assert match(rule, make_event("windows", **fields)).matched, (title, fields)
+    for fields in negatives:
+        assert not match(rule, make_event("windows", **fields)).matched, (title, fields)

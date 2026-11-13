@@ -50,8 +50,17 @@ already claim but miss on a dev capture. Each records its dev capture in its hea
 | AdminSDHolder Security Descriptor Modified | T1098, T1546 | windows | 4 | attack_data `T1546/adminsdholder_modified` |
 | Auto-Elevating Binary Opened By A Program Outside System Folders | T1134.001, T1548.002 | windows | 3 | attack_data `T1134.001/uac_process_handle_dup` |
 | PsExec-Style Service Redirection Pipes Under Any Service Name | T1569.002, T1021.002 | windows | 3 | EVTX-ATTACK-SAMPLES `Defense Evasion/DE_renamed_psexec_service_sysmon_17_18` |
+| MMC Opens A Console File From A User-Writable Folder | T1218.014 MMC | windows | 3 | attack_data `T1218.014/msc_execution` |
+| WinRM TrustedHosts Changed From PowerShell | T1021.006 Windows Remote Management | windows | 3 | attack_data `T1021.006/wsman_trustedhost` |
+| Service Process Started From The Root Of The Windows Folder | T1569.002, T1021.002 | windows | 3 | attack_data `T1059/suspiciously_named_executables` |
+| RDP Client Control Loaded By A Program Outside System Folders | T1021.001 Remote Desktop Protocol | windows | 3 | EVTX-ATTACK-SAMPLES `Lateral Movement/sharprdp_sysmon_7_mstscax.dll` |
+| File System Transaction Used By A Program Outside System Folders | T1055.013 Process Doppelganging | windows | 4 | EVTX-ATTACK-SAMPLES `Defense Evasion/Win_4985_T1186_Process_Doppelganging` |
+| Registry Symbolic Link Created By A Program Outside System Folders | T1068 | windows | 4 | EVTX-ATTACK-SAMPLES `Privilege Escalation/privesc_registry_symlink_CVE-2020-1377` |
+| Printer CopyFiles Module Registered To A Non-Default Library | T1068 | windows | 4 | EVTX-ATTACK-SAMPLES `Privilege Escalation/privesc_spoolfool_mahdihtm_sysmon_1_11_7_13` |
+| Service Installed With A Bare Executable Name | T1569.002, T1543.003 | windows | 3 | attack_data `T1569.002/windows_service_created_with_suspicious_service_path`, EVTX-ATTACK-SAMPLES `Lateral Movement/LM_Remote_Service02_7045` |
+| Remote Registry Pipe Followed By An Administrative Share Write (correlation) | T1003.002 Security Account Manager | windows | 4 | EVTX-ATTACK-SAMPLES `Credential Access/remote_sam_registry_access_via_backup_operator_priv` |
 
-All five are `experimental` until they have fixtures (they do) and benign evidence that holds
+All fourteen are `experimental` until they have fixtures (they do) and benign evidence that holds
 the events they read (Mason, 2026-11-13).
 
 Status by platform (decided 2026-11-10, recorded in `docs/milestones/B2.md` section 1):

@@ -1,0 +1,37 @@
+# Bastion B4b (procedure variant of T1068; bench/b4b/candidates-dev.csv).
+# Summiting the Pyramid: level 4. Printer CopyFiles abuse (SpoolFool, PrintNightmare variants)
+#   makes the spooler load a DLL by registering it as a printer's CopyFiles module; the spooler
+#   writes the value whatever tool requested it. The color profile module (mscms.dll) is the
+#   one legitimate value excluded.
+# Developed on dev capture evtx_attack_samples/Privilege Escalation/privesc_spoolfool_mahdihtm_sysmon_1_11_7_13.evtx
+#   (Sysmon 1, 11, 13 and 7: Image, CommandLine, ParentImage, TargetFilename, TargetObject,
+#   Details, ImageLoaded). No test capture read.
+title: Printer CopyFiles Module Registered To A Non-Default Library
+id: 8fc6d748-93e8-4c14-9e8d-41e5afd80b3e
+status: experimental
+description: >
+    A printer's CopyFiles Module registry value is set to a library other than the colour
+    management module mscms.dll. The spooler loads the module as SYSTEM when the printer is
+    used, which SpoolFool and similar exploits use to run their DLL.
+references:
+    - https://attack.mitre.org/techniques/T1068/
+author: Bastion
+date: 2026-11-13
+tags:
+    - attack.privilege-escalation
+    - attack.t1068
+logsource:
+    product: windows
+    category: registry_set
+detection:
+    selection:
+        TargetObject|contains|all:
+            - '\Print\Printers\'
+            - '\CopyFiles\'
+        TargetObject|endswith: '\Module'
+    filter_main_mscms:
+        Details|endswith: 'mscms.dll'
+    condition: selection and not 1 of filter_main_*
+falsepositives:
+    - Printer drivers that ship their own CopyFiles module
+level: high

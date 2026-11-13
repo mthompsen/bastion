@@ -1,0 +1,35 @@
+# Bastion B4b (procedure variant of T1021.001; bench/b4b/candidates-dev.csv).
+# Summiting the Pyramid: level 3. Driving the RDP ActiveX control (mstscax.dll) from a custom
+#   program is how SharpRDP-style tools run commands over RDP without mstsc.exe; the control is
+#   pre-existing. A client installed under Program Files evades it.
+# Developed on dev capture evtx_attack_samples/Lateral Movement/sharprdp_sysmon_7_mstscax.dll.evtx
+#   (Sysmon 7: Image, ImageLoaded; Sysmon 1: Image, CommandLine, ParentImage). No test capture read.
+title: RDP Client Control Loaded By A Program Outside System Folders
+id: f588152a-2f2f-4fa0-9062-705fc9eb087b
+status: experimental
+description: >
+    The Remote Desktop ActiveX control mstscax.dll is loaded by a program outside C:\Windows and
+    the Program Files folders. Tools such as SharpRDP host the control to open an RDP session
+    and send keystrokes or commands, which avoids mstsc.exe and its command line.
+references:
+    - https://attack.mitre.org/techniques/T1021/001/
+author: Bastion
+date: 2026-11-13
+tags:
+    - attack.lateral-movement
+    - attack.t1021.001
+logsource:
+    product: windows
+    category: image_load
+detection:
+    selection:
+        ImageLoaded|endswith: '\mstscax.dll'
+    filter_main_system:
+        Image|startswith:
+            - 'C:\Windows\'
+            - 'C:\Program Files\'
+            - 'C:\Program Files (x86)\'
+    condition: selection and not 1 of filter_main_*
+falsepositives:
+    - Remote desktop managers installed per user under AppData
+level: medium

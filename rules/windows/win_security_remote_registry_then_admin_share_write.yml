@@ -1,0 +1,61 @@
+# Bastion B4b (procedure variant of T1003.002; bench/b4b/candidates-dev.csv).
+# Summiting the Pyramid: level 4. Dumping SAM, SYSTEM and SECURITY remotely means opening the
+#   winreg pipe to save the hives and then touching the saved files over an administrative
+#   share, whatever tool does it (reg.py, secretsdump, BackupOperatorToDA). Staging the hives
+#   through another channel, or spacing the steps beyond a minute, evades it.
+# Developed on dev capture evtx_attack_samples/Credential Access/remote_sam_registry_access_via_backup_operator_priv.evtx
+#   (Security 5145: SubjectUserName, ShareName, RelativeTargetName, AccessMask, IpAddress).
+#   No test capture read.
+# Grouped by the account, not the address: in the dev capture the pipe and the share were
+#   reached from two addresses of the same client.
+title: Remote Registry Pipe Followed By An Administrative Share Write
+id: 52855ea1-2c82-4676-ac75-2ed27e41f93a
+status: experimental
+description: >
+    The same account opens the remote registry pipe (winreg over IPC$) and then writes a file
+    on the C$ or ADMIN$ share of the same host within one minute. Remote hive dumping saves
+    SAM, SYSTEM and SECURITY through the registry service and collects the files over the
+    share.
+references:
+    - https://attack.mitre.org/techniques/T1003/002/
+author: Bastion
+date: 2026-11-13
+tags:
+    - attack.credential-access
+    - attack.t1003.002
+correlation:
+    type: temporal_ordered
+    rules:
+        - remote_registry_pipe
+        - admin_share_write
+    group-by:
+        - Computer
+        - SubjectUserName
+    timespan: 1m
+falsepositives:
+    - Management tools that read the remote registry and then deploy files over the admin share
+level: high
+---
+name: remote_registry_pipe
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 5145
+        ShareName|endswith: '\IPC$'
+        RelativeTargetName: 'winreg'
+    condition: selection
+---
+name: admin_share_write
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 5145
+        ShareName|endswith:
+            - '\C$'
+            - '\ADMIN$'
+        AccessMask|re: '^0x0*2$'
+    condition: selection

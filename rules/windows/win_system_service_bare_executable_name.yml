@@ -1,0 +1,36 @@
+# Bastion B4b (procedure variant of T1569.002; bench/b4b/candidates-dev.csv).
+# Summiting the Pyramid: level 3. A service registered with only an executable name and no
+#   folder (cmd.exe, calc.exe) is resolved through the search path; installers always write a
+#   full path, so a bare name marks a service created by hand to run a command. A full path
+#   evades it.
+# Developed on dev captures attack_data/T1569.002/windows_service_created_with_suspicious_service_path/windows
+#   and evtx_attack_samples/Lateral Movement/LM_Remote_Service02_7045.evtx (System 7045:
+#   ServiceName, ImagePath, ServiceType, StartType, AccountName). No test capture read.
+title: Service Installed With A Bare Executable Name
+id: 45fed0f9-de0e-4b2f-b235-17dc70848cc8
+status: experimental
+description: >
+    A new service (System 7045) has an ImagePath that names an executable without any folder.
+    Services created to run a single command, locally or remotely through the service
+    control manager, are often registered this way.
+references:
+    - https://attack.mitre.org/techniques/T1569/002/
+author: Bastion
+date: 2026-11-13
+tags:
+    - attack.execution
+    - attack.t1569.002
+    - attack.persistence
+    - attack.t1543.003
+logsource:
+    product: windows
+    service: system
+detection:
+    selection:
+        EventID: 7045
+    selection_bare:
+        ImagePath|re: '(?i)^"?[\w.-]+\.(exe|com|bat|cmd)"?(\s|$)'
+    condition: all of selection*
+falsepositives:
+    - Hand-made test services
+level: medium

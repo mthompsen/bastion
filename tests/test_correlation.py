@@ -493,3 +493,37 @@ def test_a_group_may_mix_naive_and_zoned_timestamps() -> None:
     naive = _event(5, EventID=4625, IpAddress="x")
     naive.timestamp = naive.timestamp.replace(tzinfo=None) if naive.timestamp else None
     assert len(scan([zoned, naive], [], {}, correlations=[rule]).correlation.findings) == 1
+
+
+def test_remote_hive_dump_needs_the_pipe_then_a_share_write_by_one_account() -> None:
+    rule = _local("Remote Registry Pipe Followed By An Administrative Share Write")
+    assert rule.header.status == "experimental"
+
+    def share(seconds: float, user: str, share_name: str, target: str, mask: str) -> Event:
+        return _event(
+            seconds,
+            EventID=5145,
+            Computer="DC01",
+            SubjectUserName=user,
+            ShareName=share_name,
+            RelativeTargetName=target,
+            AccessMask=mask,
+        )
+
+    dump = [
+        share(0, "samir", "\\\\*\\IPC$", "winreg", "0x0012019f"),
+        share(1, "samir", "\\\\*\\C$", "Users\\PSAM", "0x00000002"),
+    ]
+    assert len(scan(dump, [], {}, correlations=[rule]).correlation.findings) == 1
+    quiet = [
+        # the write first, then the pipe: not the dump order
+        [dump[1], share(2, "samir", "\\\\*\\IPC$", "winreg", "0x0012019f")],
+        # two accounts
+        [dump[0], share(1, "alice", "\\\\*\\C$", "Users\\PSAM", "0x00000002")],
+        # a read of the share, not a write
+        [dump[0], share(1, "samir", "\\\\*\\C$", "Users\\PSAM", "0x00120089")],
+        # more than a minute apart
+        [dump[0], share(120, "samir", "\\\\*\\C$", "Users\\PSAM", "0x00000002")],
+    ]
+    for events in quiet:
+        assert scan(events, [], {}, correlations=[rule]).correlation.findings == []

@@ -1,0 +1,42 @@
+# Bastion B4b (procedure variant of T1218.014; bench/b4b/candidates-dev.csv).
+# Summiting the Pyramid: level 3. A console file opened from a temporary or download folder is
+#   how malicious .msc files (GrimResource and similar) reach mmc.exe; the snap-in content is
+#   the adversary's, the launcher is pre-existing. A console placed in another folder evades it.
+# Developed on dev capture attack_data/T1218.014/msc_execution/windows (Sysmon 1: Image,
+#   CommandLine, ParentImage). No test capture read.
+title: MMC Opens A Console File From A User-Writable Folder
+id: b2c80ec3-609d-43cf-b5f2-7673ede14c45
+status: experimental
+description: >
+    mmc.exe starts with a .msc console file located in a temporary, download, public or
+    application-data folder. Administrative consoles live in System32 or an administrator's
+    documents; a console delivered as a download or dropped to Temp can run script through
+    snap-in features.
+references:
+    - https://attack.mitre.org/techniques/T1218/014/
+author: Bastion
+date: 2026-11-13
+tags:
+    - attack.stealth
+    - attack.t1218.014
+logsource:
+    product: windows
+    category: process_creation
+detection:
+    selection_img:
+        - Image|endswith: '\mmc.exe'
+        - OriginalFileName: 'MMC.exe'
+    selection_msc:
+        CommandLine|contains: '.msc'
+    selection_folder:
+        CommandLine|contains:
+            - '\Temp\'
+            - '\Downloads\'
+            - '\Users\Public\'
+            - '\AppData\'
+            - '\ProgramData\'
+            - '\INetCache\'
+    condition: all of selection_*
+falsepositives:
+    - Administrators opening saved consoles from a temporary folder
+level: medium

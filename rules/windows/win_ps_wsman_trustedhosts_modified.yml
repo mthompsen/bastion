@@ -1,0 +1,38 @@
+# Bastion B4b (procedure variant of T1021.006; bench/b4b/candidates-dev.csv).
+# Summiting the Pyramid: level 3. Adding hosts to the WinRM client's TrustedHosts list is what
+#   lets an attacker run WinRM against machines outside Kerberos trust; it uses the pre-existing
+#   WSMan provider. Changing the list through winrm.cmd or the registry evades it.
+# Developed on dev capture attack_data/T1021.006/wsman_trustedhost/windows (PowerShell 4104
+#   ScriptBlockText only). No test capture read.
+title: WinRM TrustedHosts Changed From PowerShell
+id: 4b415ab4-cb35-46f2-a46f-7f372f471aae
+status: experimental
+description: >
+    A script block sets the WinRM client TrustedHosts list through the WSMan: drive. Hosts on
+    the list accept NTLM-authenticated remote PowerShell sessions without mutual
+    authentication, a common step before lateral movement over WinRM.
+references:
+    - https://attack.mitre.org/techniques/T1021/006/
+author: Bastion
+date: 2026-11-13
+tags:
+    - attack.lateral-movement
+    - attack.t1021.006
+logsource:
+    product: windows
+    category: ps_script
+    definition: 'Requirements: Script Block Logging must be enabled'
+detection:
+    selection:
+        ScriptBlockText|contains|all:
+            - 'WSMan:'
+            - 'TrustedHosts'
+    selection_set:
+        ScriptBlockText|contains:
+            - 'Set-Item'
+            - 'Set-WSManInstance'
+            - 'si '
+    condition: all of selection*
+falsepositives:
+    - Administrators configuring WinRM for workgroup hosts
+level: medium
