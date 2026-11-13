@@ -120,6 +120,23 @@ Sections below are filled in as each batch completes.
 Counts-only check before the run: each rule fires only on its own dev capture across all 254
 dev Windows captures, and on none of the 330 benign Windows captures.
 
+**Result, `b4b-1`** (against `b4-final`; all five rules hunting class):
+
+| Measure | `b4-final` | `b4b-1` |
+|:-|-:|-:|
+| Frozen 130: headline / strict / any firing | 39 / 33 / 76 | 39 / 33 / 76 |
+| Expanded test, 512 captures: headline / strict / any | 125 / 105 / 283 | 125 / 105 / 283 |
+| Dev, 344 captures: headline / strict / any | 108 / 90 / 202 | 108 / 90 / 202 |
+| Windows goodware per host-day, overall / medium and above (budget 20) | 15.82 / 13.80 | 15.82 / 13.80 |
+| Own-lab background per host-day, overall / medium and above | 32.70 / 15.45 | 32.70 / 15.45 |
+
+**Hunting-class held-out result: none.** The five rules fire on their five dev captures (34
+firings in all) and on no test capture, frozen or expanded, from either corpus, and on no
+benign capture. Four of the five dev firings are labelled hits; the PsExec pipe rule is
+tagged to the behaviour, not the capture's T1036 label. The procedures these rules describe
+do not recur in the held-out captures of the same techniques, so batch 1 shows no
+generalisation beyond its dev captures.
+
 ## Batch 2: candidates 10 to 18 (commit `ab4cfde`, run `b4b-2`)
 
 | # | Technique | Outcome |
