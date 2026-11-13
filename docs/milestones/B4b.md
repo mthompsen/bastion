@@ -102,3 +102,51 @@ captures, 39 of them in the frozen 130. A gain on one of these is reported as no
 ## Batches
 
 Sections below are filled in as each batch completes.
+
+## Batch 1: candidates 1 to 9 (commit `dffc04f`, run `b4b-1`)
+
+| # | Technique | Outcome |
+|-:|:-|:-|
+| 1 | T1021 | **Dropped.** `allow_inbound_traffic_in_firewall_rule` is a firewall change (T1686.003), already matched by the SigmaHQ threat-hunting rule for `New-NetFirewallRule`; a T1021 rule would be tagged to match the label. `smb_bi_auth_conn_spoolsample` holds only two Sysmon 3 connections from System to port 445, nothing a rule could key on above STP 2 |
+| 2 | T1218 | **Dropped.** `desktopimgdownldr` creates a BITS job to download a file: the behaviour is T1197 and T1105, not proxy execution, so a rule could not honestly carry the T1218 label |
+| 3 | T1059.001 | **Two rules:** PowerShell Runs Code Stored In An Environment Variable (STP 4, attack_data `vip_env_var_execution`); PowerShell Invokes A Command Name Built From Concatenated Fragments (STP 3, EVTX-ATTACK-SAMPLES `emotet/exec_emotet_ps_4104`). The three Emotet `800` captures carry no parsed fields, so nothing was written for them |
+| 4 | T1003 | **Dropped, finding.** `CA_DCSync_4662` is matched in substance by two SigmaHQ rules (`win_security_dcsync`, `win_security_ad_replication_non_machine_account`), which miss because the capture writes `AccessMask` as `0x00000100` and the rules expect `0x100`. That is a value-normalisation question for the ingest layer, not a missing rule; a local copy would be a loosened upstream rule |
+| 5 | T1685.001 | **Dropped.** `DE_WinEventLogSvc_Crash_System_7036` holds only service state changes to "running", which every boot also produces |
+| 6 | T1134.001 | **One rule:** Auto-Elevating Binary Opened By A Program Outside System Folders (STP 3, attack_data `uac_process_handle_dup`), also tagged T1548.002 |
+| 7 | T1546 | **One rule:** AdminSDHolder Security Descriptor Modified (STP 4, attack_data `adminsdholder_modified`), tagged T1098 and T1546 (no SigmaHQ rule covers AdminSDHolder) |
+| 8 | T1036 | **One rule, tagged to the behaviour:** PsExec-Style Service Redirection Pipes Under Any Service Name (STP 3, EVTX-ATTACK-SAMPLES `DE_renamed_psexec_service`), tagged T1569.002 and T1021.002, not T1036: it detects the remote service, not the rename. `msdtc_process_param` and `suspicious_process_path` dropped: the behaviour-level form compares two fields (OriginalFileName against Image), which needs `fieldref`, unsupported; the rest would be below STP 3 |
+| 9 | T1685.005 | **Dropped.** `suspicious_kerberos_service_ticket_request` holds one ordinary AES service ticket for a computer account; no behaviour to key on |
+
+Counts-only check before the run: each rule fires only on its own dev capture across all 254
+dev Windows captures, and on none of the 330 benign Windows captures.
+
+## Batch 2: candidates 10 to 18 (commit `ab4cfde`, run `b4b-2`)
+
+| # | Technique | Outcome |
+|-:|:-|:-|
+| 10 | T1218.014 | **One rule:** MMC Opens A Console File From A User-Writable Folder (STP 3, attack_data `msc_execution`) |
+| 11 | T1021.006 | **One rule:** WinRM TrustedHosts Changed From PowerShell (STP 3, attack_data `wsman_trustedhost`). `compmgtm_access` dropped: remote Computer Management uses RPC, not WinRM, and is routine administration |
+| 12 | T1059 | **One rule, tagged to the behaviour:** Service Process Started From The Root Of The Windows Folder (STP 3, attack_data `suspiciously_named_executables`), tagged T1569.002 and T1021.002: the capture is a service binary copied to ADMIN$, not an interpreter |
+| 13 | T1574.001 | **Dropped.** `sccm_adsource_dll` is a product-specific DLL replacement; the only separable indicator is the renamed original's file name, STP 1 |
+| 14 | T1003.002 | **One correlation:** Remote Registry Pipe Followed By An Administrative Share Write (STP 4, EVTX-ATTACK-SAMPLES `remote_sam_registry_access_via_backup_operator_priv`) |
+| 15 | T1021.001 | **One rule:** RDP Client Control Loaded By A Program Outside System Folders (STP 3, EVTX-ATTACK-SAMPLES `sharprdp_sysmon_7_mstscax.dll`). `DFIR_RDP_Client_TimeZone_RdpCoreTs_104` dropped: its fields are not parsed |
+| 16 | T1055 | **One rule:** File System Transaction Used By A Program Outside System Folders (STP 4, EVTX-ATTACK-SAMPLES `Win_4985_T1186_Process_Doppelganging`), tagged T1055.013 |
+| 17 | T1068 | **Two rules:** Registry Symbolic Link Created By A Program Outside System Folders (STP 4, `privesc_registry_symlink_CVE-2020-1377`); Printer CopyFiles Module Registered To A Non-Default Library (STP 4, `privesc_spoolfool_mahdihtm`) |
+| 18 | T1569.002 | **One rule:** Service Installed With A Bare Executable Name (STP 3, attack_data `windows_service_created_with_suspicious_service_path` and EVTX-ATTACK-SAMPLES `LM_Remote_Service02_7045`). Found while writing it: these System 7045 events carry no `Provider_Name`, so SigmaHQ rules that require it cannot match them |
+
+Every batch 2 rule fires on its dev capture(s) (checked on the 13 dev captures before commit).
+The full counts-only pass over all dev and benign captures runs after `b4b-1`, before `b4b-2`.
+
+**Benign evidence per rule** (goodware `win2022-evtx`, events of the exact channel and EventID
+the rule reads, with its fields populated):
+
+| Reads | Goodware events | Rules |
+|:-|-:|:-|
+| Sysmon 13 (registry value set) | 64,294 | registry symbolic link, printer CopyFiles module |
+| Sysmon 7 (image load) | 54,896 | RDP client control |
+| Sysmon 10 (process access) | 4,648 | auto-elevating binary |
+| Sysmon 1 (process creation, ParentImage populated) | 1,165 | MMC console, service from the Windows root |
+| Sysmon 17 (pipe created) | 1,004 | PsExec-style pipes |
+| System 7045 (service installed) | 12 | bare executable name |
+| PowerShell 4104 (script block) | 5 | environment-variable IEX, concatenated command, TrustedHosts |
+| Security 5136, 4985, 5145 | 0 | AdminSDHolder, transaction, remote hive dump |
