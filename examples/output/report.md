@@ -7,11 +7,11 @@
 | | |
 |---|---|
 | Events scanned | 6 |
-| Rules loaded | 2467 |
+| Rules loaded | 2480 |
 | Detections | 3 |
 | Techniques observed | 2 |
-| Ruleset coverage | 313 of 706 enterprise techniques |
-| **Blind spots** | **393 techniques with no detection rule** |
+| Ruleset coverage | 314 of 706 enterprise techniques |
+| **Blind spots** | **392 techniques with no detection rule** |
 
 > **Evaluation caveats:** 1 rules use Sigma grammar outside the
 > supported subset and were not evaluated; 0 rules errored and were
@@ -27,8 +27,8 @@
 
 ## ATT&CK coverage of the loaded ruleset
 
-The loaded ruleset references **313 of 706**
-enterprise techniques. **393 techniques have no detection rule at all.**
+The loaded ruleset references **314 of 706**
+enterprise techniques. **392 techniques have no detection rule at all.**
 A covered technique has at least one rule tagged to it; that is a much weaker statement than
 "this activity would be detected."
 
@@ -38,7 +38,7 @@ Windows or Linux component (cloud control planes, identity providers, network de
 or pre-compromise infrastructure) and cannot appear in host logs at all;
 4 can occur on a host but are detected only via
 telemetry this tool does not read (EDR memory sensors, auditd, eBPF, network monitoring); the
-remaining **211** are writable gaps mapped to Windows event
+remaining **210** are writable gaps mapped to Windows event
 logs or Linux syslog, which additional rules could close.
 
 | Tactic | Covered | Total | Share |
@@ -54,10 +54,10 @@ logs or Linux syslog, which additional rules could close.
 | initial-access | 14 | 22 | 64% |
 | lateral-movement | 15 | 23 | 65% |
 | persistence | 54 | 113 | 48% |
-| privilege-escalation | 49 | 96 | 51% |
+| privilege-escalation | 50 | 96 | 52% |
 | reconnaissance | 7 | 46 | 15% |
 | resource-development | 6 | 51 | 12% |
-| stealth | 75 | 151 | 50% |
+| stealth | 76 | 151 | 50% |
 
 ### Blind spots by tactic
 
@@ -72,7 +72,7 @@ logs or Linux syslog, which additional rules could close.
 - **initial-access** (8 uncovered): T1078.004, T1195.003, T1199, T1566.002, T1566.003, T1566.004, T1659, T1669
 - **lateral-movement** (8 uncovered): T1021.007, T1021.008, T1080, T1534, T1550.001, T1550.004, T1563, T1563.001
 - **persistence** (59 uncovered): T1037, T1037.002, T1037.003, T1037.004, T1037.005, T1053.003, T1053.006, T1053.007, T1078.004, T1098.001, T1098.002, T1098.003, T1098.004, T1098.005, T1098.006, T1098.007, T1136, T1136.003, T1137.001, T1137.004, T1137.005, T1176, T1176.002, T1205, T1205.001, T1205.002, T1505, T1505.006, T1525, T1542, T1542.002, T1542.004, T1542.005, T1543.001, T1543.002, T1543.004, T1543.005, T1546.004, T1546.005, T1546.006, T1546.014, T1546.016, T1546.017, T1546.018, T1547.006, T1547.007, T1547.012, T1547.013, T1556.001, T1556.003, T1556.004, T1556.005, T1556.006, T1556.007, T1556.008, T1556.009, T1653, T1668, T1671
-- **privilege-escalation** (47 uncovered): T1037, T1037.002, T1037.003, T1037.004, T1037.005, T1053.003, T1053.006, T1053.007, T1055.002, T1055.004, T1055.005, T1055.008, T1055.009, T1055.013, T1055.014, T1055.015, T1078.004, T1098.001, T1098.002, T1098.003, T1098.004, T1098.005, T1098.006, T1098.007, T1484, T1484.002, T1543.001, T1543.002, T1543.004, T1543.005, T1546.004, T1546.005, T1546.006, T1546.014, T1546.016, T1546.017, T1546.018, T1547.006, T1547.007, T1547.012, T1547.013, T1548.001, T1548.003, T1548.004, T1548.005, T1548.006, T1611
+- **privilege-escalation** (46 uncovered): T1037, T1037.002, T1037.003, T1037.004, T1037.005, T1053.003, T1053.006, T1053.007, T1055.002, T1055.004, T1055.005, T1055.008, T1055.009, T1055.014, T1055.015, T1078.004, T1098.001, T1098.002, T1098.003, T1098.004, T1098.005, T1098.006, T1098.007, T1484, T1484.002, T1543.001, T1543.002, T1543.004, T1543.005, T1546.004, T1546.005, T1546.006, T1546.014, T1546.016, T1546.017, T1546.018, T1547.006, T1547.007, T1547.012, T1547.013, T1548.001, T1548.003, T1548.004, T1548.005, T1548.006, T1611
 - **reconnaissance** (39 uncovered): T1589, T1589.001, T1589.003, T1590.003, T1590.004, T1590.005, T1590.006, T1591, T1591.001, T1591.002, T1591.003, T1591.004, T1592, T1592.001, T1592.002, T1592.003, T1592.004, T1593, T1593.001, T1593.002, T1594, T1595.001, T1595.003, T1596, T1596.001, T1596.002, T1596.003, T1596.004, T1596.005, T1597, T1597.001, T1597.002, T1598, T1598.001, T1598.002, T1598.003, T1598.004, T1681, T1682
 - **resource-development** (45 uncovered): T1583, T1583.001, T1583.002, T1583.003, T1583.004, T1583.005, T1583.006, T1583.007, T1583.008, T1584.001, T1584.002, T1584.003, T1584.004, T1584.005, T1584.006, T1584.007, T1584.008, T1585, T1585.001, T1585.002, T1585.003, T1586, T1586.001, T1586.002, T1586.003, T1587.002, T1587.003, T1587.004, T1588.001, T1588.003, T1588.004, T1588.005, T1588.006, T1588.007, T1608.001, T1608.002, T1608.003, T1608.004, T1608.005, T1608.006, T1608.007, T1650, T1683, T1683.001, T1683.002
-- **stealth** (76 uncovered): T1014, T1027.006, T1027.007, T1027.008, T1027.011, T1027.012, T1027.013, T1027.014, T1027.015, T1027.016, T1027.017, T1027.018, T1036.001, T1036.006, T1036.008, T1036.009, T1036.010, T1036.011, T1036.012, T1055.002, T1055.004, T1055.005, T1055.008, T1055.009, T1055.013, T1055.014, T1055.015, T1070.007, T1070.008, T1070.009, T1070.010, T1078.004, T1127.002, T1127.003, T1205, T1205.001, T1205.002, T1216.002, T1218.004, T1218.012, T1218.015, T1480, T1480.001, T1480.002, T1497, T1497.002, T1497.003, T1535, T1542, T1542.002, T1542.004, T1542.005, T1564.005, T1564.007, T1564.008, T1564.009, T1564.010, T1564.011, T1564.012, T1564.013, T1564.014, T1574.004, T1574.006, T1574.009, T1574.010, T1574.013, T1574.014, T1612, T1678, T1679, T1684, T1684.001, T1684.002, T1696, T1696.001, T1696.002
+- **stealth** (75 uncovered): T1014, T1027.006, T1027.007, T1027.008, T1027.011, T1027.012, T1027.013, T1027.014, T1027.015, T1027.016, T1027.017, T1027.018, T1036.001, T1036.006, T1036.008, T1036.009, T1036.010, T1036.011, T1036.012, T1055.002, T1055.004, T1055.005, T1055.008, T1055.009, T1055.014, T1055.015, T1070.007, T1070.008, T1070.009, T1070.010, T1078.004, T1127.002, T1127.003, T1205, T1205.001, T1205.002, T1216.002, T1218.004, T1218.012, T1218.015, T1480, T1480.001, T1480.002, T1497, T1497.002, T1497.003, T1535, T1542, T1542.002, T1542.004, T1542.005, T1564.005, T1564.007, T1564.008, T1564.009, T1564.010, T1564.011, T1564.012, T1564.013, T1564.014, T1574.004, T1574.006, T1574.009, T1574.010, T1574.013, T1574.014, T1612, T1678, T1679, T1684, T1684.001, T1684.002, T1696, T1696.001, T1696.002

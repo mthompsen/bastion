@@ -233,3 +233,46 @@ the held-out headline should not move. The MMC rule fires off-label on two test 
 in the frozen 130) and on four dev captures besides its own, so the any-firing counts may.
 The two tagged held-out gains (Windows root on a frozen T1021.002 capture, bare name on an
 expanded T1569.002 capture) stay hunting class.
+
+**Result, `b4b-3`** (commit `2fd2c1a`, against `b4b-2`; the six rules above now alerting):
+
+| Measure | `b4b-2` | `b4b-3` |
+|:-|-:|-:|
+| Frozen 130: headline / strict / any firing | 39 / 33 / 76 | 39 / 33 / 77 |
+| Expanded test, 512 captures: headline / strict / any | 125 / 105 / 283 | 125 / 105 / 284 |
+| Dev, 344 captures: headline / strict / any | 108 / 90 / 202 | 114 / 96 / 208 |
+| Windows goodware per host-day, overall / medium and above (budget 20) | 15.82 / 13.80 | 15.82 / 13.80 |
+| Own-lab background per host-day, overall / medium and above | 32.70 / 15.45 | 32.70 / 15.45 |
+| Regression fixtures passed (parent-aware / strict) | 196 / 192 of 197 | 196 / 192 of 197 |
+
+As expected, promotion leaves the held-out headline where it was. The one new any-firing test
+capture, in the frozen 130, is the MMC rule's off-label firing on a T1548.002 UAC bypass. The
+dev gains (six headline, six strict) are the promoted rules firing on the captures they were
+written on, which is development data, not evidence. Goodware is unchanged: the six promoted
+rules raise no alert on it.
+
+## Summary
+
+| | Frozen 130 headline / strict | Expanded 512 headline / strict | Goodware per host-day |
+|:-|-:|-:|-:|
+| `b4-final` (start of B4b) | 39 / 33 | 125 / 105 | 15.82 |
+| `b4b-3` (end of B4b) | 39 / 33 | 125 / 105 | 15.82 |
+
+**Alerting-class gain from B4b: none,** on the frozen 130 or the expanded set. Fourteen rules
+were written from dev captures; six were promoted, and none of the six matches a held-out
+capture of its technique.
+
+**Hunting-class held-out result, beside the headline:** 1 of the frozen 130 (Service Process
+Started From The Root Of The Windows Folder on a T1021.002 capture from EVTX-ATTACK-SAMPLES,
+another corpus than its attack_data dev capture, not inspected) and 2 of the 512 expanded
+captures (that one, plus Service Installed With A Bare Executable Name on a T1569.002 capture
+from its own dev corpus). Both rules stay experimental: the first fires on the goodware, the
+second has 12 benign 7045 events behind it. The B4 spray correlations (3 of 4 unseen T1110.003)
+remain hunting class as decided.
+
+Findings for Mason: the DCSync `AccessMask` format (`0x00000100` against the rules' `0x100`)
+and System 7045 events without `Provider_Name` are ingest questions, not rule gaps. Batch 1
+generalised to no held-out capture.
+
+Open for Mason: whether 12 benign 7045 events and 5 benign 4104 script blocks are enough to
+promote the bare-name rule and the three PowerShell rules.

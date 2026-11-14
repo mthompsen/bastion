@@ -84,11 +84,11 @@
 
   <div class="stats">
     <div class="stat"><div class="num">6</div><div class="lbl">events scanned</div></div>
-    <div class="stat"><div class="num">2467</div><div class="lbl">rules loaded</div></div>
+    <div class="stat"><div class="num">2480</div><div class="lbl">rules loaded</div></div>
     <div class="stat"><div class="num">3</div><div class="lbl">detections</div></div>
     <div class="stat"><div class="num">2</div><div class="lbl">techniques observed</div></div>
-    <div class="stat"><div class="num">313/706</div><div class="lbl">techniques covered by ruleset</div></div>
-    <div class="stat warn"><div class="num">211</div><div class="lbl">writable gaps: visible in this telemetry, no rule</div></div>
+    <div class="stat"><div class="num">314/706</div><div class="lbl">techniques covered by ruleset</div></div>
+    <div class="stat warn"><div class="num">210</div><div class="lbl">writable gaps: visible in this telemetry, no rule</div></div>
     <div class="stat"><div class="num">4</div><div class="lbl">uncovered: needs telemetry Bastion does not read</div></div>
     <div class="stat"><div class="num">178</div><div class="lbl">uncovered: no Windows/Linux component</div></div>
   </div>
@@ -344,8 +344,8 @@ T1559.001, T1218.010      </span>
 
   <h2>ATT&amp;CK coverage of the loaded ruleset</h2>
   <p>
-    The ruleset references <strong>313 of 706</strong>
-    enterprise techniques. <strong style="color: var(--red)">393 techniques have
+    The ruleset references <strong>314 of 706</strong>
+    enterprise techniques. <strong style="color: var(--red)">392 techniques have
     no detection rule at all.</strong> A green chip below means at least one rule is tagged to the
     technique, which is not the same as saying the activity would be detected.
   </p>
@@ -359,7 +359,7 @@ T1559.001, T1218.010      </span>
     <strong>4</strong> can occur on a host, but
     every detection strategy ATT&amp;CK lists for them relies on telemetry Bastion does not
     read: EDR memory sensors, auditd, eBPF, network monitoring, or macOS sources. The remaining
-    <strong style="color: var(--red)">211</strong> are writable
+    <strong style="color: var(--red)">210</strong> are writable
     gaps: ATT&amp;CK maps them to Windows event logs or Linux syslog, the telemetry this tool
     ingests, and rules in this format could close them. (Techniques without detection-strategy
     metadata are counted as writable, so the gap number never understates the work.) Full
@@ -423,8 +423,8 @@ T1559.001, T1218.010      </span>
   </div>
   <div class="tactic-row">
     <div>privilege-escalation</div>
-    <div class="bar"><div class="fill" style="width: 51.0%"></div></div>
-    <div class="nums">49 / 96</div>
+    <div class="bar"><div class="fill" style="width: 52.0%"></div></div>
+    <div class="nums">50 / 96</div>
   </div>
   <div class="tactic-row">
     <div>reconnaissance</div>
@@ -439,7 +439,7 @@ T1559.001, T1218.010      </span>
   <div class="tactic-row">
     <div>stealth</div>
     <div class="bar"><div class="fill" style="width: 50.0%"></div></div>
-    <div class="nums">75 / 151</div>
+    <div class="nums">76 / 151</div>
   </div>
 
   <details>
@@ -726,7 +726,7 @@ T1559.001, T1218.010      </span>
       <span class="chip ok" title="At: 2 rule(s)">T1053.002</span>
       <span class="chip ok" title="Scheduled Task: 31 rule(s)">T1053.005</span>
       <span class="chip ok" title="Command and Scripting Interpreter: 56 rule(s)">T1059</span>
-      <span class="chip ok" title="PowerShell: 179 rule(s)">T1059.001</span>
+      <span class="chip ok" title="PowerShell: 181 rule(s)">T1059.001</span>
       <span class="chip ok" title="Windows Command Shell: 27 rule(s)">T1059.003</span>
       <span class="chip ok" title="Visual Basic: 24 rule(s)">T1059.005</span>
       <span class="chip ok" title="Python: 4 rule(s)">T1059.006</span>
@@ -745,7 +745,7 @@ T1559.001, T1218.010      </span>
       <span class="chip ok" title="Component Object Model: 3 rule(s)">T1559.001</span>
       <span class="chip ok" title="Dynamic Data Exchange: 1 rule(s)">T1559.002</span>
       <span class="chip ok" title="System Services: 1 rule(s)">T1569</span>
-      <span class="chip ok" title="Service Execution: 36 rule(s)">T1569.002</span>
+      <span class="chip ok" title="Service Execution: 39 rule(s)">T1569.002</span>
       <span class="chip ok" title="Hijack Execution Flow: 5 rule(s)">T1574</span>
       <span class="chip ok" title="DLL: 79 rule(s)">T1574.001</span>
       <span class="chip ok" title="Executable Installer File Permissions Weakness: 2 rule(s)">T1574.005</span>
@@ -875,12 +875,12 @@ T1559.001, T1218.010      </span>
     <h3>lateral-movement</h3>
     <div class="chips">
       <span class="chip ok" title="Remote Services: 4 rule(s)">T1021</span>
-      <span class="chip ok" title="Remote Desktop Protocol: 13 rule(s)">T1021.001</span>
-      <span class="chip ok" title="SMB/Windows Admin Shares: 33 rule(s)">T1021.002</span>
+      <span class="chip ok" title="Remote Desktop Protocol: 14 rule(s)">T1021.001</span>
+      <span class="chip ok" title="SMB/Windows Admin Shares: 35 rule(s)">T1021.002</span>
       <span class="chip ok" title="Distributed Component Object Model: 12 rule(s)">T1021.003</span>
       <span class="chip ok" title="SSH: 3 rule(s)">T1021.004</span>
       <span class="chip ok" title="VNC: 1 rule(s)">T1021.005</span>
-      <span class="chip ok" title="Windows Remote Management: 10 rule(s)">T1021.006</span>
+      <span class="chip ok" title="Windows Remote Management: 11 rule(s)">T1021.006</span>
       <span class="chip ok" title="Software Deployment Tools: 4 rule(s)">T1072</span>
       <span class="chip ok" title="Replication Through Removable Media: 1 rule(s)">T1091</span>
       <span class="chip ok" title="Exploitation of Remote Services: 7 rule(s)">T1210</span>
@@ -908,7 +908,7 @@ T1559.001, T1218.010      </span>
       <span class="chip ok" title="Default Accounts: 1 rule(s)">T1078.001</span>
       <span class="chip ok" title="Domain Accounts: 4 rule(s)">T1078.002</span>
       <span class="chip ok" title="Local Accounts: 1 rule(s)">T1078.003</span>
-      <span class="chip ok" title="Account Manipulation: 16 rule(s)">T1098</span>
+      <span class="chip ok" title="Account Manipulation: 17 rule(s)">T1098</span>
       <span class="chip ok" title="Modify Registry: 77 rule(s)">T1112</span>
       <span class="chip ok" title="External Remote Services: 11 rule(s)">T1133</span>
       <span class="chip ok" title="Local Account: 8 rule(s)">T1136.001</span>
@@ -927,8 +927,8 @@ T1559.001, T1218.010      </span>
       <span class="chip ok" title="System Firmware: 2 rule(s)">T1542.001</span>
       <span class="chip ok" title="Bootkit: 1 rule(s)">T1542.003</span>
       <span class="chip ok" title="Create or Modify System Process: 9 rule(s)">T1543</span>
-      <span class="chip ok" title="Windows Service: 37 rule(s)">T1543.003</span>
-      <span class="chip ok" title="Event Triggered Execution: 7 rule(s)">T1546</span>
+      <span class="chip ok" title="Windows Service: 38 rule(s)">T1543.003</span>
+      <span class="chip ok" title="Event Triggered Execution: 8 rule(s)">T1546</span>
       <span class="chip ok" title="Change Default File Association: 5 rule(s)">T1546.001</span>
       <span class="chip ok" title="Screensaver: 4 rule(s)">T1546.002</span>
       <span class="chip ok" title="Windows Management Instrumentation Event Subscription: 11 rule(s)">T1546.003</span>
@@ -1025,22 +1025,23 @@ T1559.001, T1218.010      </span>
       <span class="chip ok" title="Thread Execution Hijacking: 2 rule(s)">T1055.003</span>
       <span class="chip ok" title="Extra Window Memory Injection: 1 rule(s)">T1055.011</span>
       <span class="chip ok" title="Process Hollowing: 4 rule(s)">T1055.012</span>
-      <span class="chip ok" title="Exploitation for Privilege Escalation: 10 rule(s)">T1068</span>
+      <span class="chip ok" title="Process Doppelgänging: 1 rule(s)">T1055.013</span>
+      <span class="chip ok" title="Exploitation for Privilege Escalation: 12 rule(s)">T1068</span>
       <span class="chip ok" title="Valid Accounts: 9 rule(s)">T1078</span>
       <span class="chip ok" title="Default Accounts: 1 rule(s)">T1078.001</span>
       <span class="chip ok" title="Domain Accounts: 4 rule(s)">T1078.002</span>
       <span class="chip ok" title="Local Accounts: 1 rule(s)">T1078.003</span>
-      <span class="chip ok" title="Account Manipulation: 16 rule(s)">T1098</span>
+      <span class="chip ok" title="Account Manipulation: 17 rule(s)">T1098</span>
       <span class="chip ok" title="Access Token Manipulation: 2 rule(s)">T1134</span>
-      <span class="chip ok" title="Token Impersonation/Theft: 9 rule(s)">T1134.001</span>
+      <span class="chip ok" title="Token Impersonation/Theft: 10 rule(s)">T1134.001</span>
       <span class="chip ok" title="Create Process with Token: 6 rule(s)">T1134.002</span>
       <span class="chip ok" title="Make and Impersonate Token: 3 rule(s)">T1134.003</span>
       <span class="chip ok" title="Parent PID Spoofing: 1 rule(s)">T1134.004</span>
       <span class="chip ok" title="SID-History Injection: 1 rule(s)">T1134.005</span>
       <span class="chip ok" title="Group Policy Modification: 6 rule(s)">T1484.001</span>
       <span class="chip ok" title="Create or Modify System Process: 9 rule(s)">T1543</span>
-      <span class="chip ok" title="Windows Service: 37 rule(s)">T1543.003</span>
-      <span class="chip ok" title="Event Triggered Execution: 7 rule(s)">T1546</span>
+      <span class="chip ok" title="Windows Service: 38 rule(s)">T1543.003</span>
+      <span class="chip ok" title="Event Triggered Execution: 8 rule(s)">T1546</span>
       <span class="chip ok" title="Change Default File Association: 5 rule(s)">T1546.001</span>
       <span class="chip ok" title="Screensaver: 4 rule(s)">T1546.002</span>
       <span class="chip ok" title="Windows Management Instrumentation Event Subscription: 11 rule(s)">T1546.003</span>
@@ -1064,7 +1065,7 @@ T1559.001, T1218.010      </span>
       <span class="chip ok" title="Active Setup: 1 rule(s)">T1547.014</span>
       <span class="chip ok" title="Login Items: 1 rule(s)">T1547.015</span>
       <span class="chip ok" title="Abuse Elevation Control Mechanism: 8 rule(s)">T1548</span>
-      <span class="chip ok" title="Bypass User Account Control: 56 rule(s)">T1548.002</span>
+      <span class="chip ok" title="Bypass User Account Control: 57 rule(s)">T1548.002</span>
       <span class="chip miss" title="Boot or Logon Initialization Scripts: no rules">T1037</span>
       <span class="chip miss" title="Login Hook: no rules">T1037.002</span>
       <span class="chip miss" title="Network Logon Script: no rules">T1037.003</span>
@@ -1078,7 +1079,6 @@ T1559.001, T1218.010      </span>
       <span class="chip miss" title="Thread Local Storage: no rules">T1055.005</span>
       <span class="chip miss" title="Ptrace System Calls: no rules">T1055.008</span>
       <span class="chip miss" title="Proc Memory: no rules">T1055.009</span>
-      <span class="chip miss" title="Process Doppelgänging: no rules">T1055.013</span>
       <span class="chip miss" title="VDSO Hijacking: no rules">T1055.014</span>
       <span class="chip miss" title="ListPlanting: no rules">T1055.015</span>
       <span class="chip miss" title="Cloud Accounts: no rules">T1078.004</span>
@@ -1226,7 +1226,7 @@ T1559.001, T1218.010      </span>
       <span class="chip ok" title="Compile After Delivery: 5 rule(s)">T1027.004</span>
       <span class="chip ok" title="Indicator Removal from Tools: 4 rule(s)">T1027.005</span>
       <span class="chip ok" title="Embedded Payloads: 1 rule(s)">T1027.009</span>
-      <span class="chip ok" title="Command Obfuscation: 7 rule(s)">T1027.010</span>
+      <span class="chip ok" title="Command Obfuscation: 8 rule(s)">T1027.010</span>
       <span class="chip ok" title="Masquerading: 36 rule(s)">T1036</span>
       <span class="chip ok" title="Right-to-Left Override: 3 rule(s)">T1036.002</span>
       <span class="chip ok" title="Rename Legitimate Utilities: 24 rule(s)">T1036.003</span>
@@ -1238,6 +1238,7 @@ T1559.001, T1218.010      </span>
       <span class="chip ok" title="Thread Execution Hijacking: 2 rule(s)">T1055.003</span>
       <span class="chip ok" title="Extra Window Memory Injection: 1 rule(s)">T1055.011</span>
       <span class="chip ok" title="Process Hollowing: 4 rule(s)">T1055.012</span>
+      <span class="chip ok" title="Process Doppelgänging: 1 rule(s)">T1055.013</span>
       <span class="chip ok" title="Indicator Removal: 17 rule(s)">T1070</span>
       <span class="chip ok" title="Clear Command History: 7 rule(s)">T1070.003</span>
       <span class="chip ok" title="File Deletion: 11 rule(s)">T1070.004</span>
@@ -1250,7 +1251,7 @@ T1559.001, T1218.010      </span>
       <span class="chip ok" title="Trusted Developer Utilities Proxy Execution: 19 rule(s)">T1127</span>
       <span class="chip ok" title="MSBuild: 1 rule(s)">T1127.001</span>
       <span class="chip ok" title="Access Token Manipulation: 2 rule(s)">T1134</span>
-      <span class="chip ok" title="Token Impersonation/Theft: 9 rule(s)">T1134.001</span>
+      <span class="chip ok" title="Token Impersonation/Theft: 10 rule(s)">T1134.001</span>
       <span class="chip ok" title="Create Process with Token: 6 rule(s)">T1134.002</span>
       <span class="chip ok" title="Make and Impersonate Token: 3 rule(s)">T1134.003</span>
       <span class="chip ok" title="Parent PID Spoofing: 1 rule(s)">T1134.004</span>
@@ -1272,7 +1273,7 @@ T1559.001, T1218.010      </span>
       <span class="chip ok" title="Regsvr32: 17 rule(s)">T1218.010</span>
       <span class="chip ok" title="Rundll32: 27 rule(s)">T1218.011</span>
       <span class="chip ok" title="Mavinject: 2 rule(s)">T1218.013</span>
-      <span class="chip ok" title="MMC: 2 rule(s)">T1218.014</span>
+      <span class="chip ok" title="MMC: 3 rule(s)">T1218.014</span>
       <span class="chip ok" title="XSL Script Processing: 5 rule(s)">T1220</span>
       <span class="chip ok" title="Template Injection: 1 rule(s)">T1221</span>
       <span class="chip ok" title="System Checks: 1 rule(s)">T1497.001</span>
@@ -1317,7 +1318,6 @@ T1559.001, T1218.010      </span>
       <span class="chip miss" title="Thread Local Storage: no rules">T1055.005</span>
       <span class="chip miss" title="Ptrace System Calls: no rules">T1055.008</span>
       <span class="chip miss" title="Proc Memory: no rules">T1055.009</span>
-      <span class="chip miss" title="Process Doppelgänging: no rules">T1055.013</span>
       <span class="chip miss" title="VDSO Hijacking: no rules">T1055.014</span>
       <span class="chip miss" title="ListPlanting: no rules">T1055.015</span>
       <span class="chip miss" title="Clear Network Connection History and Configurations: no rules">T1070.007</span>

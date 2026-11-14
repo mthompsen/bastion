@@ -121,7 +121,7 @@ $ bastion scan examples/logs/sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx
 | Initiated By         |        | Object Model,        | Image=C:\Windows\Sys |
 | Regsvr32.EXE         |        | T1218.010 Regsvr32   | tem32\regsvr32.exe   |
 +-----------------------------------------------------------------------------+
-3 detections across 2 techniques (6 events, 2467 rules); ruleset covers 313 of
+3 detections across 2 techniques (6 events, 2480 rules); ruleset covers 314 of
 706 enterprise techniques.
 1 rules use unsupported Sigma grammar and were not evaluated (recorded, not
 counted as coverage).
