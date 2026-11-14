@@ -77,7 +77,7 @@ in [`matcher.py`](src/bastion/sigma/matcher.py): field maps with the
 `utf16le`/`wide`/`utf16be` encodings), wildcards with Sigma escaping, keyword lists, and
 conditions built from `and`/`or`/`not`, parentheses, and `N of` / `all of`. Anything outside
 the subset raises a recorded `UnsupportedRuleError`. At the pinned release (SigmaHQ
-r2026-07-01) that leaves 4 of the 3,760 rules the benchmark loads (the core tree, the
+r2026-07-01) that leaves 4 of the 3,773 rules the benchmark loads (the core tree, the
 emerging-threats and threat-hunting trees, and the local pack) unevaluable: three use the
 `fieldref` modifier and one the `re` modifier's `i` flag. Three of the four are Windows rules.
 `bastion scan` loads the core tree and the local pack only, and reports only the unevaluable
@@ -149,8 +149,9 @@ rule (T1003.008), each with its matching evidence.
 ## Local rule pack
 
 The upstream ruleset leaves hundreds of techniques untagged, so the repository ships a small
-hand-written pack under [`rules/`](rules/README.md): eight Sigma rules covering techniques
-the pinned SigmaHQ release does not, from `/etc/shadow` reads (T1003.008) and systemd-timer
+hand-written pack under [`rules/`](rules/README.md): 28 Sigma rules (four of them
+correlations), covering techniques the pinned SigmaHQ release does not and procedures its rules
+miss, from `/etc/shadow` reads (T1003.008) and systemd-timer
 persistence (T1053.006) to Wi-Fi profile enumeration via netsh (T1016.002). They are loaded
 automatically alongside the fetched cache and tested like any other component.
 

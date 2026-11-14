@@ -191,9 +191,10 @@ among the 49 inspected test captures.
 | Service Installed With A Bare Executable Name | T1543.003 | attack_data | no | attack_data and EVTX-ATTACK-SAMPLES: same corpus | yes (SigmaHQ KrbRelayUp Service Installation) |
 
 Gains, counting only captures no alerting rule already hits: 1 of the frozen 130 (from a
-corpus other than the rule's dev capture), and 2 of the 512 expanded test captures (that one,
-plus one from the rule's own dev corpus). Unseen other-corpus expanded gains: 1. Batch 1 adds
-none.
+corpus other than the rule's dev capture), and 2 of the 512 expanded test captures. These are
+not additive: the expanded 2 include that frozen capture. Outside the frozen 130 the only gain
+is the T1569.002 capture, from the rule's own dev corpus, so other-corpus gains outside the
+frozen 130 are 0. Batch 1 adds none.
 
 Other firings, not counted as hits:
 
