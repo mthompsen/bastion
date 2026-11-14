@@ -184,15 +184,16 @@ unchanged, with no capture flipping either way.
 batch 2 rule tagged to their label (headline definition, parent-aware). None of the three is
 among the 49 inspected test captures.
 
-| Rule | Test capture label | Corpus | Frozen 130 | Dev corpus of the rule |
-|:-|:-|:-|:-|:-|
-| Service Process Started From The Root Of The Windows Folder | T1021.002 | EVTX-ATTACK-SAMPLES | yes | attack_data: **other corpus** |
-| Service Installed With A Bare Executable Name | T1569.002 | attack_data | no | attack_data and EVTX-ATTACK-SAMPLES: same corpus |
-| Service Installed With A Bare Executable Name | T1543.003 | attack_data | no | attack_data and EVTX-ATTACK-SAMPLES: same corpus |
+| Rule | Test capture label | Corpus | Frozen 130 | Dev corpus of the rule | Already a headline hit |
+|:-|:-|:-|:-|:-|:-|
+| Service Process Started From The Root Of The Windows Folder | T1021.002 | EVTX-ATTACK-SAMPLES | yes | attack_data: **other corpus** | no |
+| Service Installed With A Bare Executable Name | T1569.002 | attack_data | no | attack_data and EVTX-ATTACK-SAMPLES: same corpus | no |
+| Service Installed With A Bare Executable Name | T1543.003 | attack_data | no | attack_data and EVTX-ATTACK-SAMPLES: same corpus | yes (SigmaHQ KrbRelayUp Service Installation) |
 
-So, as hunting-class results: 1 of the frozen 130 (from a corpus other than the rule's dev
-capture), and 3 of the 512 expanded test captures, of which 1 is from another corpus. Batch 1
-adds none.
+Gains, counting only captures no alerting rule already hits: 1 of the frozen 130 (from a
+corpus other than the rule's dev capture), and 2 of the 512 expanded test captures (that one,
+plus one from the rule's own dev corpus). Unseen other-corpus expanded gains: 1. Batch 1 adds
+none.
 
 Other firings, not counted as hits:
 
@@ -204,4 +205,5 @@ Other firings, not counted as hits:
 - **Goodware: the Windows root rule fires twice** on `win2022-evtx` (once in the Sysmon log,
   once in Security). Hunting firings are outside the goodware figure, so 15.82 is unchanged,
   but the rule fails the benign-evidence condition for promotion. No other B4b rule, batch 1
-  or 2, fires on goodware or on own-lab background.
+  or 2, fires on goodware. The own-lab background is Linux auditd only, so it holds no
+  evidence for or against any of these Windows rules.
