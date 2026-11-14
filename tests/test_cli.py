@@ -64,9 +64,7 @@ def test_scan_missing_file_exits_nonzero() -> None:
 
 
 def test_scan_without_fetched_data_exits_nonzero(tmp_path: Path) -> None:
-    result = runner.invoke(
-        app, ["scan", str(AUTH_LOG), "--rules-dir", str(tmp_path / "missing")]
-    )
+    result = runner.invoke(app, ["scan", str(AUTH_LOG), "--rules-dir", str(tmp_path / "missing")])
     assert result.exit_code == 1
     # Collapse rich's terminal wrapping, which varies with path length.
     assert "bastion fetch" in " ".join(result.output.split())
@@ -97,9 +95,7 @@ def test_report_writes_artifacts(tmp_path: Path) -> None:
     assert "SSH Failed Login For Invalid User" in markdown
 
 
-def test_fetch_reports_cached_datasets(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_fetch_reports_cached_datasets(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     bundle = tmp_path / "enterprise-attack.json"
     bundle.write_text('{"type": "bundle", "objects": []}', encoding="utf-8")
     rules_dir = tmp_path / "rules"

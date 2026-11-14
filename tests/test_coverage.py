@@ -140,12 +140,8 @@ class TestTelemetryReadable:
         )
 
     def test_linux_syslog_and_auditd_are_readable(self) -> None:
-        assert telemetry_readable(
-            TechniqueRef(id="T3", name="c", log_sources=["linux:syslog"])
-        )
-        assert telemetry_readable(
-            TechniqueRef(id="T3b", name="c2", log_sources=["auditd:SYSCALL"])
-        )
+        assert telemetry_readable(TechniqueRef(id="T3", name="c", log_sources=["linux:syslog"]))
+        assert telemetry_readable(TechniqueRef(id="T3b", name="c2", log_sources=["auditd:SYSCALL"]))
 
     def test_other_telemetry_is_not(self) -> None:
         assert not telemetry_readable(

@@ -43,9 +43,7 @@ def test_scan_result_round_trips_through_json() -> None:
                 level="high",
                 event=_sample_event(),
                 matched_fields={"CommandLine": "powershell -enc"},
-                techniques=[
-                    TechniqueRef(id="T1059.001", name="PowerShell", tactics=["execution"])
-                ],
+                techniques=[TechniqueRef(id="T1059.001", name="PowerShell", tactics=["execution"])],
             )
         ],
         events_scanned=10,
