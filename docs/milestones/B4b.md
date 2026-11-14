@@ -152,7 +152,8 @@ generalisation beyond its dev captures.
 | 18 | T1569.002 | **One rule:** Service Installed With A Bare Executable Name (STP 3, attack_data `windows_service_created_with_suspicious_service_path` and EVTX-ATTACK-SAMPLES `LM_Remote_Service02_7045`). Found while writing it: these System 7045 events carry no `Provider_Name`, so SigmaHQ rules that require it cannot match them |
 
 Every batch 2 rule fires on its dev capture(s) (checked on the 13 dev captures before commit).
-The full counts-only pass over all dev and benign captures runs after `b4b-1`, before `b4b-2`.
+The separate counts-only pass over all dev and benign captures was skipped: `b4b-2` scans the
+same captures, and its firings are listed below.
 
 **Benign evidence per rule** (goodware `win2022-evtx`, events of the exact channel and EventID
 the rule reads, with its fields populated):
@@ -167,3 +168,40 @@ the rule reads, with its fields populated):
 | System 7045 (service installed) | 12 | bare executable name |
 | PowerShell 4104 (script block) | 5 | environment-variable IEX, concatenated command, TrustedHosts |
 | Security 5136, 4985, 5145 | 0 | AdminSDHolder, transaction, remote hive dump |
+
+**Result, `b4b-2`** (against `b4b-1`; all nine rules hunting class): every alerting measure is
+unchanged, with no capture flipping either way.
+
+| Measure | `b4b-1` | `b4b-2` |
+|:-|-:|-:|
+| Frozen 130: headline / strict / any firing | 39 / 33 / 76 | 39 / 33 / 76 |
+| Expanded test, 512 captures: headline / strict / any | 125 / 105 / 283 | 125 / 105 / 283 |
+| Dev, 344 captures: headline / strict / any | 108 / 90 / 202 | 108 / 90 / 202 |
+| Windows goodware per host-day, overall / medium and above (budget 20) | 15.82 / 13.80 | 15.82 / 13.80 |
+| Own-lab background per host-day, overall / medium and above | 32.70 / 15.45 | 32.70 / 15.45 |
+
+**Hunting-class held-out result, beside the headline:** three test captures are matched by a
+batch 2 rule tagged to their label (headline definition, parent-aware). None of the three is
+among the 49 inspected test captures.
+
+| Rule | Test capture label | Corpus | Frozen 130 | Dev corpus of the rule |
+|:-|:-|:-|:-|:-|
+| Service Process Started From The Root Of The Windows Folder | T1021.002 | EVTX-ATTACK-SAMPLES | yes | attack_data: **other corpus** |
+| Service Installed With A Bare Executable Name | T1569.002 | attack_data | no | attack_data and EVTX-ATTACK-SAMPLES: same corpus |
+| Service Installed With A Bare Executable Name | T1543.003 | attack_data | no | attack_data and EVTX-ATTACK-SAMPLES: same corpus |
+
+So, as hunting-class results: 1 of the frozen 130 (from a corpus other than the rule's dev
+capture), and 3 of the 512 expanded test captures, of which 1 is from another corpus. Batch 1
+adds none.
+
+Other firings, not counted as hits:
+
+- **Off-label test firings (3).** The transaction rule fires on a T1003.001 capture (PPLdump);
+  the MMC rule fires on a T1059 capture (one of the 49 inspected) and on a frozen T1548.002
+  capture. Neither rule is tagged to those labels.
+- **Extra dev firings.** The MMC rule fires on four dev captures besides its own; the Windows
+  root rule on two; the bare-name rule on one T1053.005 capture.
+- **Goodware: the Windows root rule fires twice** on `win2022-evtx` (once in the Sysmon log,
+  once in Security). Hunting firings are outside the goodware figure, so 15.82 is unchanged,
+  but the rule fails the benign-evidence condition for promotion. No other B4b rule, batch 1
+  or 2, fires on goodware or on own-lab background.
