@@ -207,3 +207,29 @@ Other firings, not counted as hits:
   but the rule fails the benign-evidence condition for promotion. No other B4b rule, batch 1
   or 2, fires on goodware. The own-lab background is Linux auditd only, so it holds no
   evidence for or against any of these Windows rules.
+
+## Promotion (after `b4b-2`)
+
+Mason's condition for leaving the hunting class: true-positive and true-negative fixtures, and
+benign evidence that holds the events the rule reads. All fourteen have fixtures. Benign
+evidence is the `win2022-evtx` goodware; the own-lab background is Linux auditd only and holds
+no evidence for a Windows rule. No goodware filter was added to any rule to make it pass
+(`docs/milestones/B4.md` section 6).
+
+| Rules | Goodware events read | Goodware firings | Decision |
+|:-|-:|-:|:-|
+| Registry Symbolic Link, Printer CopyFiles Module (Sysmon 13) | 64,294 | 0 | **promoted to `test`** |
+| RDP Client Control (Sysmon 7) | 54,896 | 0 | **promoted** |
+| Auto-Elevating Binary (Sysmon 10) | 4,648 | 0 | **promoted** |
+| MMC Console From A User-Writable Folder (Sysmon 1) | 1,165 | 0 | **promoted** |
+| PsExec-Style Service Pipes (Sysmon 17) | 1,004 | 0 | **promoted** |
+| Service Process Started From The Root Of The Windows Folder (Sysmon 1) | 1,165 | 2 | stays experimental |
+| Service Installed With A Bare Executable Name (System 7045) | 12 | 0 | stays experimental; evidence too thin, Mason to decide |
+| Environment-variable IEX, concatenated command, WinRM TrustedHosts (PowerShell 4104) | 5 | 0 | stays experimental; evidence too thin, Mason to decide |
+| AdminSDHolder (5136), File System Transaction (4985), remote hive dump (5145) | 0 | 0 | stays experimental, as for the spray correlations |
+
+Expected effect: none of the six promoted rules fires tagged on a test capture in `b4b-2`, so
+the held-out headline should not move. The MMC rule fires off-label on two test captures (one
+in the frozen 130) and on four dev captures besides its own, so the any-firing counts may.
+The two tagged held-out gains (Windows root on a frozen T1021.002 capture, bare name on an
+expanded T1569.002 capture) stay hunting class.

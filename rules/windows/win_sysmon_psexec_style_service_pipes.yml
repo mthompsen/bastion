@@ -9,7 +9,7 @@
 #   masquerading) is the rename, which this rule does not detect, so T1036 is not tagged.
 title: PsExec-Style Service Redirection Pipes Under Any Service Name
 id: 14ce3a8e-c2c5-40bc-839d-6da4e35e95d0
-status: experimental
+status: test
 description: >
     A pipe named <name>-<computer>-<pid>-stdin, -stdout or -stderr is created. PsExec and its
     clones create these for the remote process's console streams, using the service name as

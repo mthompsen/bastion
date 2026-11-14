@@ -7,7 +7,7 @@
 #   (Sysmon 12 and 13: Image, TargetObject, EventType, Details). No test capture read.
 title: Registry Symbolic Link Created By A Program Outside System Folders
 id: d061eed2-90c8-494d-8c6c-00843a635390
-status: experimental
+status: test
 description: >
     A process outside C:\Windows and the Program Files folders sets SymbolicLinkValue on a
     registry key, turning the key into a link to another key. Local privilege escalation

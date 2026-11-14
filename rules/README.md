@@ -60,8 +60,20 @@ already claim but miss on a dev capture. Each records its dev capture in its hea
 | Service Installed With A Bare Executable Name | T1569.002, T1543.003 | windows | 3 | attack_data `T1569.002/windows_service_created_with_suspicious_service_path`, EVTX-ATTACK-SAMPLES `Lateral Movement/LM_Remote_Service02_7045` |
 | Remote Registry Pipe Followed By An Administrative Share Write (correlation) | T1003.002 Security Account Manager | windows | 4 | EVTX-ATTACK-SAMPLES `Credential Access/remote_sam_registry_access_via_backup_operator_priv` |
 
-All fourteen are `experimental` until they have fixtures (they do) and benign evidence that holds
-the events they read (Mason, 2026-11-13).
+All fourteen started `experimental`, to stay there until they have fixtures (they do) and benign
+evidence that holds the events they read (Mason, 2026-11-13). After `b4b-2`, six carry status
+`test` and count in the headline: Auto-Elevating Binary, PsExec-Style Pipes, MMC Console, RDP
+Client Control, Registry Symbolic Link and Printer CopyFiles Module. The goodware holds
+thousands of the Sysmon events each reads (Sysmon 1, 7, 10, 13 and 17) and none of them fires
+on it. The other eight stay `experimental`:
+
+- Service Process Started From The Root Of The Windows Folder fires twice on the goodware. It
+  is not filtered against that goodware, for the reason in `docs/milestones/B4.md` section 6.
+- AdminSDHolder, File System Transaction and the remote hive dump correlation read Security
+  5136, 4985 and 5145, which the goodware does not hold.
+- The two PowerShell 4104 rules, WinRM TrustedHosts (5 goodware script blocks) and Bare
+  Executable Name (12 goodware 7045 events) have too little benign evidence to judge; that is
+  left to Mason.
 
 Status by platform (decided 2026-11-10, recorded in `docs/milestones/B2.md` section 1):
 

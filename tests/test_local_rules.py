@@ -444,10 +444,29 @@ B4B_WINDOWS_2: dict[str, tuple[list[dict[str, FieldValue]], list[dict[str, Field
 }
 
 
+# Promoted to `test` (alerting) after b4b-2: fixtures here, goodware holding the Sysmon events they
+# read, and no goodware firing. The rest stay experimental (docs/milestones/B4b.md, promotion).
+B4B_PROMOTED = frozenset(
+    {
+        "Auto-Elevating Binary Opened By A Program Outside System Folders",
+        "PsExec-Style Service Redirection Pipes Under Any Service Name",
+        "MMC Opens A Console File From A User-Writable Folder",
+        "RDP Client Control Loaded By A Program Outside System Folders",
+        "Registry Symbolic Link Created By A Program Outside System Folders",
+        "Printer CopyFiles Module Registered To A Non-Default Library",
+    }
+)
+
+
+@pytest.mark.parametrize("title", sorted({*B4B_WINDOWS, *B4B_WINDOWS_2}))
+def test_b4b_rule_status_follows_the_promotion_decision(title: str) -> None:
+    rule = next(r for r in LOCAL_RULES if r.title == title)
+    assert rule.status == ("test" if title in B4B_PROMOTED else "experimental")
+
+
 @pytest.mark.parametrize("title", sorted(B4B_WINDOWS_2))
 def test_b4b_batch2_windows_rules_fire_and_stay_quiet(title: str) -> None:
     rule = next(r for r in LOCAL_RULES if r.title == title)
-    assert rule.status == "experimental"
     positives, negatives = B4B_WINDOWS_2[title]
     for fields in positives:
         assert match(rule, make_event("windows", **fields)).matched, (title, fields)

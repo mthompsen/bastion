@@ -8,7 +8,7 @@
 #   Details, ImageLoaded). No test capture read.
 title: Printer CopyFiles Module Registered To A Non-Default Library
 id: 8fc6d748-93e8-4c14-9e8d-41e5afd80b3e
-status: experimental
+status: test
 description: >
     A printer's CopyFiles Module registry value is set to a library other than the colour
     management module mscms.dll. The spooler loads the module as SYSTEM when the printer is

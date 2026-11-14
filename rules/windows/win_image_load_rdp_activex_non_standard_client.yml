@@ -6,7 +6,7 @@
 #   (Sysmon 7: Image, ImageLoaded; Sysmon 1: Image, CommandLine, ParentImage). No test capture read.
 title: RDP Client Control Loaded By A Program Outside System Folders
 id: f588152a-2f2f-4fa0-9062-705fc9eb087b
-status: experimental
+status: test
 description: >
     The Remote Desktop ActiveX control mstscax.dll is loaded by a program outside C:\Windows and
     the Program Files folders. Tools such as SharpRDP host the control to open an RDP session

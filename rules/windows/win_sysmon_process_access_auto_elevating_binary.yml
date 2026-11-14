@@ -7,7 +7,7 @@
 #   SourceImage, TargetImage, GrantedAccess). No test capture read.
 title: Auto-Elevating Binary Opened By A Program Outside System Folders
 id: 7ddac8dc-2970-4e3c-898f-fab7bb3d7b99
-status: experimental
+status: test
 description: >
     A process running from outside C:\Windows and the Program Files folders opens a handle to
     an auto-elevating Microsoft binary (ComputerDefaults, fodhelper, sdclt, eventvwr, slui,

@@ -6,7 +6,7 @@
 #   CommandLine, ParentImage). No test capture read.
 title: MMC Opens A Console File From A User-Writable Folder
 id: b2c80ec3-609d-43cf-b5f2-7673ede14c45
-status: experimental
+status: test
 description: >
     mmc.exe starts with a .msc console file located in a temporary, download, public or
     application-data folder. Administrative consoles live in System32 or an administrator's
