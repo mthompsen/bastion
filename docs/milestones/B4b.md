@@ -235,7 +235,7 @@ in the frozen 130) and on four dev captures besides its own, so the any-firing c
 The two tagged held-out gains (Windows root on a frozen T1021.002 capture, bare name on an
 expanded T1569.002 capture) stay hunting class.
 
-**Result, `b4b-3`** (commit `2fd2c1a`, against `b4b-2`; the six rules above now alerting):
+**Result, `b4b-3`** (commit `2fd2c1a`, now `e2aca3b` after the split recorded below; against `b4b-2`; the six rules above now alerting):
 
 | Measure | `b4b-2` | `b4b-3` |
 |:-|-:|-:|
@@ -277,3 +277,27 @@ generalised to no held-out capture.
 
 Open for Mason: whether 12 benign 7045 events and 5 benign 4104 script blocks are enough to
 promote the bare-name rule and the three PowerShell rules.
+
+## Mason's review (2026-11-14)
+
+1. The formatting-only edits to `tests/test_cli.py`, `tests/test_coverage.py` and
+   `tests/test_models.py` that a `git commit -a` swept into the docs commit `243e623` are split
+   into their own commit, and the `b4b` tag moved to the new head before pushing. Files are
+   staged by explicit path from now on. The split rewrote the local commits after it; the
+   final tree is identical (empty diff between old and new heads), so `b4b-3` still describes
+   the code at the tag and is the baseline for B4c.
+
+   | Before the split | After |
+   |:-|:-|
+   | `243e623` | `5e43019` (docs) and `18c5033` (test formatting) |
+   | `2fd2c1a` (promotion; `b4b-3` ran here) | `e2aca3b` |
+   | `17a3d5d` | `6fb3312` |
+   | `a127b61` | `e295b28` |
+   | `a4a3aac` (first `b4b` tag) | `e44e043` (`b4b`, pushed) |
+
+2. The thin-evidence rules (bare-name 7045 and the three PowerShell 4104 rules) stay
+   experimental.
+3. The Windows root service rule stays experimental with no filter, for the same reason as
+   Suspicious SQL Query (`docs/milestones/B4.md` section 6).
+
+Next: B4c, ingest normalization (`docs/milestones/B4c.md`), before B5.
