@@ -54,15 +54,41 @@ def _parse_repaired(xml_str: str) -> ElementTree.Element | None:
         return None
 
 
+#: How python-evtx renders a ``win:HexInt32`` or ``win:HexInt64`` value: every byte as two
+#: lowercase digits, so always 8 or 16 digits (``0x00000100``). Windows itself renders these
+#: types without leading zeros (``0x100``), as event XML exports show and SigmaHQ rules expect
+#: (``AccessMask: '0x100'``, ``TicketEncryptionType: '0x17'``, ``SubjectLogonId: '0x3e7'``).
+_PYEVTX_PADDED_HEX_RE = re.compile(r"0x(0[0-9a-f]{7}|0[0-9a-f]{15})")
+
+
+def _windows_hex(value: str) -> str:
+    """``0x00000100`` -> ``0x100`` and ``0x00000000`` -> ``0x0``; anything else unchanged.
+
+    Only a whole value in python-evtx's exact padded form is rewritten: hex inside text (a
+    registry ``DWORD (0x00000001)``, a command line) and uppercase or odd-length values, which
+    come from the event itself rather than from the renderer, are left alone.
+    """
+    found = _PYEVTX_PADDED_HEX_RE.fullmatch(value)
+    if found is None:
+        return value
+    return "0x" + (found.group(1).lstrip("0") or "0")
+
+
 def xml_to_event(
-    xml_str: str, source: str, platform: Platform = "windows", *, repair: bool = False
+    xml_str: str,
+    source: str,
+    platform: Platform = "windows",
+    *,
+    repair: bool = False,
+    unpad_hex: bool = False,
 ) -> Event | None:
     """Normalize one Windows event-XML record into an Event.
 
     Returns None (after logging a warning) when the XML is malformed. With ``repair``, a
     record that fails to parse is tried once more with stray ``&`` and ``<`` escaped (some
     exports write field text such as a command line unescaped); a record that parses as
-    given is never altered.
+    given is never altered. With ``unpad_hex`` (records rendered by python-evtx), hex values
+    are written as Windows renders them (:func:`_windows_hex`).
     """
     try:
         root = ElementTree.fromstring(xml_str)
@@ -97,7 +123,8 @@ def xml_to_event(
     for data in root.iterfind("{*}EventData/{*}Data"):
         name = data.get("Name")
         if name:
-            fields[name] = data.text if data.text is not None else ""
+            text = data.text if data.text is not None else ""
+            fields[name] = _windows_hex(text) if unpad_hex else text
         elif data.text:
             unnamed.append(data.text)
     # Classic event logs ("Windows PowerShell" 400, 600, 800 and others) carry unnamed <Data>
@@ -111,7 +138,8 @@ def xml_to_event(
             continue
         name = leaf.tag.rsplit("}", 1)[-1]
         if name and name not in fields:
-            fields[name] = leaf.text if leaf.text is not None else ""
+            text = leaf.text if leaf.text is not None else ""
+            fields[name] = _windows_hex(text) if unpad_hex else text
     if platform == "windows":
         windows_pipeline().apply(fields)
 
@@ -135,7 +163,7 @@ class EvtxSource:
                 except Exception as exc:  # skip unreadable records, keep parsing
                     logger.warning("%s: skipping unreadable record: %s", path, exc)
                     continue
-                event = xml_to_event(xml_str, source=path.name)
+                event = xml_to_event(xml_str, source=path.name, unpad_hex=True)
                 if event is not None:
                     yield event
 

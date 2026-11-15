@@ -91,6 +91,32 @@ class TestXmlToEvent:
         assert event.fields["ParentImage"] == "C:\\Windows\\System32\\cmd.exe"
         assert event.raw == SYSMON_XML
 
+    def test_python_evtx_padded_hex_is_written_as_windows_renders_it(self) -> None:
+        xml = (
+            "<Event><System><EventID>4662</EventID><Channel>Security</Channel></System>"
+            "<EventData><Data Name='AccessMask'>0x00000100</Data>"
+            "<Data Name='SubjectLogonId'>0x00000000000003e7</Data>"
+            "<Data Name='Status'>0x00000000</Data>"
+            "<Data Name='Code'>0xc000006d</Data>"
+            "<Data Name='Details'>DWORD (0x00000001)</Data>"
+            "<Data Name='StartAddress'>0x00007FFC5B8B1C30</Data>"
+            "<Data Name='Odd'>0x0000100</Data></EventData></Event>"
+        )
+        event = xml_to_event(xml, source="sample.evtx", unpad_hex=True)
+        assert event is not None
+        assert event.fields["AccessMask"] == "0x100"
+        assert event.fields["SubjectLogonId"] == "0x3e7"
+        assert event.fields["Status"] == "0x0"
+        # no leading zero, hex inside text, uppercase and odd-length values are the event's own
+        assert event.fields["Code"] == "0xc000006d"
+        assert event.fields["Details"] == "DWORD (0x00000001)"
+        assert event.fields["StartAddress"] == "0x00007FFC5B8B1C30"
+        assert event.fields["Odd"] == "0x0000100"
+        # XML exports already carry Windows' rendering and are never rewritten
+        exported = xml_to_event(xml, source="sample.xml")
+        assert exported is not None
+        assert exported.fields["AccessMask"] == "0x00000100"
+
     def test_subsecond_precision_beyond_microseconds_is_trimmed(self) -> None:
         event = xml_to_event(SYSMON_XML, source="sample.evtx")
         assert event is not None
