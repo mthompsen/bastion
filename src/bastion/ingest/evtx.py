@@ -2,7 +2,7 @@
 
 Uses ``python-evtx`` to walk the binary event log, then normalizes each
 record's XML into an Event: the ``<System>`` block contributes ``EventID``,
-``Channel``, ``Computer`` and ``Provider``, and every
+``Channel``, ``Computer`` and ``Provider`` (also as Sigma's ``Provider_Name``), and every
 ``<EventData><Data Name=...>`` element (Sysmon's ``Image``, ``CommandLine``,
 ``ParentImage``, ``User``, ``DestinationIp``, and so on) lands in
 ``Event.fields`` under its own name. Records that fail to decode or parse
@@ -113,8 +113,11 @@ def xml_to_event(
             if element is not None and element.text:
                 fields[tag] = element.text.strip()
         provider = system.find("{*}Provider")
-        if provider is not None and provider.get("Name"):
-            fields["Provider"] = provider.get("Name")
+        if provider is not None and (provider_name := provider.get("Name")):
+            fields["Provider"] = provider_name
+            # Sigma's field for <Provider Name=...> (106 SigmaHQ rules, for example 7045 with
+            # Provider_Name 'Service Control Manager'); Provider stays for existing users.
+            fields["Provider_Name"] = provider_name
         time_created = system.find("{*}TimeCreated")
         if time_created is not None and (system_time := time_created.get("SystemTime")):
             timestamp = _parse_system_time(system_time)

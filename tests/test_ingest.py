@@ -84,6 +84,7 @@ class TestXmlToEvent:
         assert event.fields["Channel"] == "Microsoft-Windows-Sysmon/Operational"
         assert event.fields["Computer"] == "DESKTOP-VICTIM01"
         assert event.fields["Provider"] == "Microsoft-Windows-Sysmon"
+        assert event.fields["Provider_Name"] == "Microsoft-Windows-Sysmon"
         assert event.fields["Image"] == (
             "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
         )
