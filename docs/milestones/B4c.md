@@ -114,4 +114,39 @@ carries `Level` and `Keywords`; 1,000 goodware events (944 of them System 7036) 
 
 ## Results
 
-Filled in as each run completes.
+### `b4c-a` (lever a, commit `2ec947c`, against `b4b-3`)
+
+| Measure | `b4b-3` | `b4c-a` |
+|:-|-:|-:|
+| Frozen 130: headline / strict / any firing | 39 / 33 / 77 | 43 / 33 / 80 |
+| Expanded test, 512 captures: headline / strict / any | 125 / 105 / 284 | 130 / 106 / 287 |
+| Dev, 344 captures: headline / strict / any | 114 / 96 / 208 | 115 / 96 / 210 |
+| Windows goodware per host-day, overall / medium and above (budget 20) | 15.82 / 13.80 | 15.82 / 13.80 |
+| Own-lab background per host-day, overall / medium and above | 32.70 / 15.45 | 32.70 / 15.45 |
+| Regression fixtures passed (parent-aware / strict) | 196 / 192 of 197 | 196 / 192 of 197 |
+
+The wrapper of this run was reaped on low memory; the bench process finished on its own and
+wrote its summary.
+
+Six test captures changed, none for the worse. Rules behind the change, across all captures:
+Elevated System Shell Spawned (`LogonId: 0x3e7`, 40 captures), Potential Credential Dumping
+Activity Via LSASS (16), Reconnaissance Activity (7), the `GrantedAccess` LSASS and process
+access rules, Mimikatz DC Sync and Active Directory Replication from Non Machine Account (the
+B4b DCSync finding, now hit on its dev capture).
+
+**Clean or not.** A gain on a test capture that was inspected before (the 49 ids in
+`bench/b4b/inspected-test.txt`, built from the B1 gap appendix and the contamination log) is
+not clean. The fix itself was chosen from rule literals, counts-only shapes, and dev and benign
+data.
+
+| Test capture | Cohort | Change | Inspected before | Clean |
+|:-|:-|:-|:-|:-|
+| `Credential Access/sysmon_3_10_Invoke-Mimikatz_hosted_Github` | frozen | none to headline | no | yes |
+| `Defense Evasion/Sysmon_10_Evasion_Suspicious_NtOpenProcess_CallTrace` | frozen | any to headline | yes | no |
+| `Defense Evasion/evasion_codeinj_odzhan_conhost_sysmon_10_1` | frozen | any to headline | yes | no |
+| `Defense Evasion/evasion_codeinj_odzhan_spoolsv_sysmon_10_1` | frozen | none to headline | yes | no |
+| `Discovery/dicovery_4661_net_group_domain_admins_target` | expanded (b3) | any to headline and strict | no | yes |
+| `Lateral Movement/LM_sysmon_3_12_13_1_SharpRDP` | frozen | none to any firing | no | yes |
+
+Clean gains: frozen 130 headline +1 (of +4), strict 0; expanded headline +2 (of +5), strict +1
+(of +1). The goodware does not move: none of the newly matching rules fires on it.
