@@ -118,6 +118,27 @@ class TestXmlToEvent:
         assert exported is not None
         assert exported.fields["AccessMask"] == "0x00000100"
 
+    def test_system_level_keywords_and_binary_become_fields(self) -> None:
+        xml = (
+            "<Event><System><Provider Name='Service Control Manager'/><EventID>7034</EventID>"
+            "<Level>2</Level><Keywords>0x8080000000000000</Keywords><Channel>System</Channel>"
+            "</System><EventData><Data Name='param1'>Message Queuing</Data>"
+            "<Binary>4D0053004D0051000000</Binary></EventData></Event>"
+        )
+        event = xml_to_event(xml, source="sample.evtx", unpad_hex=True)
+        assert event is not None
+        assert event.fields["Level"] == "2"
+        assert event.fields["Keywords"] == "0x8080000000000000"
+        assert event.fields["Binary"] == "4D0053004D0051000000"
+        assert event.fields["Provider_Name"] == "Service Control Manager"
+        # a provider's own <Data Name='Level'> is not replaced by the System block's
+        own = xml.replace(
+            "<Data Name='param1'>", "<Data Name='Level'>verbose</Data><Data Name='p'>"
+        )
+        event = xml_to_event(own, source="sample.evtx")
+        assert event is not None
+        assert event.fields["Level"] == "verbose"
+
     def test_subsecond_precision_beyond_microseconds_is_trimmed(self) -> None:
         event = xml_to_event(SYSMON_XML, source="sample.evtx")
         assert event is not None

@@ -143,6 +143,18 @@ def xml_to_event(
         if name and name not in fields:
             text = leaf.text if leaf.text is not None else ""
             fields[name] = _windows_hex(text) if unpad_hex else text
+    # B4c lever c: fields SigmaHQ rules read that the record carries outside <Data>: the
+    # System block's Level (as written, "2" or "4") and Keywords ("0x8010000000000000" marks an
+    # audit failure), and the EventData <Binary> element (service events' hex payload). Added
+    # last, so a provider's own <Data> of the same name wins.
+    if system is not None:
+        for tag in ("Level", "Keywords"):
+            element = system.find(f"{{*}}{tag}")
+            if element is not None and element.text and tag not in fields:
+                fields[tag] = element.text.strip()
+    binary = root.find("{*}EventData/{*}Binary")
+    if binary is not None and binary.text and "Binary" not in fields:
+        fields["Binary"] = binary.text.strip()
     if platform == "windows":
         windows_pipeline().apply(fields)
 
