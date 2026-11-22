@@ -4,7 +4,7 @@ A command-line detection engine for host logs. Bastion ingests Windows Sysmon/EV
 auth/syslog files, evaluates them in-process against the public
 [SigmaHQ](https://github.com/SigmaHQ/sigma) ruleset, maps every match to its
 [MITRE ATT&CK](https://attack.mitre.org/) technique, and writes a terminal report, JSON,
-SARIF, and a self-contained HTML dashboard. Alongside the alerts it produces a coverage map
+SARIF, OCSF Detection Findings, ATT&CK Navigator layers, and a self-contained HTML dashboard. Alongside the alerts it produces a coverage map
 of which ATT&CK techniques the loaded ruleset can detect and which ones it cannot.
 
 Bastion is defensive tooling. It reads log files you own and recognizes traces of known attack
@@ -63,6 +63,8 @@ flowchart LR
     RP --> T3[dashboard.html]
     RP --> T4[report.md]
     RP --> T5[result.sarif]
+    RP --> T6[findings.ocsf.json]
+    RP --> T7[layers.navigator.json]
 ```
 
 `ingest/` normalizes both log families into one `Event` shape: EVTX System plus Sysmon
@@ -135,9 +137,13 @@ not evaluated, not counted as no match.
 
 The committed artifacts of this exact run live in `examples/output/`:
 [`report.md`](examples/output/report.md), [`result.json`](examples/output/result.json),
-[`result.sarif`](examples/output/result.sarif), and
+[`result.sarif`](examples/output/result.sarif),
+[`findings.ocsf.json`](examples/output/findings.ocsf.json),
+[`layers.navigator.json`](examples/output/layers.navigator.json), and
 [`dashboard.html`](examples/output/dashboard.html). You can look at real detections, a
-timeline, and a real coverage map without running anything.
+timeline, and a real coverage map without running anything. The run was made with
+`--bench-summary bench/results/b5/summary.json`, so the SARIF rules and the third Navigator
+layer carry the evidence ladder of that bench run.
 
 ![Bastion dashboard](docs/dashboard.png)
 
@@ -164,9 +170,32 @@ pip install -e .
 bastion fetch                # one-time: cache Sigma rules + ATT&CK STIX (then fully offline)
 bastion scan LOGFILE         # detections in the terminal
 bastion coverage             # ATT&CK coverage map of the ruleset, including blind spots
-bastion report LOGFILE -o out/   # report.md + result.json + result.sarif + dashboard.html
+bastion report LOGFILE -o out/   # report.md, result.json, result.sarif, dashboard.html,
+                                 # findings.ocsf.json, layers.navigator.json
 bastion rules list           # loaded rules and their ATT&CK techniques
+bastion standards fetch      # one-time: cache D3FEND, CTID 800-53 and CAR mapping data
+bastion standards status     # pins of the standards data and their ATT&CK version drift
+bastion standards technique T1003.001   # D3FEND, 800-53 and CAR entries for one technique
 ```
+
+Exports and their limits:
+
+- `result.sarif` (SARIF 2.1.0) carries, in `runs[0].properties.bastion`, the pins, the tagged
+  coverage with its numerator, denominator and basis, and where evidence ladder levels come
+  from. Ladder levels appear only when a bench summary is given (`--bench-summary`); a scan
+  has no ladder of its own, and none is assumed.
+- `findings.ocsf.json` holds one OCSF 1.9.0 Detection Finding (class 2004) per detection,
+  with the matched fields as evidence. Event views follow OCSF 1.9.0 with the `host` profile;
+  fields OCSF has no attribute for are kept in `unmapped`, and the source record in
+  `raw_data`. Bastion never invents a value a class requires: an event without a timestamp
+  has no `time` and is labelled `bastion:no-timestamp`.
+- `layers.navigator.json` (ATT&CK Navigator layer format 4.5) is lossy: a layer holds one
+  score per technique, so tri-state results, bases, intervals and per-event evidence are not
+  carried. Every layer says so in its description and metadata.
+- `bastion standards status` warns when a mapping was built for an older ATT&CK release
+  than the pinned one (the CTID 800-53 mapping is for ATT&CK 16.1) and lists ids that ATT&CK
+  20.1 revoked, deprecated or does not know. The CSF 2.0 labels of Bastion's own functions
+  are Bastion's assertion, not NIST's.
 
 `--platform windows|linux` overrides log-type auto-detection. Every command is
 `--help`-documented and exits non-zero on error. Datasets are pinned for reproducibility
@@ -214,6 +243,14 @@ malicious activity.
   enterprise bundle v20.1. ATT&CK is (c) The MITRE Corporation, used per its
   [terms of use](https://attack.mitre.org/resources/legal-and-branding/terms-of-use/). Cached
   locally, not redistributed.
+- Standards data, pinned in `src/bastion/data/PINS.toml` and cached under `data/standards/`,
+  not redistributed: [MITRE D3FEND](https://d3fend.mitre.org/) 1.6.0 (MIT),
+  [CTID Mappings Explorer](https://github.com/center-for-threat-informed-defense/mappings-explorer)
+  ATT&CK to NIST 800-53 Rev. 5 (Apache-2.0), and
+  [MITRE CAR](https://github.com/mitre-attack/car) (Apache-2.0). NIST CSF 2.0 text is quoted
+  from NIST CSWP 29 (public domain). Schema excerpts of [OCSF](https://schema.ocsf.io/) 1.9.0
+  and [ECS](https://github.com/elastic/ecs) 9.5.0 (both Apache-2.0) are test fixtures, with
+  attribution in `tests/fixtures/standards/README.md`.
 - Windows attack telemetry samples:
   [EVTX-ATTACK-SAMPLES](https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES) by
   [@sbousseaden](https://github.com/sbousseaden), committed under `examples/logs/` with

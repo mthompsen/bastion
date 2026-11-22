@@ -18,7 +18,10 @@
                 "sigmaLevel": "medium",
                 "attackTechniques": [
                   "T1218.010"
-                ]
+                ],
+                "ladderLevels": {
+                  "T1218.010": "held-out-proven"
+                }
               }
             },
             {
@@ -31,7 +34,10 @@
                 "sigmaLevel": "medium",
                 "attackTechniques": [
                   "T1218.010"
-                ]
+                ],
+                "ladderLevels": {
+                  "T1218.010": "held-out-proven"
+                }
               }
             },
             {
@@ -45,7 +51,11 @@
                 "attackTechniques": [
                   "T1559.001",
                   "T1218.010"
-                ]
+                ],
+                "ladderLevels": {
+                  "T1559.001": "rule-only",
+                  "T1218.010": "held-out-proven"
+                }
               }
             }
           ]
@@ -76,6 +86,9 @@
               "T1218.010"
             ],
             "eventSource": "sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx",
+            "ladderLevels": {
+              "T1218.010": "held-out-proven"
+            },
             "eventTimestamp": "2019-05-13T18:03:19.681479+00:00"
           }
         },
@@ -103,6 +116,9 @@
               "T1218.010"
             ],
             "eventSource": "sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx",
+            "ladderLevels": {
+              "T1218.010": "held-out-proven"
+            },
             "eventTimestamp": "2019-05-13T18:03:19.681479+00:00"
           }
         },
@@ -131,10 +147,68 @@
               "T1218.010"
             ],
             "eventSource": "sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx",
+            "ladderLevels": {
+              "T1559.001": "rule-only",
+              "T1218.010": "held-out-proven"
+            },
             "eventTimestamp": "2019-05-13T18:03:21.212896+00:00"
           }
         }
-      ]
+      ],
+      "properties": {
+        "bastion": {
+          "scanPins": {
+            "sigma": "r2026-07-01",
+            "attack": "20.1"
+          },
+          "pins": {
+            "sigma": "r2026-07-01",
+            "sigma_commit": "552f3fee420ef232a8e5790c4fae591847e32347",
+            "attack": "20.1",
+            "corpus:regression_data": "552f3fee420ef232a8e5790c4fae591847e32347",
+            "corpus:evtx_attack_samples": "4ceed2f4706daf601c212a8f91c113dd85349a2c",
+            "corpus:evtx_baseline": "v0.8.5",
+            "corpus:attack_data": "b4573ed3b6bf05473b01048dd36380dbd52288c0",
+            "corpus:citadel_captures": "2026-09-26"
+          },
+          "standardsPins": {
+            "ocsf": "1.9.0",
+            "ecs": "9.5.0",
+            "d3fend": "1.6.0",
+            "ctid_800_53": "69c2e8e00661",
+            "car": "1b922fe1527d",
+            "csf": "2.0",
+            "dettect": "2.2.0",
+            "navigator": "4.5"
+          },
+          "evidenceLadder": {
+            "source": "bench run b5",
+            "note": "ladder levels come from the named bench run",
+            "pinsMatchScan": true,
+            "benchPins": {
+              "sigma": "r2026-07-01",
+              "sigma_commit": "552f3fee420ef232a8e5790c4fae591847e32347",
+              "attack": "20.1",
+              "corpus:regression_data": "552f3fee420ef232a8e5790c4fae591847e32347",
+              "corpus:evtx_attack_samples": "4ceed2f4706daf601c212a8f91c113dd85349a2c",
+              "corpus:evtx_baseline": "v0.8.5",
+              "corpus:attack_data": "b4573ed3b6bf05473b01048dd36380dbd52288c0",
+              "corpus:citadel_captures": "2026-09-26"
+            }
+          },
+          "ocsfFindings": {
+            "file": "findings.ocsf.json",
+            "ocsfVersion": "1.9.0"
+          },
+          "taggedCoverage": {
+            "numerator": 314,
+            "denominator": 706,
+            "basis": "enterprise techniques tagged by at least one loaded rule (any status, hunting class included); rule-only evidence, not validated detection",
+            "attackVersion": "20.1",
+            "sigmaVersion": "r2026-07-01"
+          }
+        }
+      }
     }
   ]
 }

