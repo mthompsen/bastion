@@ -18,7 +18,9 @@ from jinja2 import Environment, PackageLoader
 from bastion import __version__
 from bastion.coverage import CoverageSummary
 from bastion.models import CoverageEntry, Detection, ScanResult
-from bastion.normalize import detection_finding
+from bastion.navigator import BenchEvidence, render_layers
+from bastion.normalize import OCSF_VERSION, detection_finding
+from bastion.pins import pin_summary, standards_pin_summary
 
 #: Sigma levels mapped to SARIF result levels.
 _SARIF_LEVELS = {
@@ -58,6 +60,8 @@ class ReportContext:
     unsupported_rule_count: int = 0
     rule_error_count: int = 0
     unresolved_techniques: list[str] | None = None
+    #: evidence ladder of a bench run, given explicitly (a scan has no ladder of its own)
+    bench: BenchEvidence | None = None
 
 
 def detections_by_tactic(detections: list[Detection]) -> dict[str, list[Detection]]:
@@ -123,12 +127,65 @@ def render_dashboard(result: ScanResult, summary: CoverageSummary, context: Repo
     return _env.get_template("dashboard.html.j2").render(_template_args(result, summary, context))
 
 
-def render_sarif(result: ScanResult, context: ReportContext) -> str:
+#: Basis of the scan's coverage numbers, as every output names it (contract rule 4).
+TAGGED_COVERAGE_BASIS = (
+    "enterprise techniques tagged by at least one loaded rule (any status, hunting class "
+    "included); rule-only evidence, not validated detection"
+)
+
+
+def _ladder_levels(technique_ids: list[str], bench: BenchEvidence | None) -> dict[str, str]:
+    """Evidence ladder rung per technique from the given bench run; empty without one."""
+    if bench is None:
+        return {}
+    return {tid: bench.ladder.get(tid, "none") for tid in technique_ids}
+
+
+def _sarif_run_properties(
+    context: ReportContext, summary: CoverageSummary | None
+) -> dict[str, Any]:
+    bench = context.bench
+    ladder: dict[str, Any] = {
+        "source": f"bench run {bench.run}" if bench else None,
+        "note": (
+            "ladder levels come from the named bench run"
+            if bench
+            else "no bench summary given (bastion report --bench-summary); "
+            "no ladder level is stated"
+        ),
+    }
+    if bench is not None:
+        ladder["pinsMatchScan"] = bench.pins_match(context.sigma_version, context.attack_version)
+        ladder["benchPins"] = dict(bench.pins)
+    properties: dict[str, Any] = {
+        "scanPins": {"sigma": context.sigma_version, "attack": context.attack_version},
+        "pins": pin_summary(),
+        "standardsPins": standards_pin_summary(),
+        "evidenceLadder": ladder,
+        "ocsfFindings": {"file": "findings.ocsf.json", "ocsfVersion": OCSF_VERSION},
+    }
+    if summary is not None:
+        properties["taggedCoverage"] = {
+            "numerator": summary.covered_count,
+            "denominator": summary.total_count,
+            "basis": TAGGED_COVERAGE_BASIS,
+            "attackVersion": context.attack_version,
+            "sigmaVersion": context.sigma_version,
+        }
+    return properties
+
+
+def render_sarif(
+    result: ScanResult, context: ReportContext, summary: CoverageSummary | None = None
+) -> str:
     """Serialize the detections as a SARIF 2.1.0 log.
 
     Each fired Sigma rule becomes a SARIF reporting rule; each detection
     becomes a result pointing at the scanned log file, with the matched
-    fields and ATT&CK techniques in the message and properties.
+    fields and ATT&CK techniques in the message and properties. The run's
+    ``properties.bastion`` carries the pins, the coverage numbers with their
+    basis, and where ladder levels come from; each rule and result carries the
+    ladder level of its techniques when a bench summary was given.
     """
     rules: dict[str, dict[str, Any]] = {}
     results: list[dict[str, Any]] = []
@@ -141,6 +198,9 @@ def render_sarif(result: ScanResult, context: ReportContext) -> str:
                 "properties": {
                     "sigmaLevel": detection.level,
                     "attackTechniques": [ref.id for ref in detection.techniques],
+                    "ladderLevels": _ladder_levels(
+                        [ref.id for ref in detection.techniques], context.bench
+                    ),
                 },
             }
         evidence = "; ".join(f"{k}={v}" for k, v in detection.matched_fields.items())
@@ -159,6 +219,9 @@ def render_sarif(result: ScanResult, context: ReportContext) -> str:
                 "matchedFields": detection.matched_fields,
                 "attackTechniques": [ref.id for ref in detection.techniques],
                 "eventSource": detection.event.source,
+                "ladderLevels": _ladder_levels(
+                    [ref.id for ref in detection.techniques], context.bench
+                ),
             },
         }
         if detection.event.timestamp is not None:
@@ -178,6 +241,7 @@ def render_sarif(result: ScanResult, context: ReportContext) -> str:
                     }
                 },
                 "results": results,
+                "properties": {"bastion": _sarif_run_properties(context, summary)},
             }
         ],
     }
@@ -203,7 +267,8 @@ def write_report(
     context: ReportContext,
     outdir: Path,
 ) -> dict[str, Path]:
-    """Write report.md, result.json, result.sarif, dashboard.html and the OCSF findings."""
+    """Write report.md, result.json, result.sarif, dashboard.html, the OCSF findings and the
+    Navigator layers (lossy) into ``outdir``."""
     outdir.mkdir(parents=True, exist_ok=True)
     paths = {
         "report.md": outdir / "report.md",
@@ -211,10 +276,20 @@ def write_report(
         "result.sarif": outdir / "result.sarif",
         "dashboard.html": outdir / "dashboard.html",
         "findings.ocsf.json": outdir / "findings.ocsf.json",
+        "layers.navigator.json": outdir / "layers.navigator.json",
     }
     paths["report.md"].write_text(render_markdown(result, summary, context), encoding="utf-8")
     paths["result.json"].write_text(result.model_dump_json(indent=2), encoding="utf-8")
-    paths["result.sarif"].write_text(render_sarif(result, context), encoding="utf-8")
+    paths["result.sarif"].write_text(render_sarif(result, context, summary), encoding="utf-8")
     paths["dashboard.html"].write_text(render_dashboard(result, summary, context), encoding="utf-8")
     paths["findings.ocsf.json"].write_text(render_ocsf_findings(result, context), encoding="utf-8")
+    layers = render_layers(
+        result,
+        summary,
+        logfile=context.logfile,
+        attack_version=context.attack_version,
+        sigma_version=context.sigma_version,
+        bench=context.bench,
+    )
+    paths["layers.navigator.json"].write_text(layers, encoding="utf-8")
     return paths

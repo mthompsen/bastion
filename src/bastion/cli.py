@@ -7,6 +7,7 @@ runs fully offline against the cached datasets.
 
 from __future__ import annotations
 
+import json
 from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Any
@@ -33,6 +34,7 @@ from bastion.fetch import (
 )
 from bastion.ingest import EvtxSource, select_source
 from bastion.models import Platform, ScanResult, SigmaRule
+from bastion.navigator import BenchEvidence
 from bastion.report import ReportContext, write_report
 from bastion.sigma import load_rules
 from bastion.sigma.correlation import CorrelationRule, load_correlations
@@ -374,8 +376,19 @@ def report(
     rules_dir: RulesDirFlag = None,
     attack_file: AttackFileFlag = None,
     filters_dir: FiltersDirFlag = None,
+    bench_summary: Annotated[
+        Path | None,
+        typer.Option(
+            "--bench-summary",
+            exists=True,
+            dir_okay=False,
+            help="A bench run's summary.json; its evidence ladder is added to SARIF and Navigator.",
+        ),
+    ] = None,
 ) -> None:
-    """Full run: report.md, result.json, result.sarif, dashboard.html, findings.ocsf.json."""
+    """Full run: report.md, result.json, result.sarif, dashboard.html, findings.ocsf.json and
+    layers.navigator.json (lossy)."""
+    bench = _bench_evidence(bench_summary)
     result, outcome, summary, attack_version, log_platform = _run_scan(
         logfile, platform, rules_dir, attack_file, filters_dir
     )
@@ -387,6 +400,7 @@ def report(
         unsupported_rule_count=len(outcome.unsupported_rules),
         rule_error_count=len(outcome.rule_errors),
         unresolved_techniques=outcome.unresolved_techniques or None,
+        bench=bench,
     )
     paths = write_report(result, summary, context, outdir)
     techniques_hit = {ref.id for det in result.detections for ref in det.techniques}
@@ -398,6 +412,17 @@ def report(
     _print_scan_caveats(outcome)
     for path in paths.values():
         console.print(f"  wrote [bold]{path}[/]")
+
+
+def _bench_evidence(path: Path | None) -> BenchEvidence | None:
+    if path is None:
+        return None
+    try:
+        summary = json.loads(path.read_text(encoding="utf-8"))
+        return BenchEvidence.from_summary(summary)
+    except (ValueError, KeyError) as exc:
+        console.print(f"[red]Not a bench summary:[/] {path} ({exc})")
+        raise typer.Exit(code=1) from exc
 
 
 def _sigma_version(rules_dir: Path) -> str | None:

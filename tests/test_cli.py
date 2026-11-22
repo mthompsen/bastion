@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -93,6 +94,43 @@ def test_report_writes_artifacts(tmp_path: Path) -> None:
     assert (outdir / "dashboard.html").exists()
     markdown = (outdir / "report.md").read_text(encoding="utf-8")
     assert "SSH Failed Login For Invalid User" in markdown
+
+
+def test_report_with_bench_summary_adds_ladder(tmp_path: Path) -> None:
+    summary = tmp_path / "summary.json"
+    summary.write_text(
+        json.dumps(
+            {
+                "run": "b-test",
+                "pins": {"sigma": "x", "attack": "y"},
+                "ladder": {"per_technique": {"T1110.001": "sample-proven"}},
+            }
+        ),
+        encoding="utf-8",
+    )
+    outdir = tmp_path / "out"
+    result = runner.invoke(
+        app,
+        ["report", str(AUTH_LOG), "-o", str(outdir), "--bench-summary", str(summary), *DATA_FLAGS],
+    )
+    assert result.exit_code == 0, result.output
+    sarif = json.loads((outdir / "result.sarif").read_text(encoding="utf-8"))
+    ladder = sarif["runs"][0]["properties"]["bastion"]["evidenceLadder"]
+    assert ladder["source"] == "bench run b-test" and ladder["pinsMatchScan"] is False
+    layers = json.loads((outdir / "layers.navigator.json").read_text(encoding="utf-8"))
+    assert layers[-1]["name"] == "Bastion: evidence ladder (bench run b-test)"
+    assert (outdir / "findings.ocsf.json").exists()
+
+
+def test_report_rejects_a_file_that_is_not_a_bench_summary(tmp_path: Path) -> None:
+    bad = tmp_path / "x.json"
+    bad.write_text("{}", encoding="utf-8")
+    result = runner.invoke(
+        app,
+        ["report", str(AUTH_LOG), "-o", str(tmp_path), "--bench-summary", str(bad), *DATA_FLAGS],
+    )
+    assert result.exit_code == 1
+    assert "Not a bench summary" in result.output
 
 
 def test_fetch_reports_cached_datasets(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

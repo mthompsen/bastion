@@ -1,15 +1,17 @@
-"""Tests for report rendering: Markdown, JSON, and the HTML dashboard."""
+"""Tests for report rendering: Markdown, JSON, SARIF, OCSF findings, Navigator, dashboard."""
 
 from __future__ import annotations
 
 import json
 import re
 from pathlib import Path
+from typing import Any
 
 from bastion.attack import load_attack
 from bastion.coverage import summarize_coverage
 from bastion.engine import scan
 from bastion.models import Event, ScanResult
+from bastion.navigator import LADDER_SCORES, BenchEvidence, render_layers
 from bastion.report import (
     ReportContext,
     detections_by_tactic,
@@ -131,6 +133,40 @@ class TestSarif:
         assert res["locations"][0]["physicalLocation"]["artifactLocation"]["uri"] == "sample.evtx"
         assert res["properties"]["matchedFields"]["CommandLine"]
 
+    def test_run_properties_carry_pins_and_coverage_basis(self) -> None:
+        result, context = build_result()
+        sarif = json.loads(render_sarif(result, context, SUMMARY))
+        bastion = sarif["runs"][0]["properties"]["bastion"]
+        assert bastion["pins"]["sigma"] == "r2026-07-01"
+        assert bastion["standardsPins"]["ocsf"] == "1.9.0"
+        coverage = bastion["taggedCoverage"]
+        assert (coverage["numerator"], coverage["denominator"]) == (
+            SUMMARY.covered_count,
+            SUMMARY.total_count,
+        )
+        assert "not validated" in coverage["basis"]
+        assert bastion["evidenceLadder"]["source"] is None
+        rule = sarif["runs"][0]["tool"]["driver"]["rules"][0]
+        assert rule["properties"]["ladderLevels"] == {}
+
+    def test_ladder_levels_come_from_the_given_bench_run(self) -> None:
+        result, context = build_result()
+        context.bench = BenchEvidence(
+            run="b4c-c",
+            ladder={"T1059.001": "held-out-proven"},
+            pins={"sigma": "r2026-07-01", "attack": "20.1"},
+        )
+        context.sigma_version, context.attack_version = "r2026-07-01", "20.1"
+        sarif = json.loads(render_sarif(result, context, SUMMARY))
+        bastion = sarif["runs"][0]["properties"]["bastion"]
+        assert bastion["evidenceLadder"]["source"] == "bench run b4c-c"
+        assert bastion["evidenceLadder"]["pinsMatchScan"] is True
+        res = sarif["runs"][0]["results"][0]
+        assert res["properties"]["ladderLevels"] == {"T1059.001": "held-out-proven"}
+        context.attack_version = "19.1"
+        sarif = json.loads(render_sarif(result, context, SUMMARY))
+        assert sarif["runs"][0]["properties"]["bastion"]["evidenceLadder"]["pinsMatchScan"] is False
+
     def test_no_detections_gives_empty_results(self) -> None:
         _, context = build_result()
         empty = ScanResult(events_scanned=1, rules_loaded=1, coverage=SUMMARY.entries)
@@ -176,6 +212,7 @@ class TestWriteReport:
             "result.sarif",
             "dashboard.html",
             "findings.ocsf.json",
+            "layers.navigator.json",
         }
         for path in paths.values():
             assert path.exists() and path.stat().st_size > 0
@@ -202,6 +239,61 @@ class TestWriteReport:
         first = render_markdown(result, SUMMARY, context)
         second = render_markdown(result, SUMMARY, context)
         assert first == second
+
+
+class TestNavigator:
+    def _layers(self, bench: BenchEvidence | None = None) -> list[dict[str, Any]]:
+        result, _ = build_result()
+        text = render_layers(
+            result,
+            SUMMARY,
+            logfile="sample.evtx",
+            attack_version="20.1",
+            sigma_version="r2026-07-01",
+            bench=bench,
+        )
+        layers: list[dict[str, Any]] = json.loads(text)
+        return layers
+
+    def test_every_layer_is_marked_lossy_and_names_its_basis(self) -> None:
+        layers = self._layers()
+        assert len(layers) == 2
+        for layer in layers:
+            assert layer["versions"] == {"attack": "20", "navigator": "5.3.2", "layer": "4.5"}
+            assert layer["domain"] == "enterprise-attack"
+            assert "Lossy export" in layer["description"]
+            meta = {m["name"]: m["value"] for m in layer["metadata"] if "name" in m}
+            assert meta["lossy"] == "true" and meta["basis"]
+            assert meta["pin sigma"] == "r2026-07-01" and meta["pin standards ocsf"] == "1.9.0"
+
+    def test_tagged_and_detection_layers(self) -> None:
+        tagged, fired = self._layers()
+        assert len(tagged["techniques"]) == SUMMARY.covered_count
+        assert all("rule-only" in t["comment"] for t in tagged["techniques"])
+        assert {t["techniqueID"] for t in fired["techniques"]} == {"T1059.001"}
+
+    def test_ladder_layer_and_pin_mismatch(self) -> None:
+        bench = BenchEvidence(
+            run="b4c-c",
+            ladder={"T1059.001": "held-out-proven", "T1110": "rule-only", "T1003": "none"},
+            pins={"sigma": "r2026-07-01", "attack": "19.1"},
+        )
+        ladder = self._layers(bench)[2]
+        scores = {t["techniqueID"]: t["score"] for t in ladder["techniques"]}
+        assert scores == {"T1003": 0, "T1059.001": 4, "T1110": 1}
+        assert "other pins than this scan" in ladder["description"]
+        assert {item["label"] for item in ladder["legendItems"]} == set(LADDER_SCORES)
+
+    def test_bench_evidence_reads_a_summary(self) -> None:
+        bench = BenchEvidence.from_summary(
+            {
+                "run": "b4c-c",
+                "ladder": {"per_technique": {"T1": "none"}},
+                "pins": {"attack": "20.1"},
+            }
+        )
+        assert bench.run == "b4c-c" and bench.ladder == {"T1": "none"}
+        assert not bench.pins_match("r2026-07-01", "20.1")
 
 
 class TestGrouping:
