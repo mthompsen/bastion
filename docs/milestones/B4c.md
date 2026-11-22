@@ -189,3 +189,49 @@ the budget holds, and filtering against the goodware we measure on would be self
 
 Clean gains: frozen 130 headline +2 (of +2), strict +1 (of +1); expanded headline +6 (of +6),
 strict +6 (of +6).
+
+### `b4c-c` (lever c, commit `34bd324`, against `b4c-b`)
+
+| Measure | `b4c-b` | `b4c-c` |
+|:-|-:|-:|
+| Frozen 130: headline / strict / any firing | 45 / 34 / 84 | 45 / 34 / 84 |
+| Expanded test, 512 captures: headline / strict / any | 136 / 112 / 302 | 136 / 112 / 302 |
+| Dev, 344 captures: headline / strict / any | 118 / 98 / 215 | 118 / 98 / 215 |
+| Windows goodware per host-day, overall / medium and above (budget 20) | 16.01 / 13.80 | 16.01 / 13.80 |
+| Own-lab background per host-day, overall / medium and above | 32.70 / 15.45 | 32.70 / 15.45 |
+| Regression fixtures passed (parent-aware / strict) | 196 / 192 of 197 | 196 / 192 of 197 |
+| Rules not evaluable at least once (alerting) | 992 (778) | 990 (776) |
+| Rule-event pairs not evaluable for want of `Keywords` / `Binary` | 52 / 4 | 0 / 0 |
+
+No capture changed under any measure. The fields are now present and evaluated, but the rules
+that read them match nothing in the corpus. One firing went away, and correctly: Relevant
+Anti-Virus Signature Keywords In Application Log excludes `Level: 4` (information) events, and
+with `Level` present it no longer fires on information-level Application events in the test
+capture `attack_data/T1135/rapid_authentication_multiple_hosts/windows`, which is not an
+antivirus capture. That capture still fires other rules and its flags do not change.
+
+## Summary
+
+| Measure | `b4b-3` | `b4c-c` | Clean change |
+|:-|-:|-:|:-|
+| Frozen 130 headline | 39 | 45 | +3 (of +6) |
+| Frozen 130 strict | 33 | 34 | +1 (of +1) |
+| Frozen 130 any firing | 77 | 84 | +5 (of +7) |
+| Expanded test (512) headline | 125 | 136 | +8 (of +11) |
+| Expanded test (512) strict | 105 | 112 | +7 (of +7) |
+| Expanded test (512) any firing | 284 | 302 | +16 (of +18) |
+| Dev (344) headline / strict | 114 / 96 | 118 / 98 | |
+| Windows goodware per host-day (budget 20) | 15.82 | 16.01 | |
+| Rules not evaluable at least once (alerting) | 1,022 (801) | 990 (776) | |
+
+The clean figures are the claim: gains on the 49 test captures inspected in earlier milestones
+are counted in the raw numbers but not in the clean ones. Lever a (hex) gave +1 clean on the
+frozen headline and +2 on the expanded; lever b (`Provider_Name`) +2 and +6, every one clean;
+lever c (System `Level`, `Keywords`, `<Binary>`) none, and removed one false firing. All three
+levers are generic ingest changes chosen from rule literals, counts-only shapes and dev and
+benign data. No rule, label or split changed.
+
+Listed, not fixed: 7045 `ProcessId: 0` (System `Execution ProcessID`, no settled Sigma name),
+CVE-2020-0688 `Level: Error`, AD Object WriteDAC Access `ObjectType` as a bare GUID, TabTip
+`param3`, and the fields that are absent because their event kinds or enrichment never occur
+in the corpus (lever c table).
