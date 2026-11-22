@@ -1,0 +1,1956 @@
+{
+  "components": {
+    "schemas": {
+      "BenchRunDetail": {
+        "properties": {
+          "bastion_commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bastion Commit"
+          },
+          "evaluation_source_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluation Source Hash"
+          },
+          "imported_at": {
+            "title": "Imported At",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "pins": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Pins",
+            "type": "object"
+          },
+          "source_path": {
+            "title": "Source Path",
+            "type": "string"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "description": "The run's summary.json, as written",
+            "title": "Summary",
+            "type": "object"
+          }
+        },
+        "required": [
+          "name",
+          "imported_at",
+          "source_path",
+          "bastion_commit",
+          "evaluation_source_hash",
+          "pins",
+          "summary"
+        ],
+        "title": "BenchRunDetail",
+        "type": "object"
+      },
+      "BenchRunItem": {
+        "properties": {
+          "bastion_commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bastion Commit"
+          },
+          "evaluation_source_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluation Source Hash"
+          },
+          "imported_at": {
+            "title": "Imported At",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "pins": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Pins",
+            "type": "object"
+          },
+          "source_path": {
+            "title": "Source Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "imported_at",
+          "source_path",
+          "bastion_commit",
+          "evaluation_source_hash",
+          "pins"
+        ],
+        "title": "BenchRunItem",
+        "type": "object"
+      },
+      "DetectionDetail": {
+        "properties": {
+          "event": {
+            "additionalProperties": true,
+            "title": "Event",
+            "type": "object"
+          },
+          "event_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Time"
+          },
+          "finding_uid": {
+            "description": "Stable id (rule id and raw record); triage key",
+            "title": "Finding Uid",
+            "type": "string"
+          },
+          "host": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Host"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "level": {
+            "enum": [
+              "informational",
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "matched_fields": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Matched Fields",
+            "type": "object"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "rule_title": {
+            "title": "Rule Title",
+            "type": "string"
+          },
+          "scan_uid": {
+            "title": "Scan Uid",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "techniques": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Techniques",
+            "type": "array"
+          },
+          "triage_note": {
+            "title": "Triage Note",
+            "type": "string"
+          },
+          "triage_status": {
+            "enum": [
+              "new",
+              "reviewed",
+              "false_positive",
+              "needs_follow_up"
+            ],
+            "title": "Triage Status",
+            "type": "string"
+          },
+          "views": {
+            "$ref": "#/components/schemas/DetectionViews"
+          }
+        },
+        "required": [
+          "id",
+          "scan_uid",
+          "finding_uid",
+          "rule_id",
+          "rule_title",
+          "level",
+          "host",
+          "event_time",
+          "source",
+          "techniques",
+          "matched_fields",
+          "triage_status",
+          "triage_note",
+          "event",
+          "views"
+        ],
+        "title": "DetectionDetail",
+        "type": "object"
+      },
+      "DetectionItem": {
+        "properties": {
+          "event_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Time"
+          },
+          "finding_uid": {
+            "description": "Stable id (rule id and raw record); triage key",
+            "title": "Finding Uid",
+            "type": "string"
+          },
+          "host": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Host"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "level": {
+            "enum": [
+              "informational",
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "matched_fields": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Matched Fields",
+            "type": "object"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "rule_title": {
+            "title": "Rule Title",
+            "type": "string"
+          },
+          "scan_uid": {
+            "title": "Scan Uid",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "techniques": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Techniques",
+            "type": "array"
+          },
+          "triage_note": {
+            "title": "Triage Note",
+            "type": "string"
+          },
+          "triage_status": {
+            "enum": [
+              "new",
+              "reviewed",
+              "false_positive",
+              "needs_follow_up"
+            ],
+            "title": "Triage Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "scan_uid",
+          "finding_uid",
+          "rule_id",
+          "rule_title",
+          "level",
+          "host",
+          "event_time",
+          "source",
+          "techniques",
+          "matched_fields",
+          "triage_status",
+          "triage_note"
+        ],
+        "title": "DetectionItem",
+        "type": "object"
+      },
+      "DetectionPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DetectionItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "limit",
+          "offset",
+          "items"
+        ],
+        "title": "DetectionPage",
+        "type": "object"
+      },
+      "DetectionViews": {
+        "properties": {
+          "ecs": {
+            "additionalProperties": true,
+            "description": "ECS 9.5.0 view of the event",
+            "title": "Ecs",
+            "type": "object"
+          },
+          "ocsf": {
+            "additionalProperties": true,
+            "description": "OCSF 1.9.0 view of the event (host profile)",
+            "title": "Ocsf",
+            "type": "object"
+          },
+          "raw": {
+            "title": "Raw",
+            "type": "string"
+          }
+        },
+        "required": [
+          "raw",
+          "ocsf",
+          "ecs"
+        ],
+        "title": "DetectionViews",
+        "type": "object"
+      },
+      "FilterDetail": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "imported_at": {
+            "title": "Imported At",
+            "type": "string"
+          },
+          "path": {
+            "description": "Path under the filters directory",
+            "title": "Path",
+            "type": "string"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "path",
+          "sha256",
+          "imported_at",
+          "text"
+        ],
+        "title": "FilterDetail",
+        "type": "object"
+      },
+      "FilterItem": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "imported_at": {
+            "title": "Imported At",
+            "type": "string"
+          },
+          "path": {
+            "description": "Path under the filters directory",
+            "title": "Path",
+            "type": "string"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "path",
+          "sha256",
+          "imported_at"
+        ],
+        "title": "FilterItem",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Health": {
+        "properties": {
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          },
+          "store": {
+            "title": "Store",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "version",
+          "store",
+          "schema_version"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
+      "Pins": {
+        "properties": {
+          "bench": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Pins bench results record (Sigma, ATT&CK, corpora)",
+            "title": "Bench",
+            "type": "object"
+          },
+          "standards": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "B5 standards pins (OCSF, ECS, D3FEND, ...)",
+            "title": "Standards",
+            "type": "object"
+          }
+        },
+        "required": [
+          "bench",
+          "standards"
+        ],
+        "title": "Pins",
+        "type": "object"
+      },
+      "Problem": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "Problem",
+        "type": "object"
+      },
+      "ScanDetail": {
+        "properties": {
+          "attack_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attack Version"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "detection_count": {
+            "title": "Detection Count",
+            "type": "integer"
+          },
+          "events_scanned": {
+            "title": "Events Scanned",
+            "type": "integer"
+          },
+          "logfile": {
+            "title": "Logfile",
+            "type": "string"
+          },
+          "platform": {
+            "title": "Platform",
+            "type": "string"
+          },
+          "rules_loaded": {
+            "title": "Rules Loaded",
+            "type": "integer"
+          },
+          "sigma_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sigma Version"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "description": "The scan result without its detections: not-evaluable and outside-source counts, filters, tag resolution, and tagged coverage as covered of total",
+            "title": "Summary",
+            "type": "object"
+          },
+          "uid": {
+            "title": "Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "created_at",
+          "logfile",
+          "platform",
+          "events_scanned",
+          "rules_loaded",
+          "detection_count",
+          "sigma_version",
+          "attack_version",
+          "summary"
+        ],
+        "title": "ScanDetail",
+        "type": "object"
+      },
+      "ScanItem": {
+        "properties": {
+          "attack_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attack Version"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "detection_count": {
+            "title": "Detection Count",
+            "type": "integer"
+          },
+          "events_scanned": {
+            "title": "Events Scanned",
+            "type": "integer"
+          },
+          "logfile": {
+            "title": "Logfile",
+            "type": "string"
+          },
+          "platform": {
+            "title": "Platform",
+            "type": "string"
+          },
+          "rules_loaded": {
+            "title": "Rules Loaded",
+            "type": "integer"
+          },
+          "sigma_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sigma Version"
+          },
+          "uid": {
+            "title": "Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "created_at",
+          "logfile",
+          "platform",
+          "events_scanned",
+          "rules_loaded",
+          "detection_count",
+          "sigma_version",
+          "attack_version"
+        ],
+        "title": "ScanItem",
+        "type": "object"
+      },
+      "SyncReport": {
+        "properties": {
+          "bench_runs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Bench Runs",
+            "type": "array"
+          },
+          "filters": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Filters",
+            "type": "array"
+          },
+          "tag_disputes": {
+            "title": "Tag Disputes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bench_runs",
+          "filters",
+          "tag_disputes"
+        ],
+        "title": "SyncReport",
+        "type": "object"
+      },
+      "TagDispute": {
+        "properties": {
+          "capture": {
+            "title": "Capture",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "evidence_points_at": {
+            "title": "Evidence Points At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "origin": {
+            "enum": [
+              "ledger",
+              "local"
+            ],
+            "title": "Origin",
+            "type": "string"
+          },
+          "rule": {
+            "title": "Rule",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "reported upstream",
+              "resolved",
+              "withdrawn"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tag_carried": {
+            "title": "Tag Carried",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "rule",
+          "tag_carried",
+          "evidence_points_at",
+          "capture",
+          "status",
+          "note",
+          "origin",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TagDispute",
+        "type": "object"
+      },
+      "TagDisputeIn": {
+        "properties": {
+          "capture": {
+            "default": "",
+            "title": "Capture",
+            "type": "string"
+          },
+          "evidence_points_at": {
+            "minLength": 1,
+            "title": "Evidence Points At",
+            "type": "string"
+          },
+          "note": {
+            "default": "",
+            "title": "Note",
+            "type": "string"
+          },
+          "rule": {
+            "minLength": 1,
+            "title": "Rule",
+            "type": "string"
+          },
+          "tag_carried": {
+            "minLength": 1,
+            "title": "Tag Carried",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "tag_carried",
+          "evidence_points_at"
+        ],
+        "title": "TagDisputeIn",
+        "type": "object"
+      },
+      "TagDisputeUpdate": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "open",
+                  "reported upstream",
+                  "resolved",
+                  "withdrawn"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "TagDisputeUpdate",
+        "type": "object"
+      },
+      "TriageEntry": {
+        "properties": {
+          "at": {
+            "title": "At",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "new",
+              "reviewed",
+              "false_positive",
+              "needs_follow_up"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "note",
+          "at"
+        ],
+        "title": "TriageEntry",
+        "type": "object"
+      },
+      "TriageIn": {
+        "properties": {
+          "note": {
+            "default": "",
+            "title": "Note",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "new",
+              "reviewed",
+              "false_positive",
+              "needs_follow_up"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "TriageIn",
+        "type": "object"
+      },
+      "TriageOut": {
+        "properties": {
+          "finding_uid": {
+            "title": "Finding Uid",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "new",
+              "reviewed",
+              "false_positive",
+              "needs_follow_up"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "finding_uid",
+          "status",
+          "note",
+          "updated_at"
+        ],
+        "title": "TriageOut",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Local JSON API of Bastion, served on 127.0.0.1 only. Records scans, detections, bench run summaries, triage state, filter documents and tag disputes. Nothing here changes detection logic: filter documents and disputes are records; the engine reads filters from the filters directory.",
+    "title": "Bastion local API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/bench-runs": {
+      "get": {
+        "operationId": "bench_runs_api_bench_runs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BenchRunItem"
+                  },
+                  "title": "Response Bench Runs Api Bench Runs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Bench Runs",
+        "tags": [
+          "bench"
+        ]
+      }
+    },
+    "/api/bench-runs/{name}": {
+      "get": {
+        "operationId": "bench_run_api_bench_runs__name__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenchRunDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Refused"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Bench Run",
+        "tags": [
+          "bench"
+        ]
+      }
+    },
+    "/api/detections": {
+      "get": {
+        "operationId": "detections_api_detections_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "scan_uid",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scan Uid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "level",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "informational",
+                      "low",
+                      "medium",
+                      "high",
+                      "critical"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Level"
+            }
+          },
+          {
+            "in": "query",
+            "name": "rule_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Rule Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "host",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Host"
+            }
+          },
+          {
+            "in": "query",
+            "name": "triage",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "new",
+                      "reviewed",
+                      "false_positive",
+                      "needs_follow_up"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Triage"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetectionPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Detections",
+        "tags": [
+          "detections"
+        ]
+      }
+    },
+    "/api/detections/{detection_id}": {
+      "get": {
+        "operationId": "detection_api_detections__detection_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "detection_id",
+            "required": true,
+            "schema": {
+              "title": "Detection Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetectionDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Refused"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Detection",
+        "tags": [
+          "detections"
+        ]
+      }
+    },
+    "/api/detections/{detection_id}/finding": {
+      "get": {
+        "operationId": "finding_api_detections__detection_id__finding_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "detection_id",
+            "required": true,
+            "schema": {
+              "title": "Detection Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Finding Api Detections  Detection Id  Finding Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Refused"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The detection as an OCSF 1.9.0 Detection Finding",
+        "tags": [
+          "detections"
+        ]
+      }
+    },
+    "/api/filters": {
+      "get": {
+        "operationId": "filters_api_filters_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FilterItem"
+                  },
+                  "title": "Response Filters Api Filters Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Filters",
+        "tags": [
+          "filters"
+        ]
+      }
+    },
+    "/api/filters/{fid}": {
+      "get": {
+        "operationId": "filter_document_api_filters__fid__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "fid",
+            "required": true,
+            "schema": {
+              "title": "Fid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilterDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Refused"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Filter Document",
+        "tags": [
+          "filters"
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/api/pins": {
+      "get": {
+        "operationId": "pins_api_pins_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pins"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Pins",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/api/scans": {
+      "get": {
+        "operationId": "scans_api_scans_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ScanItem"
+                  },
+                  "title": "Response Scans Api Scans Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Scans",
+        "tags": [
+          "scans"
+        ]
+      }
+    },
+    "/api/scans/{uid}": {
+      "delete": {
+        "operationId": "delete_scan_api_scans__uid__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "uid",
+            "required": true,
+            "schema": {
+              "title": "Uid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Refused"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Scan",
+        "tags": [
+          "scans"
+        ]
+      },
+      "get": {
+        "operationId": "scan_api_scans__uid__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "uid",
+            "required": true,
+            "schema": {
+              "title": "Uid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Refused"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Scan",
+        "tags": [
+          "scans"
+        ]
+      }
+    },
+    "/api/sync": {
+      "post": {
+        "operationId": "sync_api_sync_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Refused"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          }
+        },
+        "summary": "Sync",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/api/tag-disputes": {
+      "get": {
+        "operationId": "tag_disputes_api_tag_disputes_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TagDispute"
+                  },
+                  "title": "Response Tag Disputes Api Tag Disputes Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Tag Disputes",
+        "tags": [
+          "tag disputes"
+        ]
+      },
+      "post": {
+        "operationId": "add_tag_dispute_api_tag_disputes_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagDisputeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagDispute"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Refused"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Tag Dispute",
+        "tags": [
+          "tag disputes"
+        ]
+      }
+    },
+    "/api/tag-disputes/{dispute_id}": {
+      "patch": {
+        "operationId": "update_tag_dispute_api_tag_disputes__dispute_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dispute_id",
+            "required": true,
+            "schema": {
+              "title": "Dispute Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagDisputeUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagDispute"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Refused"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Tag Dispute",
+        "tags": [
+          "tag disputes"
+        ]
+      }
+    },
+    "/api/triage/{finding_uid}": {
+      "put": {
+        "operationId": "set_triage_api_triage__finding_uid__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "finding_uid",
+            "required": true,
+            "schema": {
+              "title": "Finding Uid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriageIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Refused"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Triage",
+        "tags": [
+          "triage"
+        ]
+      }
+    },
+    "/api/triage/{finding_uid}/history": {
+      "get": {
+        "operationId": "triage_history_api_triage__finding_uid__history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "finding_uid",
+            "required": true,
+            "schema": {
+              "title": "Finding Uid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TriageEntry"
+                  },
+                  "title": "Response Triage History Api Triage  Finding Uid  History Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Triage History",
+        "tags": [
+          "triage"
+        ]
+      }
+    }
+  }
+}
