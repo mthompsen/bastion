@@ -244,7 +244,10 @@ mock transports.
 
 ## Scope and safety
 
-Bastion analyzes log files in batch. It is not a live agent, stream processor, or SIEM. It
+Bastion analyzes log files in batch. It is not a live agent, stream processor, or SIEM.
+`bastion gui` runs a local, single-user API on 127.0.0.1 only; its store keeps each scan's
+detections with their raw event records on this machine, unencrypted, under the user's
+profile. It
 implements a correct evaluator for a documented subset of Sigma rather than a full Sigma
 backend or authoring tool. The bundled samples are records of past attack techniques used to
 test detection; they are inert log data, and nothing in this repository generates or executes
