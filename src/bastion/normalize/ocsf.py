@@ -17,8 +17,11 @@ attribute for goes to ``unmapped`` under its source name, and the source record 
 Enumerations Bastion cannot decide are ``0`` (Unknown); none is guessed. An event without a
 timestamp has no ``time``: OCSF requires one, and Bastion does not invent it, so such a view
 is marked with the label ``bastion:no-timestamp`` and is not schema valid. In the same way,
-an attribute a class requires stays absent when the source record does not carry it (for
-example ``actor`` when no acting process or user is named), rather than being filled in.
+an attribute a class requires stays absent when the source record does not carry it, rather
+than being filled in. ``actor`` is the case that occurs: Process, File System, Registry Key and
+Registry Value Activity require it, and a record that names no acting process or user (Sysmon
+5 names only the process that ended and its owner) gets no ``actor`` and the label
+``bastion:no-actor``; a Detection Finding on such an event carries the same label.
 """
 
 from __future__ import annotations
@@ -35,6 +38,12 @@ OCSF_VERSION = "1.9.0"
 #: Bastion reads host logs, so every view and finding applies OCSF's ``host`` profile
 #: (``device`` and ``actor`` on every class).
 PROFILES = ("host",)
+
+#: Labels on a view (and its finding) that lacks a value its class requires.
+NO_TIMESTAMP = "bastion:no-timestamp"
+NO_ACTOR = "bastion:no-actor"
+#: Classes whose ``actor`` OCSF 1.9.0 requires (with the ``host`` profile).
+_ACTOR_REQUIRED = frozenset({1001, 1007, 201001, 201002})
 
 _PRODUCT = {"name": "Bastion", "vendor_name": "Bastion", "version": __version__}
 
@@ -168,7 +177,7 @@ def _metadata(reader: FieldReader, event: Event) -> dict[str, Any]:
             metadata[attr] = value
     metadata["log_source"] = event.source
     if event.timestamp is None:
-        metadata["labels"] = ["bastion:no-timestamp"]
+        metadata["labels"] = [NO_TIMESTAMP]
     return metadata
 
 
@@ -211,6 +220,13 @@ def _process_view(kind: str, reader: FieldReader, view: dict[str, Any]) -> None:
         actor = parent
     view["process"] = target
     view["actor"] = {"process": actor} if actor else {}
+    if reader.fields.get("Channel") == "Security":
+        # 4688 and 4689 name the account that created or ended the process: the actor user.
+        subject = _user(
+            reader, ("SubjectUserName",), domain=("SubjectDomainName",), uid=("SubjectUserSid",)
+        )
+        if subject:
+            view["actor"]["user"] = subject
 
 
 def _network_view(reader: FieldReader, view: dict[str, Any]) -> None:
@@ -392,6 +408,8 @@ def to_ocsf(event: Event) -> dict[str, Any]:
         _registry_view(kind, reader, view)
     if view.get("actor") == {}:
         del view["actor"]
+    if class_uid in _ACTOR_REQUIRED and "actor" not in view:
+        view["metadata"].setdefault("labels", []).append(NO_ACTOR)
     reader.mark("UtcTime")
     rest = reader.rest()
     if rest:
@@ -506,8 +524,13 @@ def detection_finding(
     time = epoch_ms(detection.event.timestamp)
     if time is not None:
         finding["time"] = time
-    else:
-        finding["metadata"]["labels"] = ["bastion:no-timestamp"]
+    labels = [
+        label
+        for label in event_view["metadata"].get("labels", [])
+        if label in (NO_TIMESTAMP, NO_ACTOR)
+    ]
+    if labels:
+        finding["metadata"]["labels"] = labels
     device = event_view.get("device")
     if device:
         finding["device"] = device

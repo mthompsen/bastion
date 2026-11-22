@@ -349,6 +349,22 @@ CASES: list[tuple[str, Event, int, int]] = [
         1007,
         1,
     ),
+    (
+        "security 4689",
+        win(
+            "Security",
+            4689,
+            ProcessName="C:\\Windows\\System32\\whoami.exe",
+            ProcessId="0x1f4",
+            Status="0x0",
+            SubjectUserName="alice",
+            SubjectDomainName="CORP",
+            SubjectUserSid="S-1-5-21-1-2-3-1001",
+            SubjectLogonId="0x3e7",
+        ),
+        1007,
+        2,
+    ),
 ]
 
 
@@ -535,3 +551,49 @@ def test_finding_uid_is_deterministic_and_time_is_never_invented() -> None:
     assert "time" not in undated
     assert undated["metadata"]["labels"] == ["bastion:no-timestamp"]
     assert "hunting_class" not in undated["unmapped"]
+
+
+def test_security_4689_actor_is_the_subject_user() -> None:
+    view = to_ocsf(next(c[1] for c in CASES if c[0] == "security 4689"))
+    assert view["actor"] == {
+        "user": {"name": "alice", "domain": "CORP", "uid": "S-1-5-21-1-2-3-1001"}
+    }
+    assert view["process"]["pid"] == 0x1F4
+    assert "labels" not in view["metadata"]
+
+
+SYSMON_5 = win(
+    SYSMON,
+    5,
+    Image="C:\\Windows\\System32\\whoami.exe",
+    ProcessId="4242",
+    ProcessGuid="{11111111-2222-3333-4444-555555555555}",
+    User="CORP\\alice",
+    RuleName="-",
+)
+
+
+def test_sysmon_5_names_no_actor_and_says_so() -> None:
+    view = to_ocsf(SYSMON_5)
+    assert (view["class_uid"], view["activity_id"]) == (1007, 2)
+    assert "actor" not in view
+    assert view["metadata"]["labels"] == ["bastion:no-actor"]
+    # The owner of the process that ended is the process's user, not an actor.
+    assert view["process"]["user"]["name"] == "alice"
+    errors = list(jsonschema.Draft7Validator(ocsf_schema(1007)).iter_errors(view))
+    assert [e.message for e in errors] == ["'actor' is a required property"]
+
+
+def test_finding_on_an_actorless_event_carries_the_label() -> None:
+    detection = _detection().model_copy(update={"event": SYSMON_5})
+    finding = detection_finding(detection)
+    assert_ocsf_valid(finding)
+    assert finding["metadata"]["labels"] == ["bastion:no-actor"]
+    assert "actor" not in finding["evidences"][0]
+    undated = detection.model_copy(
+        update={"event": SYSMON_5.model_copy(update={"timestamp": None})}
+    )
+    assert detection_finding(undated)["metadata"]["labels"] == [
+        "bastion:no-timestamp",
+        "bastion:no-actor",
+    ]
