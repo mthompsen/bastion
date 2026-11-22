@@ -373,7 +373,7 @@ def report(
     attack_file: AttackFileFlag = None,
     filters_dir: FiltersDirFlag = None,
 ) -> None:
-    """Full run: report.md + result.json + dashboard.html."""
+    """Full run: report.md, result.json, result.sarif, dashboard.html, findings.ocsf.json."""
     result, outcome, summary, attack_version, log_platform = _run_scan(
         logfile, platform, rules_dir, attack_file, filters_dir
     )

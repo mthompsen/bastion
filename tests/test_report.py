@@ -170,9 +170,25 @@ class TestWriteReport:
     def test_writes_all_artifacts(self, tmp_path: Path) -> None:
         result, context = build_result()
         paths = write_report(result, SUMMARY, context, tmp_path / "out")
-        assert set(paths) == {"report.md", "result.json", "result.sarif", "dashboard.html"}
+        assert set(paths) == {
+            "report.md",
+            "result.json",
+            "result.sarif",
+            "dashboard.html",
+            "findings.ocsf.json",
+        }
         for path in paths.values():
             assert path.exists() and path.stat().st_size > 0
+
+    def test_ocsf_findings_one_per_detection(self, tmp_path: Path) -> None:
+        result, context = build_result()
+        paths = write_report(result, SUMMARY, context, tmp_path)
+        findings = json.loads(paths["findings.ocsf.json"].read_text(encoding="utf-8"))
+        assert len(findings) == len(result.detections)
+        assert {f["class_uid"] for f in findings} == {2004}
+        assert [f["finding_info"]["analytic"]["uid"] for f in findings] == [
+            d.rule_id for d in result.detections
+        ]
 
     def test_json_round_trips_to_scan_result(self, tmp_path: Path) -> None:
         result, context = build_result()

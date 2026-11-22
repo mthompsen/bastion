@@ -18,6 +18,7 @@ from jinja2 import Environment, PackageLoader
 from bastion import __version__
 from bastion.coverage import CoverageSummary
 from bastion.models import CoverageEntry, Detection, ScanResult
+from bastion.normalize import detection_finding
 
 #: Sigma levels mapped to SARIF result levels.
 _SARIF_LEVELS = {
@@ -183,22 +184,37 @@ def render_sarif(result: ScanResult, context: ReportContext) -> str:
     return json.dumps(sarif, indent=2)
 
 
+def render_ocsf_findings(result: ScanResult, context: ReportContext) -> str:
+    """Every detection as an OCSF 1.9.0 Detection Finding (2004), as one JSON array."""
+    findings = [
+        detection_finding(
+            detection,
+            attack_version=context.attack_version,
+            sigma_version=context.sigma_version,
+        )
+        for detection in result.detections
+    ]
+    return json.dumps(findings, indent=2)
+
+
 def write_report(
     result: ScanResult,
     summary: CoverageSummary,
     context: ReportContext,
     outdir: Path,
 ) -> dict[str, Path]:
-    """Write report.md, result.json, result.sarif and dashboard.html into ``outdir``."""
+    """Write report.md, result.json, result.sarif, dashboard.html and the OCSF findings."""
     outdir.mkdir(parents=True, exist_ok=True)
     paths = {
         "report.md": outdir / "report.md",
         "result.json": outdir / "result.json",
         "result.sarif": outdir / "result.sarif",
         "dashboard.html": outdir / "dashboard.html",
+        "findings.ocsf.json": outdir / "findings.ocsf.json",
     }
     paths["report.md"].write_text(render_markdown(result, summary, context), encoding="utf-8")
     paths["result.json"].write_text(result.model_dump_json(indent=2), encoding="utf-8")
     paths["result.sarif"].write_text(render_sarif(result, context), encoding="utf-8")
     paths["dashboard.html"].write_text(render_dashboard(result, summary, context), encoding="utf-8")
+    paths["findings.ocsf.json"].write_text(render_ocsf_findings(result, context), encoding="utf-8")
     return paths
