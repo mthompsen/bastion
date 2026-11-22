@@ -176,6 +176,7 @@ bastion rules list           # loaded rules and their ATT&CK techniques
 bastion standards fetch      # one-time: cache D3FEND, CTID 800-53 and CAR mapping data
 bastion standards status     # pins of the standards data and their ATT&CK version drift
 bastion standards technique T1003.001   # D3FEND, 800-53 and CAR entries for one technique
+bastion gui                  # local API and GUI on http://127.0.0.1:8765/ (GUI page from B7)
 ```
 
 Exports and their limits:
@@ -188,7 +189,9 @@ Exports and their limits:
   with the matched fields as evidence. Event views follow OCSF 1.9.0 with the `host` profile;
   fields OCSF has no attribute for are kept in `unmapped`, and the source record in
   `raw_data`. Bastion never invents a value a class requires: an event without a timestamp
-  has no `time` and is labelled `bastion:no-timestamp`.
+  has no `time` and is labelled `bastion:no-timestamp`; a record that names no acting process
+  or user (Sysmon 5 names only the process that ended) has no `actor` and is labelled
+  `bastion:no-actor`, and so is a finding on it.
 - `layers.navigator.json` (ATT&CK Navigator layer format 4.5) is lossy: a layer holds one
   score per technique, so tri-state results, bases, intervals and per-event evidence are not
   carried. Every layer says so in its description and metadata.
@@ -200,6 +203,20 @@ Exports and their limits:
 `--platform windows|linux` overrides log-type auto-detection. Every command is
 `--help`-documented and exits non-zero on error. Datasets are pinned for reproducibility
 (Sigma release r2026-07-01, ATT&CK STIX v20.1) and cached under `data/`, which is gitignored.
+
+## Local store and API
+
+`bastion gui` serves a JSON API on 127.0.0.1 only (there is no host option), over a local
+SQLite store of scans, detections, bench run summaries, triage state, filter documents and
+tag disputes. The store lives outside the repository (`%LOCALAPPDATA%\bastion\store.sqlite3`
+on Windows, `~/.local/share/bastion/store.sqlite3` elsewhere, or `BASTION_STORE`). Long scans
+and bench runs are jobs: queued, run one at a time with progress, cancellable, and resumed
+after a restart; a bench job writes its results beside the store, never into the repository.
+The API refuses requests whose `Host` is not the loopback address, and cross-origin or
+non-JSON writes. Its contract is [`docs/api/openapi.json`](docs/api/openapi.json). The GUI
+itself arrives in B7; until then `/` serves a placeholder page. Nothing in the store changes
+detection: filter documents and tag disputes there are records, and the engine keeps reading
+filters from `filters/`.
 
 ## Measurement harness
 
