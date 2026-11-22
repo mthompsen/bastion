@@ -13,6 +13,8 @@ checked here (no CORS is configured, so other origins also fail the browser's pr
 from __future__ import annotations
 
 import json
+import uuid
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any, Literal
 
@@ -185,6 +187,65 @@ class TagDisputeUpdate(BaseModel):
     note: str | None = None
 
 
+JobStatus = Literal["queued", "running", "done", "failed", "cancelled"]
+
+
+class ScanJobParams(BaseModel):
+    path: str = Field(description="Log file to scan, on this machine")
+    platform: Literal["windows", "linux"] | None = Field(
+        default=None, description="Override source auto-detection"
+    )
+
+
+class BenchJobParams(BaseModel):
+    run_name: str | None = Field(
+        default=None,
+        pattern=r"^[A-Za-z0-9._-]{1,64}$",
+        description="Results directory name; kept with the job so a resumed run reuses its "
+        "outcomes. Default: gui-<UTC date>-<job id prefix>",
+    )
+    splits: list[Literal["test", "dev"]] = ["test", "dev"]
+    suites: list[Literal["positives", "regression", "benign", "fixtures"]] = [
+        "positives",
+        "regression",
+        "benign",
+        "fixtures",
+    ]
+    max_events_per_capture: int | None = Field(default=None, ge=1)
+    baseline_sets: list[str] | None = None
+    channels: list[str] | None = None
+
+
+class JobIn(BaseModel):
+    kind: Literal["scan", "bench"]
+    scan: ScanJobParams | None = None
+    bench: BenchJobParams | None = None
+
+
+class JobProgress(BaseModel):
+    done: int
+    total: int | None = Field(description="Unknown (null) while a scan reads its file")
+    unit: Literal["", "captures", "events"]
+    label: str = Field(description="Current corpus (bench) or file (scan)")
+
+
+class Job(BaseModel):
+    id: str
+    kind: Literal["scan", "bench"]
+    params: dict[str, Any]
+    status: JobStatus
+    created_at: str
+    started_at: str | None
+    finished_at: str | None
+    attempts: int = Field(description="Times a worker started it; above 1 after a resume")
+    progress: JobProgress
+    cancel_requested: bool
+    error: str | None
+    result_ref: str | None = Field(
+        description="Scan uid (scan job) or bench run name (bench job) when done"
+    )
+
+
 class SyncReport(BaseModel):
     bench_runs: list[str]
     filters: list[str]
@@ -251,7 +312,8 @@ def create_app(store: Store, *, port: int = DEFAULT_PORT, repo_root: Path | None
             "Local JSON API of Bastion, served on 127.0.0.1 only. Records scans, detections, "
             "bench run summaries, triage state, filter documents and tag disputes. Nothing "
             "here changes detection logic: filter documents and disputes are records; the "
-            "engine reads filters from the filters directory."
+            "engine reads filters from the filters directory. Long scans and bench runs are "
+            "jobs: queued, run one at a time, cancellable, and resumed after a restart."
         ),
         docs_url=None,
         redoc_url=None,
@@ -419,7 +481,56 @@ def create_app(store: Store, *, port: int = DEFAULT_PORT, repo_root: Path | None
     def update_tag_dispute(dispute_id: int, body: TagDisputeUpdate) -> dict[str, Any]:
         return dict(found(store.update_tag_dispute, dispute_id, status=body.status, note=body.note))
 
+    @app.get("/api/jobs", response_model=list[Job], tags=["jobs"])
+    def jobs(status: Annotated[list[JobStatus] | None, Query()] = None) -> list[Job]:
+        return [_job(j) for j in store.list_jobs(status or ())]
+
+    @app.post("/api/jobs", response_model=Job, status_code=202, tags=["jobs"], responses=_ERRORS)
+    def create_job(body: JobIn) -> Job:
+        params: dict[str, Any]
+        if body.kind == "scan":
+            if body.scan is None or not Path(body.scan.path).is_file():
+                raise HTTPException(400, "a scan job needs scan.path naming an existing file")
+            params = body.scan.model_dump()
+        else:
+            bench = body.bench or BenchJobParams()
+            params = bench.model_dump()
+            if not params.get("run_name"):
+                stamp = datetime.now(UTC).strftime("%Y-%m-%d")
+                params["run_name"] = f"gui-{stamp}-{uuid.uuid4().hex[:8]}"
+        return _job(store.create_job(body.kind, params))
+
+    @app.get("/api/jobs/{job_id}", response_model=Job, tags=["jobs"], responses=_ERRORS)
+    def job(job_id: str) -> Job:
+        return _job(found(store.get_job, job_id))
+
+    @app.post("/api/jobs/{job_id}/cancel", response_model=Job, tags=["jobs"], responses=_ERRORS)
+    def cancel_job(job_id: str) -> Job:
+        return _job(found(store.request_cancel, job_id))
+
     return app
+
+
+def _job(record: dict[str, Any]) -> Job:
+    return Job(
+        id=record["id"],
+        kind=record["kind"],
+        params=record["params"],
+        status=record["status"],
+        created_at=record["created_at"],
+        started_at=record["started_at"],
+        finished_at=record["finished_at"],
+        attempts=record["attempts"],
+        progress=JobProgress(
+            done=record["progress_done"],
+            total=record["progress_total"],
+            unit=record["progress_unit"],
+            label=record["progress_label"],
+        ),
+        cancel_requested=record["cancel_requested"],
+        error=record["error"],
+        result_ref=record["result_ref"],
+    )
 
 
 def openapi_document(app: FastAPI) -> str:

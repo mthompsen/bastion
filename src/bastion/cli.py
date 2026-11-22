@@ -8,6 +8,7 @@ runs fully offline against the cached datasets.
 from __future__ import annotations
 
 import json
+from collections.abc import Callable, Iterator
 from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Any
@@ -33,7 +34,7 @@ from bastion.fetch import (
     sigma_rules_path,
 )
 from bastion.ingest import EvtxSource, select_source
-from bastion.models import Platform, ScanResult, SigmaRule
+from bastion.models import Event, Platform, ScanResult, SigmaRule
 from bastion.navigator import BenchEvidence
 from bastion.report import ReportContext, write_report
 from bastion.sigma import load_rules
@@ -486,10 +487,12 @@ def _bench_config(
     max_events: int | None = None,
     resume: bool = True,
     run_name: str | None = None,
+    repo_root: Path | None = None,
+    results_root: Path | None = None,
 ) -> bench_runner.BenchConfig:
     from bastion.bench.cache import cache_root
 
-    repo_root = Path.cwd()
+    repo_root = repo_root or Path.cwd()
     settings = bench_runner.load_bench_toml(repo_root)
     budget = float(
         settings.get("budget", {}).get("alerts_per_host_day", bench_runner.DEFAULT_BUDGET)
@@ -501,6 +504,7 @@ def _bench_config(
     return bench_runner.BenchConfig(
         cache=cache_dir or cache_root(),
         repo_root=repo_root,
+        results_root=results_root,
         rules_dir=rules_dir,
         attack_file=attack_file,
         seed=seed,
@@ -690,12 +694,15 @@ def _run_scan(
     rules_dir: Path | None,
     attack_file: Path | None,
     filters_dir: Path | None = None,
+    *,
+    wrap_events: Callable[[Iterator[Event]], Iterator[Event]] | None = None,
 ) -> tuple[ScanResult, engine.ScanOutcome, CoverageSummary, str | None, Platform]:
     """Shared scan pipeline: ingest → rules → engine → ScanResult.
 
     Returns the assembled ScanResult, the raw engine outcome (for the
     caveat notes), the coverage summary, the ATT&CK bundle version, and
-    the platform the log was treated as.
+    the platform the log was treated as. ``wrap_events`` lets the jobs API
+    watch the event stream (progress, cancel); it must yield every event.
     """
     bundle = _require(attack_file or attack_bundle_path(), "ATT&CK STIX bundle")
 
@@ -708,9 +715,10 @@ def _run_scan(
     attack_data = load_attack_data(bundle)
     resolution = resolve_rule_tags(rules, attack_data)
     correlations = _load_correlations(rules_dir)
-    outcome = engine.scan(
-        source.parse(logfile), rules, attack_data.techniques, filters, correlations
-    )
+    events = source.parse(logfile)
+    if wrap_events is not None:
+        events = wrap_events(iter(events))
+    outcome = engine.scan(events, rules, attack_data.techniques, filters, correlations)
     summary = summarize_coverage(rules, attack_data.techniques)
     result = ScanResult(
         detections=outcome.detections,

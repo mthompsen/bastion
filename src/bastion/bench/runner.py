@@ -458,21 +458,48 @@ def open_run(config: BenchConfig, rules_label: str) -> RunContext:
     run_key = f"eval {evaluation_source_hash()}|{rules_label}"
     outcomes_path = run_dir / "outcomes.jsonl"
     existing: dict[str, CaptureOutcome] = {}
+    if outcomes_path.is_file():
+        text = outcomes_path.read_text(encoding="utf-8")
+        if text and not text.endswith("\n"):
+            # end a truncated last line so the next outcome starts on a line of its own
+            with outcomes_path.open("a", encoding="utf-8") as sink:
+                sink.write("\n")
     if config.resume and outcomes_path.is_file():
         for line in outcomes_path.read_text(encoding="utf-8").splitlines():
             if not line.strip():
                 continue
-            record = json.loads(line)
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                # a run stopped mid-write leaves a truncated last line; that capture reruns
+                continue
             if record.get("run_key") == run_key:
                 outcome = CaptureOutcome.from_dict(record["outcome"])
                 existing[outcome.capture_id] = outcome
     return RunContext(run_dir, run_key, outcomes_path, existing)
 
 
+class BenchCancelled(Exception):
+    """``should_stop`` asked the run to stop; outcomes written so far stay on disk."""
+
+
+#: ``on_capture(done, total, capture)``: called before each selected capture, cached or not.
+CaptureProgress = Callable[[int, int, Capture], None]
+
+
 def run_bench(
-    config: BenchConfig, progress: Callable[[str], None] | None = None
+    config: BenchConfig,
+    progress: Callable[[str], None] | None = None,
+    *,
+    on_capture: CaptureProgress | None = None,
+    should_stop: Callable[[], bool] | None = None,
 ) -> tuple[dict[str, Any], Path]:
-    """Evaluate every selected capture and write summary.json and report.md."""
+    """Evaluate every selected capture and write summary.json and report.md.
+
+    ``on_capture`` and ``should_stop`` serve the jobs API: progress as captures done of
+    total, and a cooperative stop between captures (raising :class:`BenchCancelled`). With
+    ``config.resume`` a later run of the same name reuses every outcome already written.
+    """
     say = progress or (lambda _message: None)
     attack = load_attack(config)
     ruleset = load_ruleset(config)
@@ -498,6 +525,10 @@ def run_bench(
     rules_by_platform = {p: ruleset.for_platform(p) for p in ("windows", "linux")}
     with context.outcomes_path.open("a", encoding="utf-8") as sink:
         for index, (capture, split) in enumerate(selected, start=1):
+            if should_stop is not None and should_stop():
+                raise BenchCancelled(f"stopped before capture {index} of {len(selected)}")
+            if on_capture is not None:
+                on_capture(index - 1, len(selected), capture)
             cached = context.existing.get(capture.id)
             if cached is not None:
                 outcomes.append(cached)

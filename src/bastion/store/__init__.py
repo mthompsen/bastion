@@ -8,11 +8,14 @@ engine or the bench reads it, so it cannot change a detection:
 - filter documents are recorded from the ``filters/`` directory; the engine keeps loading
   filters from that directory, never from the store;
 - a tag dispute is a ledger entry; it never retags a rule;
-- a bench run is recorded at summary level (``summary.json``); no capture event is stored.
+- a bench run is recorded at summary level (``summary.json``); no capture event is stored;
+- jobs (long scans and bench runs) are queued here and run by :mod:`bastion.jobs`.
 """
 
 from bastion.store.db import (
     DISPUTE_STATUSES,
+    JOB_KINDS,
+    JOB_STATUSES,
     SCHEMA_VERSION,
     STORE_ENV,
     TRIAGE_STATUSES,
@@ -24,6 +27,8 @@ from bastion.store.db import (
 
 __all__ = [
     "DISPUTE_STATUSES",
+    "JOB_KINDS",
+    "JOB_STATUSES",
     "SCHEMA_VERSION",
     "STORE_ENV",
     "TRIAGE_STATUSES",

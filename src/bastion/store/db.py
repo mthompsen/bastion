@@ -7,7 +7,7 @@ import json
 import os
 import sqlite3
 import uuid
-from collections.abc import Iterator, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
@@ -25,6 +25,8 @@ STORE_ENV = "BASTION_STORE"
 TRIAGE_STATUSES = ("new", "reviewed", "false_positive", "needs_follow_up")
 #: Tag dispute states, as in ``docs/tag-disputes.md``.
 DISPUTE_STATUSES = ("open", "reported upstream", "resolved", "withdrawn")
+JOB_KINDS = ("scan", "bench")
+JOB_STATUSES = ("queued", "running", "done", "failed", "cancelled")
 
 _V1 = """
 CREATE TABLE scans (
@@ -104,8 +106,31 @@ CREATE TABLE tag_disputes (
 );
 """
 
+_V2 = """
+CREATE TABLE jobs (
+    id TEXT PRIMARY KEY,
+    kind TEXT NOT NULL CHECK (kind IN ('scan', 'bench')),
+    params TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('queued', 'running', 'done', 'failed',
+                                           'cancelled')),
+    created_at TEXT NOT NULL,
+    started_at TEXT,
+    finished_at TEXT,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    progress_done INTEGER NOT NULL DEFAULT 0,
+    progress_total INTEGER,
+    progress_unit TEXT NOT NULL DEFAULT '',
+    progress_label TEXT NOT NULL DEFAULT '',
+    cancel_requested INTEGER NOT NULL DEFAULT 0,
+    worker_pid INTEGER,
+    error TEXT,
+    result_ref TEXT
+);
+CREATE INDEX jobs_status ON jobs(status, created_at);
+"""
+
 #: Migration n takes the store from user_version n to n + 1.
-MIGRATIONS: tuple[str, ...] = (_V1,)
+MIGRATIONS: tuple[str, ...] = (_V1, _V2)
 SCHEMA_VERSION = len(MIGRATIONS)
 
 
@@ -563,6 +588,128 @@ class Store:
             )
         return self.get_tag_dispute(dispute_id)
 
+    # --- jobs -----------------------------------------------------------------------------
+
+    def create_job(self, kind: str, params: dict[str, Any]) -> dict[str, Any]:
+        if kind not in JOB_KINDS:
+            raise StoreError(f"job kind must be one of {', '.join(JOB_KINDS)}")
+        job_id = uuid.uuid4().hex
+        with self._tx() as db:
+            db.execute(
+                "INSERT INTO jobs (id, kind, params, status, created_at)"
+                " VALUES (?, ?, ?, 'queued', ?)",
+                (job_id, kind, json.dumps(params), now()),
+            )
+        return self.get_job(job_id)
+
+    def get_job(self, job_id: str) -> dict[str, Any]:
+        with self._read() as db:
+            row = db.execute("SELECT * FROM jobs WHERE id = ?", (job_id,)).fetchone()
+        if row is None:
+            raise NotFoundError(f"no job {job_id}")
+        return _job_row(row)
+
+    def list_jobs(self, status: Sequence[str] = ()) -> list[dict[str, Any]]:
+        clause = f"WHERE status IN ({','.join('?' * len(status))})" if status else ""
+        with self._read() as db:
+            rows = db.execute(
+                f"SELECT * FROM jobs {clause} ORDER BY created_at DESC, rowid DESC", list(status)
+            ).fetchall()
+        return [_job_row(row) for row in rows]
+
+    def next_queued(self) -> str | None:
+        with self._read() as db:
+            row = db.execute(
+                "SELECT id FROM jobs WHERE status = 'queued' ORDER BY created_at, rowid LIMIT 1"
+            ).fetchone()
+        return None if row is None else str(row["id"])
+
+    def running_job(self) -> dict[str, Any] | None:
+        with self._read() as db:
+            row = db.execute("SELECT * FROM jobs WHERE status = 'running' LIMIT 1").fetchone()
+        return None if row is None else _job_row(row)
+
+    def claim_job(self, job_id: str, pid: int) -> bool:
+        """``queued`` to ``running`` under worker ``pid``; False when the job was not queued."""
+        with self._tx() as db:
+            cursor = db.execute(
+                "UPDATE jobs SET status = 'running', started_at = ?, worker_pid = ?,"
+                " attempts = attempts + 1 WHERE id = ? AND status = 'queued'",
+                (now(), pid, job_id),
+            )
+            return cursor.rowcount == 1
+
+    def set_progress(
+        self, job_id: str, done: int, total: int | None, label: str, unit: str
+    ) -> None:
+        with self._tx() as db:
+            db.execute(
+                "UPDATE jobs SET progress_done = ?, progress_total = ?, progress_label = ?,"
+                " progress_unit = ? WHERE id = ?",
+                (done, total, label, unit, job_id),
+            )
+
+    def request_cancel(self, job_id: str) -> dict[str, Any]:
+        """A queued job is cancelled at once; a running one is asked to stop."""
+        job = self.get_job(job_id)
+        if job["status"] == "queued":
+            with self._tx() as db:
+                db.execute(
+                    "UPDATE jobs SET status = 'cancelled', finished_at = ?,"
+                    " cancel_requested = 1 WHERE id = ? AND status = 'queued'",
+                    (now(), job_id),
+                )
+        elif job["status"] == "running":
+            with self._tx() as db:
+                db.execute("UPDATE jobs SET cancel_requested = 1 WHERE id = ?", (job_id,))
+        else:
+            raise StoreError(f"job {job_id} is {job['status']}; only queued or running jobs cancel")
+        return self.get_job(job_id)
+
+    def cancel_requested(self, job_id: str) -> bool:
+        with self._read() as db:
+            row = db.execute("SELECT cancel_requested FROM jobs WHERE id = ?", (job_id,)).fetchone()
+        return bool(row and row["cancel_requested"])
+
+    def finish_job(
+        self,
+        job_id: str,
+        status: str,
+        *,
+        error: str | None = None,
+        result_ref: str | None = None,
+    ) -> None:
+        if status not in ("done", "failed", "cancelled"):
+            raise StoreError(f"a job finishes done, failed or cancelled, not {status}")
+        with self._tx() as db:
+            db.execute(
+                "UPDATE jobs SET status = ?, finished_at = ?, error = ?, result_ref = ?"
+                " WHERE id = ?",
+                (status, now(), error, result_ref, job_id),
+            )
+
+    def requeue_orphans(self, alive: Callable[[int], bool]) -> list[str]:
+        """``running`` jobs whose worker process is gone go back to ``queued`` (resume after
+        restart). A job whose cancel was requested is marked cancelled instead."""
+        moved: list[str] = []
+        for job in self.list_jobs(["running"]):
+            if job["worker_pid"] is not None and alive(int(job["worker_pid"])):
+                continue
+            with self._tx() as db:
+                if job["cancel_requested"]:
+                    db.execute(
+                        "UPDATE jobs SET status = 'cancelled', finished_at = ?,"
+                        " error = 'worker gone after cancel request' WHERE id = ?",
+                        (now(), job["id"]),
+                    )
+                else:
+                    db.execute(
+                        "UPDATE jobs SET status = 'queued', worker_pid = NULL WHERE id = ?",
+                        (job["id"],),
+                    )
+                    moved.append(job["id"])
+        return moved
+
 
 def _statements(script: str) -> list[str]:
     return [part.strip() for part in script.split(";") if part.strip()]
@@ -574,6 +721,13 @@ def _detection_row(row: sqlite3.Row) -> dict[str, Any]:
     detection["techniques"] = json.loads(row["techniques"])
     detection["matched_fields"] = json.loads(row["matched_fields"])
     return detection
+
+
+def _job_row(row: sqlite3.Row) -> dict[str, Any]:
+    job = dict(row)
+    job["params"] = json.loads(job["params"])
+    job["cancel_requested"] = bool(job["cancel_requested"])
+    return job
 
 
 def parse_dispute_ledger(path: Path) -> list[dict[str, str]]:
