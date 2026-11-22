@@ -216,10 +216,10 @@ antivirus capture. That capture still fires other rules and its flags do not cha
 |:-|-:|-:|:-|
 | Frozen 130 headline | 39 | 45 | +3 (of +6) |
 | Frozen 130 strict | 33 | 34 | +1 (of +1) |
-| Frozen 130 any firing | 77 | 84 | +5 (of +7) |
+| Frozen 130 any firing | 77 | 84 | +6 (of +7) |
 | Expanded test (512) headline | 125 | 136 | +8 (of +11) |
 | Expanded test (512) strict | 105 | 112 | +7 (of +7) |
-| Expanded test (512) any firing | 284 | 302 | +16 (of +18) |
+| Expanded test (512) any firing | 284 | 302 | +17 (of +18) |
 | Dev (344) headline / strict | 114 / 96 | 118 / 98 | |
 | Windows goodware per host-day (budget 20) | 15.82 | 16.01 | |
 | Rules not evaluable at least once (alerting) | 1,022 (801) | 990 (776) | |
