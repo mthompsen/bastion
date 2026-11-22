@@ -114,15 +114,11 @@ def _template_args(
     }
 
 
-def render_markdown(
-    result: ScanResult, summary: CoverageSummary, context: ReportContext
-) -> str:
+def render_markdown(result: ScanResult, summary: CoverageSummary, context: ReportContext) -> str:
     return _env.get_template("report.md.j2").render(_template_args(result, summary, context))
 
 
-def render_dashboard(
-    result: ScanResult, summary: CoverageSummary, context: ReportContext
-) -> str:
+def render_dashboard(result: ScanResult, summary: CoverageSummary, context: ReportContext) -> str:
     return _env.get_template("dashboard.html.j2").render(_template_args(result, summary, context))
 
 
@@ -140,9 +136,7 @@ def render_sarif(result: ScanResult, context: ReportContext) -> str:
             rules[detection.rule_id] = {
                 "id": detection.rule_id,
                 "name": detection.rule_title,
-                "defaultConfiguration": {
-                    "level": _SARIF_LEVELS.get(detection.level, "warning")
-                },
+                "defaultConfiguration": {"level": _SARIF_LEVELS.get(detection.level, "warning")},
                 "properties": {
                     "sigmaLevel": detection.level,
                     "attackTechniques": [ref.id for ref in detection.techniques],
@@ -159,13 +153,7 @@ def render_sarif(result: ScanResult, context: ReportContext) -> str:
             "ruleId": detection.rule_id,
             "level": _SARIF_LEVELS.get(detection.level, "warning"),
             "message": {"text": message},
-            "locations": [
-                {
-                    "physicalLocation": {
-                        "artifactLocation": {"uri": context.logfile}
-                    }
-                }
-            ],
+            "locations": [{"physicalLocation": {"artifactLocation": {"uri": context.logfile}}}],
             "properties": {
                 "matchedFields": detection.matched_fields,
                 "attackTechniques": [ref.id for ref in detection.techniques],
@@ -173,9 +161,7 @@ def render_sarif(result: ScanResult, context: ReportContext) -> str:
             },
         }
         if detection.event.timestamp is not None:
-            sarif_result["properties"]["eventTimestamp"] = (
-                detection.event.timestamp.isoformat()
-            )
+            sarif_result["properties"]["eventTimestamp"] = detection.event.timestamp.isoformat()
         results.append(sarif_result)
 
     sarif = {
@@ -214,7 +200,5 @@ def write_report(
     paths["report.md"].write_text(render_markdown(result, summary, context), encoding="utf-8")
     paths["result.json"].write_text(result.model_dump_json(indent=2), encoding="utf-8")
     paths["result.sarif"].write_text(render_sarif(result, context), encoding="utf-8")
-    paths["dashboard.html"].write_text(
-        render_dashboard(result, summary, context), encoding="utf-8"
-    )
+    paths["dashboard.html"].write_text(render_dashboard(result, summary, context), encoding="utf-8")
     return paths
