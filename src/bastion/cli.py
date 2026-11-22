@@ -1,8 +1,9 @@
 """Bastion command-line interface (Typer app).
 
 Commands (SPEC.md section 11): ``fetch``, ``scan``, ``coverage``,
-``report`` and ``rules list``. Everything except the one-time ``fetch``
-runs fully offline against the cached datasets.
+``report`` and ``rules list``; ``bench``, ``standards`` and ``gui`` came
+with the expansion. Everything except the one-time ``fetch`` runs fully
+offline against the cached datasets.
 """
 
 from __future__ import annotations
@@ -60,6 +61,9 @@ console = Console()
 #: Hand-written rules shipped with the repository, loaded alongside the
 #: fetched cache whenever --rules-dir is not overridden.
 LOCAL_RULES_DIR = Path("rules")
+#: ``bastion gui`` default port (``bastion.api.DEFAULT_PORT``; not imported here so the other
+#: commands do not load FastAPI).
+GUI_PORT = 8765
 #: Sigma filter documents shipped with the repository (environment exclusions as files).
 FILTERS_DIR = Path("filters")
 
@@ -435,6 +439,66 @@ def _sigma_version(rules_dir: Path) -> str | None:
         if line.startswith("version:"):
             return line.split(":", 1)[1].strip()
     return None
+
+
+@app.command()
+def gui(
+    port: Annotated[
+        int, typer.Option("--port", min=1024, max=65535, help="Port on 127.0.0.1.")
+    ] = GUI_PORT,
+    store_path: Annotated[
+        Path | None,
+        typer.Option(
+            "--store", help="Store file (default: BASTION_STORE, else the per-user data dir)."
+        ),
+    ] = None,
+    open_browser: Annotated[
+        bool, typer.Option("--open/--no-open", help="Open the browser at the local URL.")
+    ] = True,
+) -> None:
+    """Serve the local API and the GUI on 127.0.0.1 (a placeholder page until B7).
+
+    Records the repository's bench runs, filter documents and tag dispute ledger in the
+    store, starts the job dispatcher (queued jobs, including any a stop left running, are
+    run one at a time), and serves until interrupted. There is no host option: the API is
+    bound to 127.0.0.1 only.
+    """
+    import threading
+    import webbrowser
+
+    import uvicorn
+
+    from bastion.api import create_app
+    from bastion.api.app import sync_repository
+    from bastion.jobs import Dispatcher
+    from bastion.store import Store, default_store_path
+
+    repo_root = Path.cwd()
+    store = Store(store_path or default_store_path())
+    synced = sync_repository(store, repo_root)
+    dispatcher = Dispatcher(store, repo_root)
+    resumed = dispatcher.recover()
+    url = f"http://127.0.0.1:{port}/"
+    console.print(f"store [bold]{store.path}[/] (schema {store.schema_version()})")
+    console.print(
+        f"recorded {len(synced.bench_runs)} bench runs, {len(synced.filters)} filter documents, "
+        f"{synced.tag_disputes} tag disputes"
+    )
+    if resumed:
+        console.print(f"[yellow]{len(resumed)} jobs left running by a stop are queued again[/]")
+    console.print(f"serving [bold]{url}[/] (Ctrl+C to stop)")
+    dispatcher.start()
+    if open_browser:
+        threading.Timer(1.0, webbrowser.open, (url,)).start()
+    try:
+        uvicorn.run(
+            create_app(store, port=port, repo_root=repo_root),
+            host="127.0.0.1",
+            port=port,
+            log_level="warning",
+        )
+    finally:
+        dispatcher.stop()
 
 
 @rules_app.command("list")

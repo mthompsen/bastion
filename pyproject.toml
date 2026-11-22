@@ -31,6 +31,7 @@ dependencies = [
     "rich>=13.7",
     # Bounded: docs/api/openapi.json is generated from the app and checked by the tests.
     "fastapi>=0.165,<0.166",
+    "uvicorn>=0.54,<1",
 ]
 
 [project.optional-dependencies]
