@@ -1,6 +1,7 @@
 # Cached external datasets (fetched by `bastion fetch`)
 data/sigma/
 data/attack/
+data/standards/
 
 # Python
 __pycache__/

@@ -36,6 +36,23 @@ def pin_summary() -> dict[str, str]:
     return summary
 
 
+def standards_pin_summary() -> dict[str, str]:
+    """Flat ``name -> version`` view of the B5 standards pins (exports and footers).
+
+    Kept apart from :func:`pin_summary`, which bench results record: the standards data never
+    changes a detection count, so bench results do not carry it.
+    """
+    summary: dict[str, str] = {}
+    for key, entry in load_pins().get("standards", {}).items():
+        version = (
+            entry.get("version")
+            or entry.get("layer_format")
+            or (str(entry["commit"])[:12] if entry.get("commit") else "")
+        )
+        summary[key] = str(version)
+    return summary
+
+
 def data_file_text(name: str) -> str:
     """Read a packaged data file (for example a corpus dataset list)."""
     return resources.files("bastion.data").joinpath(name).read_text(encoding="utf-8")
