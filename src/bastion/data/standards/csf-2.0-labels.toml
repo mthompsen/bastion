@@ -1,0 +1,65 @@
+# NIST Cybersecurity Framework 2.0 labels for Bastion's own functions (START_PROMPT section 5,
+# Tier B). The CSF text is quoted from NIST CSWP 29 through the NIST CPRT export of CSF_2_0_0
+# (retrieved 2026-11-22). Which outcome each Bastion function supports is Bastion's own
+# assertion, not NIST's; "partial" means the function supports the outcome only for the host
+# logs Bastion reads.
+
+[csf]
+version = "2.0"
+source = "NIST CSWP 29, https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf"
+assertion = "Bastion's own mapping of its functions to CSF outcomes"
+
+[outcomes]
+"DE" = "Possible cybersecurity attacks and compromises are found and analyzed"
+"DE.CM" = "Assets are monitored to find anomalies, indicators of compromise, and other potentially adverse events"
+"DE.CM-01" = "Networks and network services are monitored to find potentially adverse events"
+"DE.CM-03" = "Personnel activity and technology usage are monitored to find potentially adverse events"
+"DE.CM-09" = "Computing hardware and software, runtime environments, and their data are monitored to find potentially adverse events"
+"DE.AE" = "Anomalies, indicators of compromise, and other potentially adverse events are analyzed to characterize the events and detect cybersecurity incidents"
+"DE.AE-02" = "Potentially adverse events are analyzed to better understand associated activities"
+"DE.AE-03" = "Information is correlated from multiple sources"
+"DE.AE-06" = "Information on adverse events is provided to authorized staff and tools"
+"DE.AE-07" = "Cyber threat intelligence and other contextual information are integrated into the analysis"
+"ID.IM-02" = "Improvements are identified from security tests and exercises, including those done in coordination with suppliers and relevant third parties"
+
+[[function]]
+name = "Sigma rule evaluation of host logs (scan)"
+outcomes = ["DE.CM-09", "DE.AE-02"]
+scope = "partial"
+note = "host event logs only: Windows EVTX and XML, Sysmon for Linux, auditd, journald, syslog"
+
+[[function]]
+name = "Authentication and logon rules"
+outcomes = ["DE.CM-03"]
+scope = "partial"
+note = "logon events in the logs given to Bastion; no identity provider data"
+
+[[function]]
+name = "Host network connection rules (Sysmon 3, Security 5156)"
+outcomes = ["DE.CM-01"]
+scope = "partial"
+note = "connections as the host logs them; no network sensor"
+
+[[function]]
+name = "Correlation rules and process lineage"
+outcomes = ["DE.AE-03", "DE.AE-02"]
+scope = "partial"
+note = "within the logs of one scan"
+
+[[function]]
+name = "ATT&CK, D3FEND and 800-53 context on detections"
+outcomes = ["DE.AE-07"]
+scope = "partial"
+note = "pinned public mappings; no threat feed"
+
+[[function]]
+name = "Reports and exports (Markdown, JSON, SARIF, OCSF findings, Navigator layers)"
+outcomes = ["DE.AE-06"]
+scope = "full"
+note = ""
+
+[[function]]
+name = "Benchmark against labelled attack captures (bastion bench)"
+outcomes = ["ID.IM-02"]
+scope = "partial"
+note = "measures Bastion's own detection, not the organization's"

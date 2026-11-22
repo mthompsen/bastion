@@ -19,6 +19,7 @@ from rich.table import Table
 from bastion import __version__, engine
 from bastion.attack import TagResolution, load_attack_data, resolve_rule_tags
 from bastion.bench import runner as bench_runner
+from bastion.cli_standards import standards_app
 from bastion.coverage import CoverageSummary, summarize_coverage
 from bastion.fetch import (
     ATTACK_VERSION,
@@ -49,6 +50,7 @@ bench_app = typer.Typer(
     no_args_is_help=True,
 )
 app.add_typer(bench_app, name="bench")
+app.add_typer(standards_app, name="standards")
 
 console = Console()
 

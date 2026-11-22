@@ -1,0 +1,18 @@
+# Written for Bastion's tests in the DeTT&CT 2.2.0 data-source-administration format (1.1).
+version: 1.1
+file_type: data-source-administration
+name: bastion test
+domain: enterprise-attack
+systems:
+- applicable_to: Windows workstations
+  platform: [Windows]
+data_sources:
+- data_source_name: Command Execution
+  data_source:
+  - applicable_to: [Windows workstations]
+    products: [Sysmon]
+    available_for_data_analytics: true
+- data_source_name: Not A Data Component
+  data_source:
+  - applicable_to: [Windows workstations]
+    products: [Other]

@@ -1,0 +1,4 @@
+ID,D3FEND Tactic,D3FEND Technique,D3FEND Technique Level 0,D3FEND Technique Level 1,Definition
+D3-TB,Harden,,Token Binding,,"Token binding is a security mechanism used to enhance the protection of tokens, such as cookies or OAuth tokens, by binding them to a specific connection."
+D3-EI,Isolate,Execution Isolation,,,
+D3-EDL,Isolate,,Executable Denylisting,,Blocking the execution of files on a host in accordance with defined application policy rules.

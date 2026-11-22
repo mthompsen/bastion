@@ -30,6 +30,8 @@ class AttackData:
     revoked_by: dict[str, str] = field(default_factory=dict)
     #: technique ids ATT&CK marks deprecated (no replacement is named)
     deprecated: frozenset[str] = frozenset()
+    #: names of the live data components (DeTT&CT administration files name these)
+    data_components: frozenset[str] = frozenset()
 
     def resolve_retired(self, technique_id: str) -> tuple[str | None, str]:
         """Follow ``revoked-by`` links to a live technique id.
@@ -156,11 +158,15 @@ def load_attack_data(stix_path: Path) -> AttackData:
     strategy_analytics: dict[str, list[str]] = {}
     detects: list[tuple[str, str]] = []
     revoked_by_refs: list[tuple[str, str]] = []
+    data_components: set[str] = set()
 
     for obj in bundle.get("objects", []):
         obj_type = obj.get("type")
         if obj_type == "x-mitre-collection":
             data.version = obj.get("x_mitre_version")
+        elif obj_type == "x-mitre-data-component":
+            if not obj.get("revoked") and not obj.get("x_mitre_deprecated") and obj.get("name"):
+                data_components.add(str(obj["name"]))
         elif obj_type == "x-mitre-analytic":
             analytic_log_sources[str(obj.get("id"))] = [
                 str(ref["name"])
@@ -209,6 +215,7 @@ def load_attack_data(stix_path: Path) -> AttackData:
         if old_id is not None and new_id is not None and old_id != new_id:
             data.revoked_by[old_id] = new_id
     data.deprecated = frozenset(deprecated)
+    data.data_components = frozenset(data_components)
     return data
 
 

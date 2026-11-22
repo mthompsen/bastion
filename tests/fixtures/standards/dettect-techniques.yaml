@@ -1,0 +1,42 @@
+# Written for Bastion's tests in the DeTT&CT 2.2.0 technique-administration format (1.2).
+version: 1.2
+file_type: technique-administration
+name: bastion test
+domain: enterprise-attack
+platform:
+- Windows
+techniques:
+- technique_id: T1059.001
+  technique_name: PowerShell
+  detection:
+  - applicable_to: [all]
+    location: []
+    comment: ''
+    score_logbook:
+    - date: 2026-01-10
+      score: 2
+      comment: ''
+    - date: 2026-06-01
+      score: 3
+      comment: ''
+  visibility:
+  - applicable_to: [all]
+    comment: ''
+    score_logbook:
+    - date: 2026-06-01
+      score: 4
+      comment: ''
+- technique_id: T9001
+  technique_name: Old Revoked Technique
+  detection:
+  - applicable_to: [all]
+    score_logbook:
+    - date:
+      score: -1
+  visibility:
+  - applicable_to: [all]
+    score_logbook: []
+- technique_id: T9002
+  technique_name: Old Deprecated Technique
+  detection: []
+  visibility: []
