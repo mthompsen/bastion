@@ -150,3 +150,42 @@ data.
 
 Clean gains: frozen 130 headline +1 (of +4), strict 0; expanded headline +2 (of +5), strict +1
 (of +1). The goodware does not move: none of the newly matching rules fires on it.
+
+### `b4c-b` (lever b, commit `86a3445`, against `b4c-a`)
+
+| Measure | `b4c-a` | `b4c-b` |
+|:-|-:|-:|
+| Frozen 130: headline / strict / any firing | 43 / 33 / 80 | 45 / 34 / 84 |
+| Expanded test, 512 captures: headline / strict / any | 130 / 106 / 287 | 136 / 112 / 302 |
+| Dev, 344 captures: headline / strict / any | 115 / 96 / 210 | 118 / 98 / 215 |
+| Windows goodware per host-day, overall / medium and above (budget 20) | 15.82 / 13.80 | 16.01 / 13.80 |
+| Own-lab background per host-day, overall / medium and above | 32.70 / 15.45 | 32.70 / 15.45 |
+| Regression fixtures passed (parent-aware / strict) | 196 / 192 of 197 | 196 / 192 of 197 |
+| Rules not evaluable at least once (alerting) | 1,023 (802) | 992 (778) |
+
+Sixteen test captures changed, none for the worse, and none of them is among the 49
+inspected before, so every gain is clean.
+
+| Test capture | Cohort | Change | Rules newly firing |
+|:-|:-|:-|:-|
+| `attack_data/T1070.001/windows_event_log_cleared/windows` | b3 | none to headline and strict | Important Windows Eventlog Cleared, Security Eventlog Cleared |
+| `attack_data/T1543.003/lotus_blossom_chrysalis/windows` | b3 | none to headline and strict | Service Installation in Suspicious Folder |
+| `attack_data/T1543.003/windows_krbrelayup_service_creation/windows` | b3 | headline to strict | PowerShell Scripts Installed as Services, Suspicious Service Installation |
+| `attack_data/T1569.002/malicious_powershell_executed_as_a_service/windows` | b3 | none to headline and strict | the same two |
+| `Defense Evasion/DE_1102_security_log_cleared` | b3 | none to headline and strict | Security Eventlog Cleared |
+| `Execution/rogue_msi_url_1040_1042` | frozen | none to headline and strict | MSI Installation From Web |
+| `Privilege Escalation/System_7045_namedpipe_privesc` | frozen | none to headline | Meterpreter or Cobalt Strike Getsystem Service Installation, Suspicious Service Installation, Uncommon Service Installation Image Path |
+| 9 more (2 frozen, 7 b3) | | none to any firing only | Security Eventlog Cleared (8), MSSQL XPCmdshell Option Change (1) |
+
+The nine any-firing changes are captures whose recording holds a Security log clear (1102) or
+an MSSQL configuration event that is not the labelled technique. Across all captures the rules
+behind the change are the ones keyed on `Provider_Name`: MSSQL rules, Application Uninstalled,
+the log-clear rules and the 7045 service rules.
+
+Goodware: two low and informational rules now match, Windows Service Terminated With Error (4
+alerts) and Windows Update Error (2), so the overall rate goes from 15.82 to 16.01 per host-day.
+Medium and above does not move. Both rules are in the alerting class. They are left as they are:
+the budget holds, and filtering against the goodware we measure on would be self-fulfilling.
+
+Clean gains: frozen 130 headline +2 (of +2), strict +1 (of +1); expanded headline +6 (of +6),
+strict +6 (of +6).
