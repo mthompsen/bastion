@@ -278,6 +278,70 @@ class TestCli:
         out = json.loads(result.output)
         assert out["supported"] is True and out["data_sources"] == 2
 
+    def test_fetch_command_reports_rows_and_failures(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        runner = CliRunner()
+        monkeypatch.setattr(
+            "bastion.cli_standards.fetch_standards",
+            lambda data_dir, force: [
+                {"file": "car/x.zip", "status": "fetched", "digest_matches": False},
+                {"file": "ctid/y.json", "status": "cached", "digest_matches": True},
+            ],
+        )
+        result = runner.invoke(app, ["standards", "fetch"])
+        assert result.exit_code == 0
+        assert (
+            "digest differs from the pin" in result.output
+            and "cached: ctid/y.json" in result.output
+        )
+
+        def fail(data_dir: Path, force: bool) -> list[dict[str, object]]:
+            raise ValueError("sha256 mismatch")
+
+        monkeypatch.setattr("bastion.cli_standards.fetch_standards", fail)
+        result = runner.invoke(app, ["standards", "fetch"])
+        assert result.exit_code == 1 and "Fetch failed" in result.output
+
+    def test_tables_with_fetched_data(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        mapping_dir = tmp_path / "standards"
+        targets = dict(
+            zip(
+                [f.relative for f in standards_files()],
+                [
+                    FIXTURES / "d3fend-1.6.0-mappings-excerpt.csv",
+                    FIXTURES / "d3fend-1.6.0-techniques-excerpt.csv",
+                    FIXTURES / "ctid-800-53-attack-16.1-excerpt.json",
+                    None,
+                ],
+                strict=True,
+            )
+        )
+        for relative, source in targets.items():
+            dest = mapping_dir / relative
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            if source is None:
+                shutil.make_archive(str(dest.with_suffix("")), "zip", FIXTURES, "car-excerpt")
+            else:
+                shutil.copy(source, dest)
+        monkeypatch.setattr(
+            "bastion.cli_standards._attack", lambda attack_file, data_dir: _attack()
+        )
+        runner = CliRunner()
+        args = ["--data-dir", str(tmp_path)]
+        result = runner.invoke(app, ["standards", "status", *args])
+        assert result.exit_code == 0, result.output
+        assert "16.1" in result.output and "older" in result.output
+        result = runner.invoke(app, ["standards", "technique", "T1110", *args])
+        assert result.exit_code == 0 and "AC-06" in result.output and "drift:" in result.output
+        result = runner.invoke(app, ["standards", "technique", "T1059.001", *args, "--json"])
+        out = json.loads(result.output)
+        assert {e["id"] for e in out["car"]["entries"]} == {"CAR-2014-04-003", "CAR-2014-11-004"}
+        result = runner.invoke(
+            app, ["standards", "dettect", str(FIXTURES / "dettect-techniques.yaml"), *args]
+        )
+        assert result.exit_code == 0 and "supported" in result.output
+
     def test_missing_attack_bundle_exits(self, tmp_path: Path) -> None:
         result = CliRunner().invoke(app, ["standards", "status", "--data-dir", str(tmp_path)])
         assert result.exit_code == 1
